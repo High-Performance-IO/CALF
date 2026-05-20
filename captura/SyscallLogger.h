@@ -44,7 +44,6 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     }
 
   private:
-
     template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
     static long to_arg(T v) {
         return static_cast<long>(v);
@@ -57,7 +56,6 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     template <typename... Args> static long captura_syscall(long nr, Args &&...args) {
         return syscallFn(nr, to_arg(args)...);
     }
-
 
     static void ensureFileOpen() {
         if (fileFD != -1) {
@@ -158,6 +156,8 @@ using Logger = TemplateLogger<SyscallLogger>;
         LOG("[  DBG  ]~~~ END   ~~~[  DBG  ]");                                                    \
     }
 
+#define SET_CAPTURA_SYSCALL_HANDLER(syscall_ptr) SyscallLogger::setSyscallFn(syscall_ptr)
+
 #else
 
 #define LOG(message, ...)
@@ -165,6 +165,7 @@ using Logger = TemplateLogger<SyscallLogger>;
 #define DBG(tid, lambda)
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
+#define SET_CAPTURA_SYSCALL_HANDLER(syscall_ptr)
 
 #endif
 
