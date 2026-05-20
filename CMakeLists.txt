@@ -35,7 +35,9 @@ target_compile_definitions(captura_core
 
 add_library(captura::core ALIAS captura_core)
 
-
+# -------------------------------------------------------------------------
+#  STL logger  (std::ofstream backend — enabled by default)
+# -------------------------------------------------------------------------
 if(CAPTURA_BUILD_STL)
     add_library(captura_stl STATIC
             src/StlLogger.cpp
@@ -49,7 +51,9 @@ if(CAPTURA_BUILD_STL)
     add_library(captura::stl ALIAS captura_stl)
 endif()
 
-
+# -------------------------------------------------------------------------
+#  Syscall logger  (raw POSIX write — for interceptor builds)
+# -------------------------------------------------------------------------
 if(CAPTURA_BUILD_SYSCALL)
     add_library(captura_syscall STATIC
             src/SyscallLogger.cpp
@@ -63,11 +67,14 @@ if(CAPTURA_BUILD_SYSCALL)
     target_compile_definitions(captura_syscall
             PUBLIC __CAPTURA_POSIX
     )
+    target_compile_options(captura_syscall
+            PUBLIC -ftls-model=initial-exec
+    )
     add_library(captura::syscall ALIAS captura_syscall)
 endif()
 
 # -------------------------------------------------------------------------
-#  At least one logger backend must be enabled
+#  Guard: at least one logger backend must be enabled
 # -------------------------------------------------------------------------
 if(CAPTURA_LOG AND NOT CAPTURA_BUILD_STL AND NOT CAPTURA_BUILD_SYSCALL)
     message(WARNING
