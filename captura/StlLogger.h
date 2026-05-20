@@ -44,13 +44,13 @@ struct StlLogger : JsonLogBase<StlLogger> {
         if (const char *env = std::getenv("CAPTURA_LOG_DIR"); env != nullptr) {
             logDir = env;
         } else {
-            logDir = CAPIO_DEFAULT_LOG_FOLDER;
+            logDir = CAPTURA_DEFAULT_LOG_FOLDER;
         }
 
         if (const char *env = std::getenv("CAPTURA_LOG_PREFIX"); env != nullptr) {
             prefix = env;
         } else {
-            prefix = CAPIO_SERVER_DEFAULT_LOG_FILE_PREFIX;
+            prefix = CAPTURA_STL_DEFAULT_LOG_FILE_PREFIX;
         }
 
         char hostname[HOST_NAME_MAX];

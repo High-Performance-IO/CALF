@@ -17,14 +17,6 @@
 
 #include "constants.h"
 
-template <typename T> std::string demangled_name(const T &obj) {
-    int status;
-    const char *mangled = typeid(obj).name();
-    std::unique_ptr<char, void (*)(void *)> demangled(
-        abi::__cxa_demangle(mangled, nullptr, nullptr, &status), std::free);
-    return status == 0 ? demangled.get() : mangled;
-}
-
 inline bool continue_on_error = false;
 
 inline void raise_termination(const bool raise_exception, const std::string &message) {
@@ -90,7 +82,7 @@ template <typename Adapter> class TemplateLogger {
                                  message, argp);
         } else {
             adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
-                                   CAPIO_LOG_PRE_MSG, message, argp);
+                                   CAPTURA_LOG_PRE_MSG, message, argp);
         }
         va_end(argp);
     }
@@ -117,7 +109,7 @@ template <typename Adapter> class TemplateLogger {
         va_list argp;
         va_start(argp, message);
         adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
-                               CAPIO_LOG_PRE_MSG, message, argp);
+                               CAPTURA_LOG_PRE_MSG, message, argp);
         va_end(argp);
     }
 

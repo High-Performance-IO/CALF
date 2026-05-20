@@ -91,7 +91,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         static char *d = nullptr;
         if (d == nullptr) {
             const char *e   = std::getenv("CAPTURA_LOG_DIR");
-            const char *src = e ? e : CAPIO_DEFAULT_LOG_FOLDER;
+            const char *src = e ? e : CAPTURA_DEFAULT_LOG_FOLDER;
             d               = new char[::strlen(src) + 1];
             ::strcpy(d, src);
         }
@@ -102,7 +102,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         static char *p = nullptr;
         if (p == nullptr) {
             const char *e   = std::getenv("CAPTURA_LOG_PREFIX");
-            const char *src = e ? e : CAPIO_LOG_POSIX_DEFAULT_LOG_FILE_PREFIX;
+            const char *src = e ? e : CAPTURA_SYSCALL_DEFAULT_LOG_FILE_PREFIX;
             p               = new char[::strlen(src) + 1];
             ::strcpy(p, src);
         }
