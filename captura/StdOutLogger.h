@@ -134,7 +134,7 @@ using CapturaCliLogger = TemplateLogger<StdoutLogger>;
 
 #define CAPTURA_PRINT(message, ...)                                                                \
     do {                                                                                           \
-        char _captura_buf[CAPIO_LOG_MAX_MSG_LEN];                                                  \
+        char _captura_buf[CAPTURA_LOG_MAX_MSG_LEN];                                                \
         ::snprintf(_captura_buf, sizeof(_captura_buf), message, ##__VA_ARGS__);                    \
         StdoutLogger::printLine(__func__, _captura_buf);                                           \
     } while (0)
@@ -143,7 +143,7 @@ using CapturaCliLogger = TemplateLogger<StdoutLogger>;
     do {                                                                                           \
         const char *_captura_saved  = StdoutLogger::options.color;                                 \
         StdoutLogger::options.color = (color);                                                     \
-        char _captura_buf[CAPIO_LOG_MAX_MSG_LEN];                                                  \
+        char _captura_buf[CAPTURA_LOG_MAX_MSG_LEN];                                                \
         ::snprintf(_captura_buf, sizeof(_captura_buf), message, ##__VA_ARGS__);                    \
         StdoutLogger::printLine(__func__, _captura_buf);                                           \
         StdoutLogger::options.color = _captura_saved;                                              \
