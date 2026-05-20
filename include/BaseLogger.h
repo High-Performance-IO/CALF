@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <sys/mman.h>
 #include <type_traits>
@@ -28,21 +29,57 @@ template <typename T> std::string demangled_name(const T &obj) {
     return status == 0 ? demangled.get() : mangled;
 }
 
-// Defined in BaseLogger.cpp
-extern bool continue_on_error;
+// -------------------------------------------------------------------------
+//  Non-template globals — inline so the header is self-contained
+// -------------------------------------------------------------------------
 
-void raise_termination(bool raise_exception, const std::string &message);
+// When true, ERR_EXIT logs but does not terminate the process.
+inline bool continue_on_error = false;
 
-long long current_time_in_millis();
+inline void raise_termination(const bool raise_exception, const std::string &message) {
+    if (raise_exception) {
+        throw std::runtime_error(message);
+    }
+    ::write(STDERR_FILENO, message.c_str(), message.size());
+    exit(EXIT_FAILURE);
+}
+
+inline long long current_time_in_millis() {
+    timespec ts{};
+    static long long start_time = -1;
+    if (start_time == -1) {
+        clock_gettime(CLOCK_REALTIME, &ts);
+        start_time = static_cast<long long>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+    }
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return static_cast<long long>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000 - start_time;
+}
+
+// -------------------------------------------------------------------------
+//  Per-thread logging gate
+// -------------------------------------------------------------------------
 
 #ifdef __CAPTURA_POSIX
 // POSIX interceptor: logging starts disabled and is enabled explicitly
-// after setup to prevent re-entrance into the interceptor itself.
-inline thread_local bool enable_logger = false;
+// after setup to prevent re-entrancy into the interceptor itself.
+inline thread_local __attribute__((tls_model("initial-exec"))) bool enable_logger = false;
 #else
 // Server / non-POSIX: logging is always active from the first call.
-inline thread_local bool enable_logger = true;
+inline thread_local __attribute__((tls_model("initial-exec"))) bool enable_logger = true;
 #endif
+
+// -------------------------------------------------------------------------
+//  Log-level cap
+// -------------------------------------------------------------------------
+
+#ifndef CAPIO_MAX_LOG_LEVEL
+#define CAPIO_MAX_LOG_LEVEL -1
+#endif
+inline int CAPIO_LOG_LEVEL = CAPIO_MAX_LOG_LEVEL;
+
+// -------------------------------------------------------------------------
+//  RAII helper: temporarily suspend logging (POSIX interceptor)
+// -------------------------------------------------------------------------
 
 class SyscallLoggingSuspender {
   public:
@@ -50,8 +87,12 @@ class SyscallLoggingSuspender {
     ~SyscallLoggingSuspender() { enable_logger = true; }
 };
 
+// -------------------------------------------------------------------------
+//  TemplateLogger
+// -------------------------------------------------------------------------
+
 template <typename Adapter> class TemplateLogger {
-    static thread_local int current_log_level;
+    static thread_local __attribute__((tls_model("initial-exec"))) int current_log_level;
 
     char invoker[256]{0};
     char file[256]{0};
@@ -74,20 +115,21 @@ template <typename Adapter> class TemplateLogger {
 
         current_log_level++;
 
-        va_list argp;
-        va_start(argp, message);
-        if (current_log_level == 1) {
-            adapter.writeOpening(current_time_in_millis(), this->invoker, this->file, this->line,
-                                 message, argp);
-        } else {
-            adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
-                                   CAPIO_LOG_PRE_MSG, message, argp);
+        if (current_log_level < CAPIO_MAX_LOG_LEVEL || CAPIO_MAX_LOG_LEVEL < 0) {
+            va_list argp;
+            va_start(argp, message);
+            if (current_log_level == 1) {
+                adapter.writeOpening(current_time_in_millis(), this->invoker, this->file,
+                                     this->line, message, argp);
+            } else {
+                adapter.printFormatted(current_time_in_millis(), this->invoker, this->file,
+                                       this->line, CAPIO_LOG_PRE_MSG, message, argp);
+            }
+            va_end(argp);
         }
-        va_end(argp);
     }
 
-    TemplateLogger(const TemplateLogger &) = delete;
-
+    TemplateLogger(const TemplateLogger &)            = delete;
     TemplateLogger &operator=(const TemplateLogger &) = delete;
 
     ~TemplateLogger() {
@@ -95,7 +137,8 @@ template <typename Adapter> class TemplateLogger {
             return;
         }
 
-        if (current_log_level == 1) {
+        if (current_log_level == 1 &&
+            (current_log_level < CAPIO_MAX_LOG_LEVEL || CAPIO_MAX_LOG_LEVEL < 0)) {
             adapter.writeEpilogue(static_cast<unsigned long>(current_time_in_millis()));
         }
         current_log_level--;
@@ -106,11 +149,13 @@ template <typename Adapter> class TemplateLogger {
             return;
         }
 
-        va_list argp;
-        va_start(argp, message);
-        adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
-                               CAPIO_LOG_PRE_MSG, message, argp);
-        va_end(argp);
+        if (current_log_level < CAPIO_MAX_LOG_LEVEL || CAPIO_MAX_LOG_LEVEL < 0) {
+            va_list argp;
+            va_start(argp, message);
+            adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
+                                   CAPIO_LOG_PRE_MSG, message, argp);
+            va_end(argp);
+        }
     }
 
     std::string getLogFileName() { return adapter.getLogFileName(); }
@@ -118,7 +163,13 @@ template <typename Adapter> class TemplateLogger {
     static void reset_log_level() { current_log_level = 0; }
 };
 
-template <typename T> inline thread_local int TemplateLogger<T>::current_log_level = 0;
+template <typename T>
+inline thread_local
+    __attribute__((tls_model("initial-exec"))) int TemplateLogger<T>::current_log_level = 0;
+
+// -------------------------------------------------------------------------
+//  Macros
+// -------------------------------------------------------------------------
 
 #ifdef CAPTURA_LOG
 
@@ -131,7 +182,7 @@ template <typename T> inline thread_local int TemplateLogger<T>::current_log_lev
     }
 #define ERR_EXIT(message, ...) ERR_EXIT_EXCEPT_CHOICE(true, message, ##__VA_ARGS__)
 
-#else // CAPTURA_LOG not defined — zero-cost stubs
+#else
 
 #define ERR_EXIT_EXCEPT_CHOICE(raise_exception, message, ...)                                      \
     if (!continue_on_error) {                                                                      \
@@ -141,6 +192,6 @@ template <typename T> inline thread_local int TemplateLogger<T>::current_log_lev
     }
 #define ERR_EXIT(message, ...) ERR_EXIT_EXCEPT_CHOICE(true, message, ##__VA_ARGS__)
 
-#endif
+#endif // CAPTURA_LOG
 
 #endif // CAPTURA_BASELOGGER_H

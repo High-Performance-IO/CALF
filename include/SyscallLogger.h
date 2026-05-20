@@ -1,42 +1,168 @@
 #ifndef CAPTURA_SYSCALLLOGGER_H
 #define CAPTURA_SYSCALLLOGGER_H
 
-#include <climits>       // PATH_MAX, HOST_NAME_MAX
-#include <cstdlib>       // getenv
-#include <cstring>       // strlen, strerror
-#include <sys/syscall.h> // SYS_* constants
-#include <unistd.h>      // gethostname
+#include <cerrno>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
+#include <string>
+#include <sys/syscall.h>
+#include <type_traits>
+#include <unistd.h>
 
 #include "BaseLogger.h"
 #include "JsonBaseLogger.h"
 
+/**
+ * Adapter that writes structured JSON log output using raw syscalls.
+ * Intended for the syscall-interceptor build (__CAPTURA_POSIX).
+ * Header-only: all methods are inline.
+ *
+ * Call SyscallLogger::setSyscallFn(syscall_no_intercept) before any
+ * logging starts to redirect syscalls through a custom implementation.
+ */
 struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
-    static thread_local int fileFD;
-    static thread_local char filePath[PATH_MAX];
+    // thread_local file state — initial-exec TLS model required for
+    // shared library (.so) compatibility.
+    static thread_local __attribute__((tls_model("initial-exec"))) int fileFD;
+    static thread_local __attribute__((tls_model("initial-exec"))) char filePath[PATH_MAX];
 
-    using SyscallFn = long (*)(long, ...);
-    static SyscallFn syscallFn;
+    // Syscall function pointer — defaults to ::syscall.
+    using SyscallFn                   = long (*)(long, ...);
+    inline static SyscallFn syscallFn = ::syscall;
 
     static void setSyscallFn(SyscallFn fn) { syscallFn = fn; }
-    explicit SyscallLogger();
 
-    static void rawWriteBytes(const char *buf, int len);
-    static void rawWriteStr(const char *buf);
+    explicit SyscallLogger() { ensureFileOpen(); }
 
-    std::string getLogFileName() const;
+    std::string getLogFileName() const {
+        return filePath[0] != '\0' ? std::string(filePath) : std::string{};
+    }
+
+    static void rawWriteBytes(const char *buf, int len) {
+        ensureFileOpen();
+        captura_syscall(SYS_write, fileFD, buf, static_cast<size_t>(len));
+    }
+
+    static void rawWriteStr(const char *buf) {
+        rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
+    }
 
   private:
-    static void ensureFileOpen();
+    // ------------------------------------------------------------------
+    //  Syscall dispatch helpers
+    //  Integer args widen via static_cast; pointer args go through
+    //  reinterpret_cast.  Variadic template avoids GNU ##__VA_ARGS__.
+    // ------------------------------------------------------------------
 
-    static const char *getHostname();
-    static const char *getLogDir();
-    static const char *getLogPrefix();
-    static const char *getSyscallLogDir();
-    static const char *getHostLogDir();
+    template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+    static long to_arg(T v) {
+        return static_cast<long>(v);
+    }
+
+    template <typename T> static long to_arg(T *v) { return reinterpret_cast<long>(v); }
+
+    template <typename T> static long to_arg(const T *v) { return reinterpret_cast<long>(v); }
+
+    template <typename... Args> static long captura_syscall(long nr, Args &&...args) {
+        return syscallFn(nr, to_arg(args)...);
+    }
+
+    // ------------------------------------------------------------------
+    //  File open
+    // ------------------------------------------------------------------
+
+    static void ensureFileOpen() {
+        if (fileFD != -1) {
+            return;
+        }
+
+        ::snprintf(filePath, PATH_MAX, "%s/%s%ld.log", getHostLogDir(), getLogPrefix(),
+                   captura_syscall(SYS_gettid));
+
+        captura_syscall(SYS_mkdirat, AT_FDCWD, getLogDir(), 0755);
+        captura_syscall(SYS_mkdirat, AT_FDCWD, getSyscallLogDir(), 0755);
+        captura_syscall(SYS_mkdirat, AT_FDCWD, getHostLogDir(), 0755);
+
+        fileFD = static_cast<int>(
+            captura_syscall(SYS_openat, AT_FDCWD, filePath, O_CREAT | O_WRONLY | O_APPEND, 0644));
+
+        if (fileFD == -1) {
+            const char *msg = "Captura: failed to open log file\n";
+            captura_syscall(SYS_write, STDOUT_FILENO, msg, ::strlen(msg));
+            ::exit(EXIT_FAILURE);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  Path helpers — function-local statics, initialised once
+    // ------------------------------------------------------------------
+
+    static const char *getHostname() {
+        static char h[HOST_NAME_MAX]{'\0'};
+        if (h[0] == '\0') {
+            ::gethostname(h, HOST_NAME_MAX);
+        }
+        return h;
+    }
+
+    static const char *getLogDir() {
+        static char *d = nullptr;
+        if (d == nullptr) {
+            const char *e   = std::getenv("CAPTURA_LOG_DIR");
+            const char *src = e ? e : CAPIO_DEFAULT_LOG_FOLDER;
+            d               = new char[::strlen(src) + 1];
+            ::strcpy(d, src);
+        }
+        return d;
+    }
+
+    static const char *getLogPrefix() {
+        static char *p = nullptr;
+        if (p == nullptr) {
+            const char *e   = std::getenv("CAPTURA_LOG_PREFIX");
+            const char *src = e ? e : CAPIO_LOG_POSIX_DEFAULT_LOG_FILE_PREFIX;
+            p               = new char[::strlen(src) + 1];
+            ::strcpy(p, src);
+        }
+        return p;
+    }
+
+    static const char *getSyscallLogDir() {
+        static char *d = nullptr;
+        if (d == nullptr) {
+            const char *base = getLogDir();
+            d                = new char[::strlen(base) + 9]{0};
+            ::sprintf(d, "%s/syscall", base);
+        }
+        return d;
+    }
+
+    static const char *getHostLogDir() {
+        static char *d = nullptr;
+        if (d == nullptr) {
+            const char *parent = getSyscallLogDir();
+            d                  = new char[::strlen(parent) + HOST_NAME_MAX]{0};
+            ::sprintf(d, "%s/%s", parent, getHostname());
+        }
+        return d;
+    }
 };
 
+// Out-of-class definitions for thread_local statics.
+// The initial-exec attribute must appear on both declaration and definition.
+inline thread_local __attribute__((tls_model("initial-exec"))) int SyscallLogger::fileFD = -1;
+inline thread_local
+    __attribute__((tls_model("initial-exec"))) char SyscallLogger::filePath[PATH_MAX] = {'\0'};
+
 using Logger = TemplateLogger<SyscallLogger>;
+
+// -------------------------------------------------------------------------
+//  Macros — POSIX / syscall-interceptor build
+// -------------------------------------------------------------------------
 
 #ifdef CAPTURA_LOG
 
@@ -56,7 +182,7 @@ using Logger = TemplateLogger<SyscallLogger>;
         LOG("[  DBG  ]~~~ END   ~~~[  DBG  ]");                                                    \
     }
 
-#else // zero-cost stubs
+#else
 
 #define LOG(message, ...)
 #define START_LOG(tid, message, ...)

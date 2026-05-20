@@ -8,12 +8,49 @@
 
 #include "constants.h"
 
+/**
+ * CRTP mixin that implements the full structured-JSON adapter interface
+ * required by TemplateLogger.  Derived adapters supply two I/O primitives:
+ *
+ *   static void rawWriteBytes(const char *buf, int len);
+ *   static void rawWriteStr (const char *buf);   // NUL-terminated
+ *
+ * All JSON structure, indentation, pending-comma handling, and string
+ * escaping live here, shared by SyscallLogger and StlLogger.
+ *
+ * This file is header-only because every method is a template instantiation
+ * and the compiler needs the full definitions at each use site.
+ */
 template <typename Derived> struct JsonLogBase {
-    static thread_local int nestingDepth;
-    static thread_local bool rootArrayOpen;
-    static thread_local int pendingLen;
-    static thread_local char pendingBuf[CAPIO_LOG_MAX_MSG_LEN * 6 + 256];
 
+    // ------------------------------------------------------------------ //
+    //  Per-thread JSON state
+    // ------------------------------------------------------------------ //
+
+    static thread_local __attribute__((tls_model("initial-exec"))) int nestingDepth;
+    static thread_local __attribute__((tls_model("initial-exec"))) bool rootArrayOpen;
+
+    // Holds the last-written event line WITHOUT its trailing newline.
+    // Flushed with ",\n" when a sibling follows, "\n" when the array closes.
+    // This deferred-write approach is the only way to avoid trailing commas
+    // on an append-only stream without seeking back.
+    static thread_local __attribute__((tls_model("initial-exec"))) int pendingLen;
+    static thread_local
+        __attribute__((tls_model("initial-exec"))) char pendingBuf[CAPIO_LOG_MAX_MSG_LEN * 6 + 256];
+
+    // ------------------------------------------------------------------ //
+    //  TemplateLogger adapter interface
+    // ------------------------------------------------------------------ //
+
+    static void write(const char * /*legacy*/, const size_t /*legacy*/) {
+        // ts_exit is emitted by writeEpilogue; nothing to do here.
+    }
+
+    /**
+     * Called for every LOG(...) inside a scope.
+     * Flushes the previous pending entry with a comma, then stores this
+     * event object in pendingBuf WITHOUT a trailing newline.
+     */
     static void printFormatted(unsigned long int timestamp, const char *invoker, const char *file,
                                int line, const char * /*output_template*/,
                                const char *message_format, va_list args) {
@@ -22,47 +59,62 @@ template <typename Derived> struct JsonLogBase {
 
         char escaped_invoker[512];
         jsonEscape(invoker, static_cast<int>(::strlen(invoker)), escaped_invoker,
-                   sizeof(escaped_invoker));
+                   static_cast<int>(sizeof(escaped_invoker)));
 
         char escaped_file[512];
-        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file, sizeof(escaped_file));
+        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file,
+                   static_cast<int>(sizeof(escaped_file)));
 
         flushPending(true);
 
         const int indent = indentSize();
-        char *p          = pendingBuf;
+        char *p          = JsonLogBase<Derived>::pendingBuf;
         for (int i = 0; i < indent; ++i) {
             *p++ = ' ';
         }
-        p += ::snprintf(p, sizeof(pendingBuf) - static_cast<size_t>(indent) - 1,
+        p += ::snprintf(p,
+                        sizeof(JsonLogBase<Derived>::pendingBuf) - static_cast<size_t>(indent) - 1,
                         "{ \"ts\": %lu, \"invoker\": \"%s\","
                         " \"file\": \"%s\", \"line\": %d, \"args\": \"%s\" }",
                         timestamp, escaped_invoker, escaped_file, line, escaped_args);
-        pendingLen = static_cast<int>(p - pendingBuf);
+        JsonLogBase<Derived>::pendingLen = static_cast<int>(p - JsonLogBase<Derived>::pendingBuf);
     }
 
+    /**
+     * Called by TemplateLogger constructor (current_log_level == 1).
+     * Opens one JSON object in the root array:
+     *
+     *   {
+     *     "invoker":  "...",
+     *     "file":     "...",
+     *     "line":     N,
+     *     "ts_enter": T,
+     *     "args":     "...",
+     *     "events": [
+     */
     static void writeOpening(unsigned long int timestamp, const char *invoker, const char *file,
                              int line, const char *message_format, va_list args) {
-        if (!rootArrayOpen) {
+        if (!JsonLogBase<Derived>::rootArrayOpen) {
             Derived::rawWriteStr("[\n");
-            rootArrayOpen = true;
-            nestingDepth  = 1;
+            JsonLogBase<Derived>::rootArrayOpen = true;
+            JsonLogBase<Derived>::nestingDepth  = 1;
         }
 
         char escaped_args[CAPIO_LOG_MAX_MSG_LEN * 6];
-        expandAndEscape(message_format, args, escaped_args, sizeof(escaped_args));
+        expandAndEscape(message_format, args, escaped_args, static_cast<int>(sizeof(escaped_args)));
 
         char escaped_invoker[512];
         jsonEscape(invoker, static_cast<int>(::strlen(invoker)), escaped_invoker,
                    static_cast<int>(sizeof(escaped_invoker)));
 
         char escaped_file[512];
-        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file, sizeof(escaped_file));
+        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file,
+                   static_cast<int>(sizeof(escaped_file)));
 
         flushPending(true); // close previous sibling object with ","
 
         writeImmediate("{");
-        nestingDepth++;
+        JsonLogBase<Derived>::nestingDepth++;
 
         writeField("\"invoker\"", "\"%s\",", escaped_invoker);
         writeField("\"file\"", "\"%s\",", escaped_file);
@@ -71,19 +123,24 @@ template <typename Derived> struct JsonLogBase {
         writeField("\"args\"", "\"%s\",", escaped_args);
 
         writeImmediate("\"events\": [");
-        nestingDepth++;
+        JsonLogBase<Derived>::nestingDepth++;
 
-        pendingLen = 0;
+        JsonLogBase<Derived>::pendingLen = 0;
     }
 
+    /**
+     * Called by TemplateLogger destructor (current_log_level == 1).
+     * Closes the "events" array, emits "ts_exit", and stores the closing
+     * "}" as a pending line so the next sibling gets a leading comma.
+     */
     static void writeEpilogue(unsigned long int timestamp) {
-        if (nestingDepth < 2) {
+        if (JsonLogBase<Derived>::nestingDepth < 2) {
             return;
         }
 
         flushPending(false); // last event — no trailing comma
 
-        nestingDepth--;
+        JsonLogBase<Derived>::nestingDepth--;
         writeImmediate("],"); // close "events", comma before "ts_exit"
 
         {
@@ -94,24 +151,28 @@ template <typename Derived> struct JsonLogBase {
 
         // Store closing "}" as pending so the next writeOpening can
         // prepend "," to it when a sibling object follows.
-        nestingDepth--;
-        char *p          = pendingBuf;
+        JsonLogBase<Derived>::nestingDepth--;
+        char *p          = JsonLogBase<Derived>::pendingBuf;
         const int indent = indentSize();
         for (int i = 0; i < indent; ++i) {
             *p++ = ' ';
         }
-        *p++       = '}';
-        pendingLen = static_cast<int>(p - pendingBuf);
+        *p++                             = '}';
+        JsonLogBase<Derived>::pendingLen = static_cast<int>(p - JsonLogBase<Derived>::pendingBuf);
     }
 
   protected:
+    // ------------------------------------------------------------------ //
+    //  Internal helpers
+    // ------------------------------------------------------------------ //
+
     static void flushPending(bool withComma) {
-        if (pendingLen <= 0) {
+        if (JsonLogBase<Derived>::pendingLen <= 0) {
             return;
         }
-        Derived::rawWriteBytes(pendingBuf, pendingLen);
+        Derived::rawWriteBytes(JsonLogBase<Derived>::pendingBuf, JsonLogBase<Derived>::pendingLen);
         Derived::rawWriteStr(withComma ? ",\n" : "\n");
-        pendingLen = 0;
+        JsonLogBase<Derived>::pendingLen = 0;
     }
 
     static void writeImmediate(const char *buf, int len = -1) {
@@ -135,7 +196,6 @@ template <typename Derived> struct JsonLogBase {
         ::snprintf(buf, sizeof(buf), "%s: %s", key, tmp);
         writeImmediate(buf);
     }
-
     static void writeFieldInt(const char *key, const char *fmt, int val) {
         char tmp[64];
         ::snprintf(tmp, sizeof(tmp), fmt, val);
@@ -143,7 +203,6 @@ template <typename Derived> struct JsonLogBase {
         ::snprintf(buf, sizeof(buf), "%s: %s", key, tmp);
         writeImmediate(buf);
     }
-
     static void writeFieldUL(const char *key, const char *fmt, unsigned long val) {
         char tmp[64];
         ::snprintf(tmp, sizeof(tmp), fmt, val);
@@ -153,7 +212,7 @@ template <typename Derived> struct JsonLogBase {
     }
 
     static int indentSize() {
-        const int n = nestingDepth * 2;
+        const int n = JsonLogBase<Derived>::nestingDepth * 2;
         return n < 64 ? n : 64;
     }
 
@@ -206,10 +265,18 @@ template <typename Derived> struct JsonLogBase {
     }
 };
 
-template <typename D> thread_local int JsonLogBase<D>::nestingDepth   = 0;
-template <typename D> thread_local bool JsonLogBase<D>::rootArrayOpen = false;
-template <typename D> thread_local int JsonLogBase<D>::pendingLen     = 0;
+// Out-of-class thread_local definitions.
+// Template statics are implicitly inline in C++17, so these are safe in a
+// header — each concrete instantiation (SyscallLogger, StlLogger, …) gets
+// its own independent per-thread storage.
 template <typename D>
-thread_local char JsonLogBase<D>::pendingBuf[CAPIO_LOG_MAX_MSG_LEN * 6 + 256] = {'\0'};
+thread_local __attribute__((tls_model("initial-exec"))) int JsonLogBase<D>::nestingDepth = 0;
+template <typename D>
+thread_local __attribute__((tls_model("initial-exec"))) bool JsonLogBase<D>::rootArrayOpen = false;
+template <typename D>
+thread_local __attribute__((tls_model("initial-exec"))) int JsonLogBase<D>::pendingLen = 0;
+template <typename D>
+thread_local __attribute__((tls_model(
+    "initial-exec"))) char JsonLogBase<D>::pendingBuf[CAPIO_LOG_MAX_MSG_LEN * 6 + 256] = {'\0'};
 
 #endif // CAPTURA_JSONBASELOGGER_H
