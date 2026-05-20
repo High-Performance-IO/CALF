@@ -8,6 +8,7 @@
 #include <string>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "BaseLogger.h"
 #include "JsonBaseLogger.h"
