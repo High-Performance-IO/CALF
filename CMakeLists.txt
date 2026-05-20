@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # -------------------------------------------------------------------------
 option(CAPTURA_LOG           "Enable Captura logging"                ON)
 option(CAPTURA_BUILD_STL     "Build the STL (ofstream) logger"       ON)
-option(CAPTURA_BUILD_SYSCALL "Build the syscall-interceptor logger"  OFF)
+option(CAPTURA_BUILD_SYSCALL "Build the syscall-interceptor logger"  ON)
 
 # -------------------------------------------------------------------------
 #  Core — INTERFACE target (header-only, no sources)
