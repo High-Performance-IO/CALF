@@ -77,7 +77,6 @@ struct StdoutLogger {
         std::cout << '\n' << std::flush;
     }
 
-  private:
     // Formats and prints one log line to stdout.
     static void printLine(const char *invoker, const char *message) {
         if (!options.printHeader) {
