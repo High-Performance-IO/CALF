@@ -48,8 +48,6 @@ Each thread writes to its own log file under the log directory, named after the 
 ```cmake
 include(FetchContent)
 
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-
 FetchContent_Declare(
     captura
     GIT_REPOSITORY https://github.com/High-Performance-IO/captura.git
