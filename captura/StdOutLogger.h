@@ -48,7 +48,7 @@ struct StdoutLogger {
     static void writeOpening(unsigned long int /*timestamp*/, const char *invoker,
                              const char * /*file*/, int /*line*/, const char *message_format,
                              va_list args) {
-        char expanded[CAPIO_LOG_MAX_MSG_LEN];
+        char expanded[CAPTURA_LOG_MAX_MSG_LEN];
         va_list copy;
         va_copy(copy, args);
         ::vsnprintf(expanded, sizeof(expanded), message_format, copy);
@@ -61,7 +61,7 @@ struct StdoutLogger {
                                const char * /*file*/, int /*line*/,
                                const char * /*output_template*/, const char *message_format,
                                va_list args) {
-        char expanded[CAPIO_LOG_MAX_MSG_LEN];
+        char expanded[CAPTURA_LOG_MAX_MSG_LEN];
         va_list copy;
         va_copy(copy, args);
         ::vsnprintf(expanded, sizeof(expanded), message_format, copy);
