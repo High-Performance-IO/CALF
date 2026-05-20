@@ -6,20 +6,25 @@
 #include <cstring>
 #include <fcntl.h>
 #include <sys/syscall.h>
+#include <type_traits>
 #include <unistd.h>
 
-// Convert any integral type to long.
 template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
 static long to_syscall_arg(T v) {
     return static_cast<long>(v);
 }
 
 template <typename T> static long to_syscall_arg(T *v) { return reinterpret_cast<long>(v); }
+
 template <typename T> static long to_syscall_arg(const T *v) { return reinterpret_cast<long>(v); }
 
-template <typename... Args> static long captura_syscall(long nr, Args &&...args) {
+template <typename... Args> static inine long captura_syscall(long nr, Args &&...args) {
     return SyscallLogger::syscallFn(nr, to_syscall_arg(args)...);
 }
+
+thread_local int SyscallLogger::fileFD              = -1;
+thread_local char SyscallLogger::filePath[PATH_MAX] = {'\0'};
+SyscallLogger::SyscallFn SyscallLogger::syscallFn   = ::syscall;
 
 SyscallLogger::SyscallLogger() { ensureFileOpen(); }
 
@@ -32,7 +37,7 @@ void SyscallLogger::rawWriteStr(const char *buf) {
     rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
 }
 
-std::string SyscallLogger::getLogFileName() {
+std::string SyscallLogger::getLogFileName() const {
     return filePath[0] != '\0' ? std::string(filePath) : std::string{};
 }
 
@@ -44,6 +49,7 @@ void SyscallLogger::ensureFileOpen() {
     ::snprintf(filePath, PATH_MAX, "%s/%s%ld.log", getHostLogDir(), getLogPrefix(),
                captura_syscall(SYS_gettid));
 
+    // Create directory hierarchy.
     captura_syscall(SYS_mkdirat, AT_FDCWD, getLogDir(), 0755);
     captura_syscall(SYS_mkdirat, AT_FDCWD, getSyscallLogDir(), 0755);
     captura_syscall(SYS_mkdirat, AT_FDCWD, getHostLogDir(), 0755);

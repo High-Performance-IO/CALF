@@ -1,11 +1,11 @@
 #ifndef CAPTURA_SYSCALLLOGGER_H
 #define CAPTURA_SYSCALLLOGGER_H
 
-#include <climits>
-#include <cstdlib>
-#include <cstring>
-#include <sys/syscall.h>
-#include <unistd.h>
+#include <climits>       // PATH_MAX, HOST_NAME_MAX
+#include <cstdlib>       // getenv
+#include <cstring>       // strlen, strerror
+#include <sys/syscall.h> // SYS_* constants
+#include <unistd.h>      // gethostname
 
 #include "BaseLogger.h"
 #include "JsonBaseLogger.h"
@@ -24,7 +24,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     static void rawWriteBytes(const char *buf, int len);
     static void rawWriteStr(const char *buf);
 
-    [[nodiscard]] static std::string getLogFileName();
+    std::string getLogFileName() const;
 
   private:
     static void ensureFileOpen();
@@ -35,12 +35,6 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     static const char *getSyscallLogDir();
     static const char *getHostLogDir();
 };
-
-inline thread_local int SyscallLogger::fileFD              = -1;
-inline thread_local char SyscallLogger::filePath[PATH_MAX] = {'\0'};
-
-extern SyscallLogger::SyscallFn _captura_syscall_fn_storage;
-inline SyscallLogger::SyscallFn SyscallLogger::syscallFn = ::syscall;
 
 using Logger = TemplateLogger<SyscallLogger>;
 
