@@ -1,5 +1,5 @@
-#ifndef CAPTURA_STDOUTLOGGER_H
-#define CAPTURA_STDOUTLOGGER_H
+#ifndef CALF_STDOUTLOGGER_H
+#define CALF_STDOUTLOGGER_H
 
 #include <chrono>
 #include <climits>
@@ -15,10 +15,10 @@
 
 // Cli pre messages
 constexpr char CAPIO_LOG_SERVER_CLI_LEVEL_RESET[] = "\033[0m";
-constexpr char CAPTURA_CLI_LEVEL_STATUS[]         = "\033[1;34m";
-constexpr char CAPTURA_CLI_LEVEL_INFO[]           = "\033[1;32m";
-constexpr char CAPTURA_CLI_LEVEL_WARNING[]        = "\033[1;33m";
-constexpr char CAPTURA_CLI_LEVEL_ERROR[]          = "\033[1;31m";
+constexpr char CALF_CLI_LEVEL_STATUS[]         = "\033[1;34m";
+constexpr char CALF_CLI_LEVEL_INFO[]           = "\033[1;32m";
+constexpr char CALF_CLI_LEVEL_WARNING[]        = "\033[1;33m";
+constexpr char CALF_CLI_LEVEL_ERROR[]          = "\033[1;31m";
 
 struct StdoutLoggerOptions {
     std::string color         = CAPIO_LOG_SERVER_CLI_LEVEL_RESET;
@@ -46,7 +46,7 @@ struct StdoutLogger {
     static void writeOpening(unsigned long int /*timestamp*/, const char *invoker,
                              const char * /*file*/, int /*line*/, const char *message_format,
                              va_list args) {
-        char expanded[CAPTURA_LOG_MAX_MSG_LEN];
+        char expanded[CALF_LOG_MAX_MSG_LEN];
         va_list copy;
         va_copy(copy, args);
         ::vsnprintf(expanded, sizeof(expanded), message_format, copy);
@@ -59,7 +59,7 @@ struct StdoutLogger {
                                const char * /*file*/, int /*line*/,
                                const char * /*output_template*/, const char *message_format,
                                va_list args) {
-        char expanded[CAPTURA_LOG_MAX_MSG_LEN];
+        char expanded[CALF_LOG_MAX_MSG_LEN];
         va_list copy;
         va_copy(copy, args);
         ::vsnprintf(expanded, sizeof(expanded), message_format, copy);
@@ -118,23 +118,23 @@ struct StdoutLogger {
     }
 };
 
-using CapturaCliLogger = TemplateLogger<StdoutLogger>;
+using CalfCliLogger = TemplateLogger<StdoutLogger>;
 
-#define CAPTURA_PRINT(message, ...)                                                                \
+#define CALF_PRINT(message, ...)                                                                \
     do {                                                                                           \
-        char _captura_buf[CAPTURA_LOG_MAX_MSG_LEN];                                                \
-        ::snprintf(_captura_buf, sizeof(_captura_buf), message, ##__VA_ARGS__);                    \
-        StdoutLogger::printLine(__func__, _captura_buf);                                           \
+        char _calf_buf[CALF_LOG_MAX_MSG_LEN];                                                \
+        ::snprintf(_calf_buf, sizeof(_calf_buf), message, ##__VA_ARGS__);                    \
+        StdoutLogger::printLine(__func__, _calf_buf);                                           \
     } while (0)
 
-#define CAPTURA_PRINT_COLOR(status, message, ...)                                                  \
+#define CALF_PRINT_COLOR(status, message, ...)                                                  \
     do {                                                                                           \
-        auto _captura_saved         = StdoutLogger::options.color;                                 \
+        auto _calf_saved         = StdoutLogger::options.color;                                 \
         StdoutLogger::options.color = (status);                                                    \
-        char _captura_buf[CAPTURA_LOG_MAX_MSG_LEN];                                                \
-        ::snprintf(_captura_buf, sizeof(_captura_buf), message, ##__VA_ARGS__);                    \
-        StdoutLogger::printLine(__func__, _captura_buf);                                           \
-        StdoutLogger::options.color = _captura_saved;                                              \
+        char _calf_buf[CALF_LOG_MAX_MSG_LEN];                                                \
+        ::snprintf(_calf_buf, sizeof(_calf_buf), message, ##__VA_ARGS__);                    \
+        StdoutLogger::printLine(__func__, _calf_buf);                                           \
+        StdoutLogger::options.color = _calf_saved;                                              \
     } while (0)
 
-#endif // CAPTURA_STDOUTLOGGER_H
+#endif // CALF_STDOUTLOGGER_H

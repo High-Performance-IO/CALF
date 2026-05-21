@@ -1,5 +1,5 @@
-#ifndef CAPTURA_JSONBASELOGGER_H
-#define CAPTURA_JSONBASELOGGER_H
+#ifndef CALF_JSONBASELOGGER_H
+#define CALF_JSONBASELOGGER_H
 
 #include <cstdarg>
 #include <cstdio>
@@ -14,12 +14,12 @@ template <typename Derived> struct JsonLogBase {
     static thread_local __attribute__((tls_model("initial-exec"))) bool rootArrayOpen;
     static thread_local __attribute__((tls_model("initial-exec"))) int pendingLen;
     static thread_local
-        __attribute__((tls_model("initial-exec"))) char pendingBuf[CAPTURA_LOG_MAX_MSG_LEN * 6 + 256];
+        __attribute__((tls_model("initial-exec"))) char pendingBuf[CALF_LOG_MAX_MSG_LEN * 6 + 256];
 
     static void printFormatted(unsigned long int timestamp, const char *invoker, const char *file,
                                int line, const char * /*output_template*/,
                                const char *message_format, va_list args) {
-        char escaped_args[CAPTURA_LOG_MAX_MSG_LEN * 6];
+        char escaped_args[CALF_LOG_MAX_MSG_LEN * 6];
         expandAndEscape(message_format, args, escaped_args, static_cast<int>(sizeof(escaped_args)));
 
         char escaped_invoker[512];
@@ -52,7 +52,7 @@ template <typename Derived> struct JsonLogBase {
             nestingDepth  = 1;
         }
 
-        char escaped_args[CAPTURA_LOG_MAX_MSG_LEN * 6];
+        char escaped_args[CALF_LOG_MAX_MSG_LEN * 6];
         expandAndEscape(message_format, args, escaped_args, static_cast<int>(sizeof(escaped_args)));
 
         char escaped_invoker[512];
@@ -214,6 +214,6 @@ template <typename D>
 thread_local __attribute__((tls_model("initial-exec"))) int JsonLogBase<D>::pendingLen = 0;
 template <typename D>
 thread_local __attribute__((tls_model(
-    "initial-exec"))) char JsonLogBase<D>::pendingBuf[CAPTURA_LOG_MAX_MSG_LEN * 6 + 256] = {'\0'};
+    "initial-exec"))) char JsonLogBase<D>::pendingBuf[CALF_LOG_MAX_MSG_LEN * 6 + 256] = {'\0'};
 
 #endif

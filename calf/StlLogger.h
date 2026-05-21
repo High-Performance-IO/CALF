@@ -1,5 +1,5 @@
-#ifndef CAPTURA_STLLOGGER_H
-#define CAPTURA_STLLOGGER_H
+#ifndef CALF_STLLOGGER_H
+#define CALF_STLLOGGER_H
 
 #include <cstdlib>
 #include <cstring>
@@ -41,16 +41,16 @@ struct StlLogger : JsonLogBase<StlLogger> {
         std::string logDir;
         std::string prefix;
 
-        if (const char *env = std::getenv("CAPTURA_LOG_DIR"); env != nullptr) {
+        if (const char *env = std::getenv("CALF_LOG_DIR"); env != nullptr) {
             logDir = env;
         } else {
-            logDir = CAPTURA_DEFAULT_LOG_FOLDER;
+            logDir = CALF_DEFAULT_LOG_FOLDER;
         }
 
-        if (const char *env = std::getenv("CAPTURA_LOG_PREFIX"); env != nullptr) {
+        if (const char *env = std::getenv("CALF_LOG_PREFIX"); env != nullptr) {
             prefix = env;
         } else {
-            prefix = CAPTURA_STL_DEFAULT_LOG_FILE_PREFIX;
+            prefix = CALF_STL_DEFAULT_LOG_FILE_PREFIX;
         }
 
         char hostname[HOST_NAME_MAX];
@@ -69,7 +69,7 @@ struct StlLogger : JsonLogBase<StlLogger> {
 
 using Logger = TemplateLogger<StlLogger>;
 
-#ifdef CAPTURA_LOG
+#ifdef CALF_LOG
 
 #define LOG(message, ...) log.log(message, ##__VA_ARGS__)
 
@@ -96,6 +96,6 @@ using Logger = TemplateLogger<StlLogger>;
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
 
-#endif // CAPTURA_LOG
+#endif // CALF_LOG
 
-#endif // CAPTURA_STLLOGGER_H
+#endif // CALF_STLLOGGER_H

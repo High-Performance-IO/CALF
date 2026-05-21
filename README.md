@@ -1,8 +1,8 @@
-# Captura
+# CALF - CApio Logging Facility
 
-Captura is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It produces indented JSON output where each logged scope becomes a self-contained object with enter/exit timestamps and a nested array of events, making logs machine-readable without post-processing.
+Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It produces indented JSON output where each logged scope becomes a self-contained object with enter/exit timestamps and a nested array of events, making logs machine-readable without post-processing.
 
-Captura is designed to work in two distinct environments:
+Calf is designed to work in two distinct environments:
 
 - **STL safe processes**: uses `std::ofstream` for I/O (`StlLogger`)
 - **NON STL safe processes**: uses raw syscalls whenever STL is not safe (`SyscallLogger`)
@@ -49,36 +49,36 @@ Each thread writes to its own log file under the log directory, named after the 
 include(FetchContent)
 
 FetchContent_Declare(
-    captura
-    GIT_REPOSITORY https://github.com/High-Performance-IO/captura.git
-    GIT_TAG        <commit-sha>   # pin to a specific commit for reproducible builds
-    GIT_SHALLOW    TRUE
+        calf
+        GIT_REPOSITORY https://github.com/High-Performance-IO/calf.git
+        GIT_TAG <commit-sha>   # pin to a specific commit for reproducible builds
+        GIT_SHALLOW TRUE
 )
 
-set(CAPTURA_LOG           ON  CACHE BOOL "" FORCE)
-set(CAPTURA_BUILD_STL     ON  CACHE BOOL "" FORCE)
-set(CAPTURA_BUILD_SYSCALL ON  CACHE BOOL "" FORCE)
+set(CALF_LOG ON CACHE BOOL "" FORCE)
+set(CALF_BUILD_STL ON CACHE BOOL "" FORCE)
+set(CALF_BUILD_SYSCALL ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(captura)
+FetchContent_MakeAvailable(calf)
 ```
 
 Then link each target to the appropriate backend:
 
 ```cmake
 # Server binary
-target_link_libraries(my_server PRIVATE captura::stl)
+target_link_libraries(my_server PRIVATE calf::stl)
 
 # POSIX syscall interceptor (.so)
-target_link_libraries(my_interceptor PRIVATE captura::syscall)
+target_link_libraries(my_interceptor PRIVATE calf::syscall)
 ```
 
 ## CMake options
 
 | Option                  | Default | Description                                      |
 |-------------------------|---------|--------------------------------------------------|
-| `CAPTURA_LOG`           | `ON`    | Enable logging. When OFF all macros are no-ops.  |
-| `CAPTURA_BUILD_STL`     | `ON`    | Include the STL (`std::ofstream`) backend.       |
-| `CAPTURA_BUILD_SYSCALL` | `ON`    | Include the raw-syscall backend.                 |
+| `CALF_LOG`           | `ON`    | Enable logging. When OFF all macros are no-ops.  |
+| `CALF_BUILD_STL`     | `ON`    | Include the STL (`std::ofstream`) backend.       |
+| `CALF_BUILD_SYSCALL` | `ON`    | Include the raw-syscall backend.                 |
 
 
 ## Usage
@@ -88,7 +88,7 @@ target_link_libraries(my_interceptor PRIVATE captura::syscall)
 Include `StlLogger.h`. Logging is enabled by default on every thread.
 
 ```cpp
-#include <captura/StlLogger.h>
+#include <calf/StlLogger.h>
 
 void handle_request(int tid, const char *path) {
     START_LOG(tid, "call(path=%s)", path);
@@ -105,15 +105,15 @@ void handle_request(int tid, const char *path) {
 
 Include `SyscallLogger.h`. Logging starts disabled to avoid re-entrancy during library setup. Call `ENABLE_LOGGER()` once setup is complete.
 
-If the interceptor uses `syscall_no_intercept` from the [syscall_intercept](https://github.com/pmem/syscall_intercept) library, redirect Captura's syscalls before enabling:
+If the interceptor uses `syscall_no_intercept` from the [syscall_intercept](https://github.com/pmem/syscall_intercept) library, redirect Calf's syscalls before enabling:
 
 ```cpp
-#include <captura/SyscallLogger.h>
+#include <calf/SyscallLogger.h>
 #include <libsyscall_intercept_hook_point.h>
 
 // Called once during interceptor initialisation.
 void setup() {
-    SET_CAPTURA_SYSCALL_HANDLER(syscall_no_intercept);
+    SET_CALF_SYSCALL_HANDLER(syscall_no_intercept);
     ENABLE_LOGGER();
 }
 
@@ -123,7 +123,7 @@ long hook(long syscall_number, ...) {
 }
 ```
 
-Use `DISABLE_LOGGER()` around internal operations that must not appear in the log (e.g. Captura's own file I/O):
+Use `DISABLE_LOGGER()` around internal operations that must not appear in the log (e.g. Calf's own file I/O):
 
 ```cpp
 void internal_op() {
@@ -142,14 +142,14 @@ void internal_op() {
 | `ENABLE_LOGGER()`             | Activates logging on the calling thread (POSIX build only).                             |
 | `DISABLE_LOGGER()`            | Suspends logging for the current scope via RAII.                                        |
 | `DBG(tid, lambda)`            | Wraps a lambda in a debug-only log scope. Compiled out in release builds.               |
-| `SET_CAPTURA_SYSCALL_HANDLER` | Sets non intercepted syscall function handler. available only in SyscallLogger backend. |
+| `SET_CALF_SYSCALL_HANDLER` | Sets non intercepted syscall function handler. available only in SyscallLogger backend. |
 
 
 ## Environment variables
 
 | Variable             | Description                                                   | Default          |
 |----------------------|---------------------------------------------------------------|------------------|
-| `CAPTURA_LOG_DIR`    | Root directory for all log output.                            | `./captura_logs` |
-| `CAPTURA_LOG_PREFIX` | Filename prefix for per-thread log files.                     | Backend-specific |
+| `CALF_LOG_DIR`    | Root directory for all log output.                            | `./calf_logs` |
+| `CALF_LOG_PREFIX` | Filename prefix for per-thread log files.                     | Backend-specific |
 
-Log files are written to `$CAPTURA_LOG_DIR/<backend>/<hostname>/<prefix><tid>.log`.
+Log files are written to `$CALF_LOG_DIR/<backend>/<hostname>/<prefix><tid>.log`.

@@ -1,5 +1,5 @@
-#ifndef CAPTURA_BASELOGGER_H
-#define CAPTURA_BASELOGGER_H
+#ifndef CALF_BASELOGGER_H
+#define CALF_BASELOGGER_H
 
 #include <cstdarg>
 #include <cstdio>
@@ -38,7 +38,7 @@ inline long long current_time_in_millis() {
     return static_cast<long long>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000 - start_time;
 }
 
-#ifdef __CAPTURA_POSIX
+#ifdef __CALF_POSIX
 inline thread_local __attribute__((tls_model("initial-exec"))) bool enable_logger = false;
 #else
 // Server / non-POSIX: logging is always active from the first call.
@@ -82,7 +82,7 @@ template <typename Adapter> class TemplateLogger {
                                  message, argp);
         } else {
             adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
-                                   CAPTURA_LOG_PRE_MSG, message, argp);
+                                   CALF_LOG_PRE_MSG, message, argp);
         }
         va_end(argp);
     }
@@ -109,7 +109,7 @@ template <typename Adapter> class TemplateLogger {
         va_list argp;
         va_start(argp, message);
         adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
-                               CAPTURA_LOG_PRE_MSG, message, argp);
+                               CALF_LOG_PRE_MSG, message, argp);
         va_end(argp);
     }
 
@@ -122,13 +122,13 @@ template <typename T>
 inline thread_local
     __attribute__((tls_model("initial-exec"))) int TemplateLogger<T>::current_log_level = 0;
 
-#ifdef CAPTURA_LOG
+#ifdef CALF_LOG
 
 #define ERR_EXIT_EXCEPT_CHOICE(raise_exception, message, ...)                                      \
     log.log(message, ##__VA_ARGS__);                                                               \
     if (!continue_on_error) {                                                                      \
-        char err_msg[CAPTURA_LOG_MAX_MSG_LEN];                                                     \
-        snprintf(err_msg, CAPTURA_LOG_MAX_MSG_LEN, message, ##__VA_ARGS__);                        \
+        char err_msg[CALF_LOG_MAX_MSG_LEN];                                                     \
+        snprintf(err_msg, CALF_LOG_MAX_MSG_LEN, message, ##__VA_ARGS__);                        \
         raise_termination(raise_exception, err_msg);                                               \
     }
 #define ERR_EXIT(message, ...) ERR_EXIT_EXCEPT_CHOICE(true, message, ##__VA_ARGS__)
@@ -137,12 +137,12 @@ inline thread_local
 
 #define ERR_EXIT_EXCEPT_CHOICE(raise_exception, message, ...)                                      \
     if (!continue_on_error) {                                                                      \
-        char err_msg[CAPTURA_LOG_MAX_MSG_LEN];                                                     \
+        char err_msg[CALF_LOG_MAX_MSG_LEN];                                                     \
         snprintf(err_msg, sizeof(err_msg), message, ##__VA_ARGS__);                                \
         raise_termination(raise_exception, err_msg);                                               \
     }
 #define ERR_EXIT(message, ...) ERR_EXIT_EXCEPT_CHOICE(true, message, ##__VA_ARGS__)
 
-#endif // CAPTURA_LOG
+#endif // CALF_LOG
 
-#endif // CAPTURA_BASELOGGER_H
+#endif // CALF_BASELOGGER_H

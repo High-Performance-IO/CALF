@@ -1,5 +1,5 @@
-#ifndef CAPTURA_SYSCALLLOGGER_H
-#define CAPTURA_SYSCALLLOGGER_H
+#ifndef CALF_SYSCALLLOGGER_H
+#define CALF_SYSCALLLOGGER_H
 
 #include <cerrno>
 #include <climits>
@@ -36,7 +36,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
     static void rawWriteBytes(const char *buf, int len) {
         ensureFileOpen();
-        captura_syscall(SYS_write, fileFD, buf, static_cast<size_t>(len));
+        calf_syscall(SYS_write, fileFD, buf, static_cast<size_t>(len));
     }
 
     static void rawWriteStr(const char *buf) {
@@ -53,7 +53,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
     template <typename T> static long to_arg(const T *v) { return reinterpret_cast<long>(v); }
 
-    template <typename... Args> static long captura_syscall(long nr, Args &&...args) {
+    template <typename... Args> static long calf_syscall(long nr, Args &&...args) {
         return syscallFn(nr, to_arg(args)...);
     }
 
@@ -63,18 +63,18 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         }
 
         ::snprintf(filePath, PATH_MAX, "%s/%s%ld.log", getHostLogDir(), getLogPrefix(),
-                   captura_syscall(SYS_gettid));
+                   calf_syscall(SYS_gettid));
 
-        captura_syscall(SYS_mkdirat, AT_FDCWD, getLogDir(), 0755);
-        captura_syscall(SYS_mkdirat, AT_FDCWD, getSyscallLogDir(), 0755);
-        captura_syscall(SYS_mkdirat, AT_FDCWD, getHostLogDir(), 0755);
+        calf_syscall(SYS_mkdirat, AT_FDCWD, getLogDir(), 0755);
+        calf_syscall(SYS_mkdirat, AT_FDCWD, getSyscallLogDir(), 0755);
+        calf_syscall(SYS_mkdirat, AT_FDCWD, getHostLogDir(), 0755);
 
         fileFD = static_cast<int>(
-            captura_syscall(SYS_openat, AT_FDCWD, filePath, O_CREAT | O_WRONLY | O_APPEND, 0644));
+            calf_syscall(SYS_openat, AT_FDCWD, filePath, O_CREAT | O_WRONLY | O_APPEND, 0644));
 
         if (fileFD == -1) {
-            const char *msg = "Captura: failed to open log file\n";
-            captura_syscall(SYS_write, STDOUT_FILENO, msg, ::strlen(msg));
+            const char *msg = "CALF: failed to open log file\n";
+            calf_syscall(SYS_write, STDOUT_FILENO, msg, ::strlen(msg));
             ::exit(EXIT_FAILURE);
         }
     }
@@ -90,8 +90,8 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     static const char *getLogDir() {
         static char *d = nullptr;
         if (d == nullptr) {
-            const char *e   = std::getenv("CAPTURA_LOG_DIR");
-            const char *src = e ? e : CAPTURA_DEFAULT_LOG_FOLDER;
+            const char *e   = std::getenv("CALF_LOG_DIR");
+            const char *src = e ? e : CALF_DEFAULT_LOG_FOLDER;
             d               = new char[::strlen(src) + 1];
             ::strcpy(d, src);
         }
@@ -101,8 +101,8 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     static const char *getLogPrefix() {
         static char *p = nullptr;
         if (p == nullptr) {
-            const char *e   = std::getenv("CAPTURA_LOG_PREFIX");
-            const char *src = e ? e : CAPTURA_SYSCALL_DEFAULT_LOG_FILE_PREFIX;
+            const char *e   = std::getenv("CALF_LOG_PREFIX");
+            const char *src = e ? e : CALF_SYSCALL_DEFAULT_LOG_FILE_PREFIX;
             p               = new char[::strlen(src) + 1];
             ::strcpy(p, src);
         }
@@ -138,7 +138,7 @@ inline thread_local
 
 using Logger = TemplateLogger<SyscallLogger>;
 
-#ifdef CAPTURA_LOG
+#ifdef CALF_LOG
 
 #define LOG(message, ...) log.log(message, ##__VA_ARGS__)
 
@@ -156,7 +156,7 @@ using Logger = TemplateLogger<SyscallLogger>;
         LOG("[  DBG  ]~~~ END   ~~~[  DBG  ]");                                                    \
     }
 
-#define SET_CAPTURA_SYSCALL_HANDLER(syscall_ptr) SyscallLogger::setSyscallFn(syscall_ptr)
+#define SET_CALF_SYSCALL_HANDLER(syscall_ptr) SyscallLogger::setSyscallFn(syscall_ptr)
 
 #else
 
@@ -165,7 +165,7 @@ using Logger = TemplateLogger<SyscallLogger>;
 #define DBG(tid, lambda)
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
-#define SET_CAPTURA_SYSCALL_HANDLER(syscall_ptr)
+#define SET_CALF_SYSCALL_HANDLER(syscall_ptr)
 
 #endif
 

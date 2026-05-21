@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(Captura VERSION 1.0.0 LANGUAGES CXX)
+project(CALF VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,66 +8,66 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # -------------------------------------------------------------------------
 #  Options
 # -------------------------------------------------------------------------
-option(CAPTURA_LOG           "Enable Captura logging"                ON)
-option(CAPTURA_BUILD_STL     "Build the STL (ofstream) logger"       ON)
-option(CAPTURA_BUILD_SYSCALL "Build the syscall-interceptor logger"  ON)
+option(CALF_LOG           "Enable CALF logging"                ON)
+option(CALF_BUILD_STL     "Build the STL (ofstream) logger"       ON)
+option(CALF_BUILD_SYSCALL "Build the syscall-interceptor logger"  ON)
 
 # -------------------------------------------------------------------------
 #  Core — INTERFACE target (header-only, no sources)
 # -------------------------------------------------------------------------
-add_library(captura_core INTERFACE)
+add_library(calf_core INTERFACE)
 
-target_include_directories(captura_core
+target_include_directories(calf_core
         INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include/captura>
+        $<INSTALL_INTERFACE:include/calf>
 )
 
-target_compile_definitions(captura_core
+target_compile_definitions(calf_core
         INTERFACE
-        $<$<BOOL:${CAPTURA_LOG}>:CAPTURA_LOG>
+        $<$<BOOL:${CALF_LOG}>:CALF_LOG>
 )
 
-add_library(captura::core ALIAS captura_core)
+add_library(calf::core ALIAS calf_core)
 
 # -------------------------------------------------------------------------
 #  STL logger — INTERFACE target
 # -------------------------------------------------------------------------
-if(CAPTURA_BUILD_STL)
-    add_library(captura_stl INTERFACE)
-    target_link_libraries(captura_stl INTERFACE captura_core)
-    target_include_directories(captura_stl
+if(CALF_BUILD_STL)
+    add_library(calf_stl INTERFACE)
+    target_link_libraries(calf_stl INTERFACE calf_core)
+    target_include_directories(calf_stl
             INTERFACE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include/captura>
+            $<INSTALL_INTERFACE:include/calf>
     )
-    add_library(captura::stl ALIAS captura_stl)
+    add_library(calf::stl ALIAS calf_stl)
 endif()
 
 # -------------------------------------------------------------------------
 #  Syscall logger — INTERFACE target
 # -------------------------------------------------------------------------
-if(CAPTURA_BUILD_SYSCALL)
-    add_library(captura_syscall INTERFACE)
-    target_link_libraries(captura_syscall INTERFACE captura_core)
-    target_include_directories(captura_syscall
+if(CALF_BUILD_SYSCALL)
+    add_library(calf_syscall INTERFACE)
+    target_link_libraries(calf_syscall INTERFACE calf_core)
+    target_include_directories(calf_syscall
             INTERFACE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include/captura>
+            $<INSTALL_INTERFACE:include/calf>
     )
-    target_compile_definitions(captura_syscall
-            INTERFACE __CAPTURA_POSIX
+    target_compile_definitions(calf_syscall
+            INTERFACE __CALF_POSIX
     )
-    add_library(captura::syscall ALIAS captura_syscall)
+    add_library(calf::syscall ALIAS calf_syscall)
 endif()
 
 # -------------------------------------------------------------------------
 #  Guard
 # -------------------------------------------------------------------------
-if(CAPTURA_LOG AND NOT CAPTURA_BUILD_STL AND NOT CAPTURA_BUILD_SYSCALL)
+if(CALF_LOG AND NOT CALF_BUILD_STL AND NOT CALF_BUILD_SYSCALL)
     message(WARNING
-            "CAPTURA_LOG is ON but no logger backend is enabled. "
-            "Set CAPTURA_BUILD_STL=ON or CAPTURA_BUILD_SYSCALL=ON.")
+            "CALF_LOG is ON but no logger backend is enabled. "
+            "Set CALF_BUILD_STL=ON or CALF_BUILD_SYSCALL=ON.")
 endif()
 
 # -------------------------------------------------------------------------
@@ -76,56 +76,56 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-set(_captura_install_targets captura_core)
-if(CAPTURA_BUILD_STL)
-    list(APPEND _captura_install_targets captura_stl)
+set(_calf_install_targets calf_core)
+if(CALF_BUILD_STL)
+    list(APPEND _calf_install_targets calf_stl)
 endif()
-if(CAPTURA_BUILD_SYSCALL)
-    list(APPEND _captura_install_targets captura_syscall)
+if(CALF_BUILD_SYSCALL)
+    list(APPEND _calf_install_targets calf_syscall)
 endif()
 
 install(
-        TARGETS   ${_captura_install_targets}
-        EXPORT    CapturaTargets
+        TARGETS   ${_calf_install_targets}
+        EXPORT    CalfTargets
 )
 
 install(
-        DIRECTORY captura/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/captura
+        DIRECTORY calf/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/calf
 )
 
 install(
-        EXPORT    CapturaTargets
-        FILE      CapturaTargets.cmake
-        NAMESPACE captura::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Captura
+        EXPORT    CalfTargets
+        FILE      CalfTargets.cmake
+        NAMESPACE calf::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Calf
 )
 
-set(_captura_config_content
+set(_calf_config_content
         "@PACKAGE_INIT@
-include(\"\${CMAKE_CURRENT_LIST_DIR}/CapturaTargets.cmake\")
-check_required_components(Captura)
+include(\"\${CMAKE_CURRENT_LIST_DIR}/CalfTargets.cmake\")
+check_required_components(Calf)
 ")
 
 file(WRITE
-        "${CMAKE_CURRENT_BINARY_DIR}/CapturaConfig.cmake.in"
-        "${_captura_config_content}"
+        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake.in"
+        "${_calf_config_content}"
 )
 
 configure_package_config_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/CapturaConfig.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/CapturaConfig.cmake"
-        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Captura"
+        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake"
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Calf"
 )
 
 write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/CapturaConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfigVersion.cmake"
         VERSION       ${PROJECT_VERSION}
         COMPATIBILITY SameMajorVersion
 )
 
 install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/CapturaConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/CapturaConfigVersion.cmake"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Captura"
+        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfigVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Calf"
 )
