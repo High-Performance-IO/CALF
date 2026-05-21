@@ -1,0 +1,211 @@
+/* ------------------------------------------------------------------ */
+/*  Screen & chrome                                                     */
+/* ------------------------------------------------------------------ */
+
+Screen {
+    background: $surface;
+    layers: base overlay;
+}
+
+Header {
+    dock: top;
+    height: 2;
+    background: $primary;
+    color: $text;
+    text-style: bold;
+}
+
+Footer {
+    dock: bottom;
+    background: $primary-darken-3;
+    color: $text-muted;
+    height: 1;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Three-level tab hierarchy                                           */
+/*  Visual weight decreases at each level so depth is always clear.    */
+/* ------------------------------------------------------------------ */
+
+TabbedContent {
+    height: 1fr;
+}
+
+TabPane {
+    padding: 0;
+}
+
+/* Level 1 — hostname */
+.host-tabs > Tabs {
+    background: $primary-darken-1;
+    dock: top;
+    height: 3;
+}
+
+.host-tabs > Tabs > Tab {
+    color: $text-muted;
+    text-style: bold;
+    padding: 0 2;
+}
+
+.host-tabs > Tabs > Tab.-active {
+    color: $text;
+    background: $primary;
+    border-bottom: tall $accent;
+}
+
+/* Level 2 — backend kind (stl / syscall / unknown) */
+.kind-tabs > Tabs {
+    background: $surface-darken-1;
+    height: 2;
+}
+
+.kind-tabs > Tabs > Tab {
+    color: $text-muted;
+    padding: 0 2;
+}
+
+.kind-tabs > Tabs > Tab.-active {
+    color: $accent;
+    background: $surface;
+    text-style: bold;
+    border-bottom: tall $accent;
+}
+
+/* Level 3 — thread file */
+.file-tabs > Tabs {
+    background: $surface-darken-2;
+    height: 2;
+}
+
+.file-tabs > Tabs > Tab {
+    color: $text-disabled;
+    padding: 0 1;
+}
+
+.file-tabs > Tabs > Tab.-active {
+    color: $text;
+    background: $surface-darken-1;
+    border-bottom: tall $success;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Trace tree                                                          */
+/* ------------------------------------------------------------------ */
+
+.pane-container {
+    height: 1fr;
+    layout: vertical;
+}
+
+.tree-pane {
+    height: 1fr;
+    border: solid $primary-darken-2;
+    background: $surface;
+    scrollbar-gutter: stable;
+}
+
+.tree-pane Tree {
+    background: $surface;
+    padding: 0 1;
+}
+
+.tree-pane Tree > .tree--label {
+    color: $text;
+}
+
+.tree-pane Tree > .tree--guides {
+    color: $primary-darken-1;
+}
+
+.tree-pane Tree > .tree--cursor > .tree--label {
+    background: $primary;
+    color: $text;
+    text-style: bold;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Detail bar                                                          */
+/* ------------------------------------------------------------------ */
+
+.detail-bar {
+    height: 3;
+    background: $surface-darken-2;
+    color: $text-muted;
+    padding: 0 2;
+    border: solid $primary-darken-2;
+    content-align: left middle;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Statistics table                                                    */
+/* ------------------------------------------------------------------ */
+
+.stats-table {
+    height: 1fr;
+    border: solid $primary-darken-2;
+}
+
+.stats-table DataTable {
+    background: $surface;
+}
+
+.stats-table DataTable > .datatable--header {
+    background: $primary-darken-1;
+    color: $text;
+    text-style: bold;
+}
+
+.stats-table DataTable > .datatable--cursor {
+    background: $primary;
+    color: $text;
+}
+
+.stats-table DataTable > .datatable--even-row {
+    background: $surface-darken-1;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Filter modal                                                        */
+/* ------------------------------------------------------------------ */
+
+FilterModal {
+    align: center middle;
+    background: $background 70%;
+}
+
+.modal-box {
+    width: 64;
+    height: 13;
+    border: double $accent;
+    background: $surface;
+    padding: 1 2;
+    layout: vertical;
+}
+
+.modal-box Label {
+    color: $text-muted;
+    margin-bottom: 1;
+    text-style: italic;
+}
+
+.modal-box Input {
+    border: solid $primary-darken-1;
+    background: $surface-darken-1;
+}
+
+.modal-box Input:focus {
+    border: solid $accent;
+}
+
+.modal-buttons {
+    margin-top: 1;
+    height: 3;
+    align: center middle;
+    layout: horizontal;
+}
+
+.modal-buttons Button {
+    margin: 0 1;
+    min-width: 10;
+}
