@@ -5,10 +5,10 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits.h>
 #include <string>
 #include <sys/syscall.h>
 #include <unistd.h>
-#include <limits.h>
 
 #include "BaseLogger.h"
 #include "JsonBaseLogger.h"
@@ -17,6 +17,7 @@ struct StlLogger : JsonLogBase<StlLogger> {
 
     inline static thread_local std::ofstream *logfile   = nullptr;
     inline static thread_local std::string *logFileName = nullptr;
+    inline static char component_name[128]              = "NOT_SET";
 
     explicit StlLogger() { ensureFileOpen(); }
 
@@ -30,6 +31,11 @@ struct StlLogger : JsonLogBase<StlLogger> {
 
     static void rawWriteStr(const char *buf) {
         rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
+    }
+
+    static void setComponentName(const char *name) {
+        ::strncpy(component_name, name, sizeof(component_name) - 1);
+        component_name[sizeof(component_name) - 1] = '\0';
     }
 
   private:
@@ -56,7 +62,7 @@ struct StlLogger : JsonLogBase<StlLogger> {
         char hostname[HOST_NAME_MAX];
         ::gethostname(hostname, HOST_NAME_MAX);
 
-        const std::filesystem::path outputFolder{logDir + "/stl/" + hostname};
+        const std::filesystem::path outputFolder{logDir + "/" + component_name + "/" + hostname};
         std::filesystem::create_directories(outputFolder);
 
         const std::filesystem::path path =
@@ -81,6 +87,7 @@ using Logger = TemplateLogger<StlLogger>;
 #define DISABLE_LOGGER()                                                                           \
     SyscallLoggingSuspender sls {}
 
+#define SET_CALF_COMPONENT_NAME(name) StlLogger::setComponentName(name)
 #define DBG(tid, lambda)                                                                           \
     {                                                                                              \
         START_LOG(tid, "[  DBG  ]~~~ START ~~~[  DBG  ]");                                         \
@@ -95,6 +102,7 @@ using Logger = TemplateLogger<StlLogger>;
 #define DBG(tid, lambda)
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
+#define SET_CALF_COMPONENT_NAME(name)
 
 #endif // CALF_LOG
 
