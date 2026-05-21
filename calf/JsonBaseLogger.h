@@ -20,15 +20,14 @@ template <typename Derived> struct JsonLogBase {
                                int line, const char * /*output_template*/,
                                const char *message_format, va_list args) {
         char escaped_args[CALF_LOG_MAX_MSG_LEN * 6];
-        expandAndEscape(message_format, args, escaped_args, static_cast<int>(sizeof(escaped_args)));
+        expandAndEscape(message_format, args, escaped_args, sizeof(escaped_args));
 
         char escaped_invoker[512];
         jsonEscape(invoker, static_cast<int>(::strlen(invoker)), escaped_invoker,
-                   static_cast<int>(sizeof(escaped_invoker)));
+                   sizeof(escaped_invoker));
 
         char escaped_file[512];
-        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file,
-                   static_cast<int>(sizeof(escaped_file)));
+        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file, sizeof(escaped_file));
 
         flushPending(true);
 
@@ -53,17 +52,16 @@ template <typename Derived> struct JsonLogBase {
         }
 
         char escaped_args[CALF_LOG_MAX_MSG_LEN * 6];
-        expandAndEscape(message_format, args, escaped_args, static_cast<int>(sizeof(escaped_args)));
+        expandAndEscape(message_format, args, escaped_args, sizeof(escaped_args));
 
         char escaped_invoker[512];
         jsonEscape(invoker, static_cast<int>(::strlen(invoker)), escaped_invoker,
-                   static_cast<int>(sizeof(escaped_invoker)));
+                   sizeof(escaped_invoker));
 
         char escaped_file[512];
-        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file,
-                   static_cast<int>(sizeof(escaped_file)));
+        jsonEscape(file, static_cast<int>(::strlen(file)), escaped_file, sizeof(escaped_file));
 
-        flushPending(true); // close previous sibling object with ","
+        flushPending(true);
 
         writeImmediate("{");
         nestingDepth++;
@@ -85,10 +83,10 @@ template <typename Derived> struct JsonLogBase {
             return;
         }
 
-        flushPending(false); // last event — no trailing comma
+        flushPending(false);
 
         nestingDepth--;
-        writeImmediate("],"); // close "events", comma before "ts_exit"
+        writeImmediate("],");
 
         {
             char buf[64];
@@ -158,17 +156,22 @@ template <typename Derived> struct JsonLogBase {
     }
 
     static void expandAndEscape(const char *fmt, va_list args, char *dst, int dst_size) {
+        char raw[CALF_LOG_MAX_MSG_LEN]{0};
+
         va_list copy;
         va_copy(copy, args);
-        const int raw_len = ::vsnprintf(nullptr, 0, fmt, copy);
+        const int raw_len = ::vsnprintf(raw, sizeof(raw), fmt, copy);
         va_end(copy);
 
-        std::string raw(static_cast<size_t>(raw_len) + 1, '\0');
-        va_copy(copy, args);
-        ::vsnprintf(&raw[0], static_cast<size_t>(raw_len) + 1, fmt, copy);
-        va_end(copy);
+        if (raw_len <= 0) {
+            dst[0] = '\0';
+            return;
+        }
 
-        jsonEscape(raw.c_str(), raw_len, dst, dst_size);
+        const int written =
+            raw_len < static_cast<int>(sizeof(raw)) ? raw_len : static_cast<int>(sizeof(raw)) - 1;
+
+        jsonEscape(raw, written, dst, dst_size);
     }
 
     static void jsonEscape(const char *src, int src_len, char *dst, int dst_size) {

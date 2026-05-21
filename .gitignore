@@ -70,3 +70,5 @@ Testing/
 
 *build*
 .idea
+.venv
+*.egg-info
