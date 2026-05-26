@@ -5,8 +5,8 @@ Calf is a structured, header-only C++17 logging library for the [CAPIO](https://
 Calf is designed to work in two distinct environments:
 
 - **STL safe processes**: uses `std::ofstream` for I/O (`StlLogger`)
+- **CLI loggers (STL safe)**: logs to CLI (`StdOutLogger`)
 - **NON STL safe processes**: uses raw syscalls whenever STL is not safe (`SyscallLogger`)
-
 Both backends share the same JSON structure and produce identical output formats.
 
 

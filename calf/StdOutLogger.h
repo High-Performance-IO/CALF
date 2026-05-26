@@ -15,10 +15,10 @@
 
 // Cli pre messages
 constexpr char CAPIO_LOG_SERVER_CLI_LEVEL_RESET[] = "\033[0m";
-constexpr char CALF_CLI_LEVEL_STATUS[]         = "\033[1;34m";
-constexpr char CALF_CLI_LEVEL_INFO[]           = "\033[1;32m";
-constexpr char CALF_CLI_LEVEL_WARNING[]        = "\033[1;33m";
-constexpr char CALF_CLI_LEVEL_ERROR[]          = "\033[1;31m";
+constexpr char CALF_CLI_LEVEL_STATUS[]            = "\033[1;34m";
+constexpr char CALF_CLI_LEVEL_INFO[]              = "\033[1;32m";
+constexpr char CALF_CLI_LEVEL_WARNING[]           = "\033[1;33m";
+constexpr char CALF_CLI_LEVEL_ERROR[]             = "\033[1;31m";
 
 struct StdoutLoggerOptions {
     std::string color         = CAPIO_LOG_SERVER_CLI_LEVEL_RESET;
@@ -120,21 +120,31 @@ struct StdoutLogger {
 
 using CalfCliLogger = TemplateLogger<StdoutLogger>;
 
-#define CALF_PRINT(message, ...)                                                                \
+#define CALF_PRINT(message, ...)                                                                   \
     do {                                                                                           \
-        char _calf_buf[CALF_LOG_MAX_MSG_LEN];                                                \
-        ::snprintf(_calf_buf, sizeof(_calf_buf), message, ##__VA_ARGS__);                    \
-        StdoutLogger::printLine(__func__, _calf_buf);                                           \
+        char _calf_buf[CALF_LOG_MAX_MSG_LEN];                                                      \
+        ::snprintf(_calf_buf, sizeof(_calf_buf), message, ##__VA_ARGS__);                          \
+        StdoutLogger::printLine(__func__, _calf_buf);                                              \
     } while (0)
 
-#define CALF_PRINT_COLOR(status, message, ...)                                                  \
+#define CALF_PRINT_COLOR(status, message, ...)                                                     \
     do {                                                                                           \
-        auto _calf_saved         = StdoutLogger::options.color;                                 \
+        auto _calf_saved            = StdoutLogger::options.color;                                 \
         StdoutLogger::options.color = (status);                                                    \
-        char _calf_buf[CALF_LOG_MAX_MSG_LEN];                                                \
-        ::snprintf(_calf_buf, sizeof(_calf_buf), message, ##__VA_ARGS__);                    \
-        StdoutLogger::printLine(__func__, _calf_buf);                                           \
-        StdoutLogger::options.color = _calf_saved;                                              \
+        char _calf_buf[CALF_LOG_MAX_MSG_LEN];                                                      \
+        ::snprintf(_calf_buf, sizeof(_calf_buf), message, ##__VA_ARGS__);                          \
+        StdoutLogger::printLine(__func__, _calf_buf);                                              \
+        StdoutLogger::options.color = _calf_saved;                                                 \
     } while (0)
+
+#define UPDATE_CALF_CLI_CONFIG(component_name, workflow_name)                                      \
+    StdoutLogger::options.componentName = "SERVER";                                                \
+    StdoutLogger::options.workflowName  = "";
+
+#ifdef CALF_LOG
+#define DBG_CALF_PRINT_COLOR(status, message, ...) CALF_PRINT_COLOR(status, message, ##__VA_ARGS__)
+#else
+#define DBG_CALF_PRINT_COLOR(status, message, ...)
+#endif
 
 #endif // CALF_STDOUTLOGGER_H
