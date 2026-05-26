@@ -130,8 +130,8 @@ using CalfCliLogger = TemplateLogger<StdoutLogger>;
     } while (0)
 
 #define UPDATE_CALF_CLI_CONFIG(component_name, workflow_name)                                      \
-    StdoutLogger::options.componentName = "SERVER";                                                \
-    StdoutLogger::options.workflowName  = "";
+    StdoutLogger::options.componentName = component_name;                                          \
+    StdoutLogger::options.workflowName  = workflow_name;
 
 #ifdef CALF_LOG
 #define DBG_CALF_PRINT_COLOR(status, message, ...) CALF_PRINT_COLOR(status, message, ##__VA_ARGS__)
