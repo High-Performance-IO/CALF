@@ -34,10 +34,7 @@ target_compile_definitions(calf_core
 add_library(calf::core ALIAS calf_core)
 
 # ---------------------------------------------------------------------------
-#  Helper: choose the component name a target logs under.
-#  calf_set_component(<target> [<name>])
-#     with <name>: use it verbatim
-#     without:     read the CALF_COMPONENT_NAME variable from the caller's scope
+#  Helper functions
 # ---------------------------------------------------------------------------
 function(calf_set_component target)
     if (${ARGC} LESS 1 OR ${ARGC} GREATER 2)
@@ -45,6 +42,30 @@ function(calf_set_component target)
     endif()
 
     set_target_properties(${target} PROPERTIES _CALF_COMPONENT_NAME "${ARGV1}")
+endfunction()
+
+function(calf_log ENABLE)
+    if(ENABLE)
+        set(CALF_LOG ON CACHE BOOL "Enable CALF logging" FORCE)
+    else()
+        set(CALF_LOG OFF CACHE BOOL "Enable CALF logging" FORCE)
+    endif()
+endfunction()
+
+function(calf_build_stl ENABLE)
+    if(ENABLE)
+        set(CALF_BUILD_STL ON CACHE BOOL "Build the STL (ofstream) logger" FORCE)
+    else()
+        set(CALF_BUILD_STL OFF CACHE BOOL "Build the STL (ofstream) logger" FORCE)
+    endif()
+endfunction()
+
+function(calf_build_syscall ENABLE)
+    if(ENABLE)
+        set(CALF_BUILD_SYSCALL ON CACHE BOOL "Build the syscall-interceptor logger" FORCE)
+    else()
+        set(CALF_BUILD_SYSCALL OFF CACHE BOOL "Build the syscall-interceptor logger" FORCE)
+    endif()
 endfunction()
 
 # -------------------------------------------------------------------------
