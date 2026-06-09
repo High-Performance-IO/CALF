@@ -26,9 +26,12 @@ target_include_directories(calf_core
         $<INSTALL_INTERFACE:include/calf>
 )
 
+if (CALF_LOG)
+    target_compile_definitions(calf_core INTERFACE CALF_LOG)
+endif ()
+
 target_compile_definitions(calf_core
         INTERFACE
-        CALF_LOG=$<BOOL:${CALF_LOG}>
         _CALF_COMPONENT_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:_CALF_COMPONENT_NAME>>,$<TARGET_PROPERTY:_CALF_COMPONENT_NAME>,${CALF_DEFAULT_COMPONENT_NAME}>"
         _CALF_DEFAULT_LOG_DIR_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:_CALF_DEFAULT_LOG_DIR_NAME>>,$<TARGET_PROPERTY:_CALF_DEFAULT_LOG_DIR_NAME>,${CALF_DEFAULT_LOG_DIR_NAME}>"
 )
