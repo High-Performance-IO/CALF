@@ -1,52 +1,35 @@
 cmake_minimum_required(VERSION 3.16)
 project(CALF VERSION 1.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 # -------------------------------------------------------------------------
-#  Options
+#  Options & Defaults
 # -------------------------------------------------------------------------
 option(CALF_LOG "Enable CALF logging" ON)
 option(CALF_BUILD_STL "Build the STL (ofstream) logger" ON)
 option(CALF_BUILD_SYSCALL "Build the syscall-interceptor logger" ON)
 
-set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name when a consuming target does not set one")
-set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name when a consuming target does not set one")
+set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
+set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
 
-# -------------------------------------------------------------------------
-#  Core — INTERFACE target (header-only, no sources)
-# -------------------------------------------------------------------------
-add_library(calf_core INTERFACE)
-
-target_include_directories(calf_core
-        INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include/calf>
-)
-
-if (CALF_LOG)
-    target_compile_definitions(calf_core INTERFACE CALF_LOG)
-endif ()
-
-target_compile_definitions(calf_core
-        INTERFACE
-        _CALF_COMPONENT_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:_CALF_COMPONENT_NAME>>,$<TARGET_PROPERTY:_CALF_COMPONENT_NAME>,${CALF_DEFAULT_COMPONENT_NAME}>"
-        _CALF_DEFAULT_LOG_DIR_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:_CALF_DEFAULT_LOG_DIR_NAME>>,$<TARGET_PROPERTY:_CALF_DEFAULT_LOG_DIR_NAME>,${CALF_DEFAULT_LOG_DIR_NAME}>"
-)
-
-add_library(calf::core ALIAS calf_core)
+# Initialize global backing variables for the macro states
+set(CALF_CURRENT_COMP_NAME "${CALF_DEFAULT_COMPONENT_NAME}" CACHE STRING "" FORCE)
+set(CALF_CURRENT_LOG_DIR "${CALF_DEFAULT_LOG_DIR_NAME}" CACHE STRING "" FORCE)
 
 # ---------------------------------------------------------------------------
-#  Helper functions
+#  Helper functions (Rewritten to safely modify the parent/global macro lists)
 # ---------------------------------------------------------------------------
 function(calf_set_component target)
     if (${ARGC} LESS 1 OR ${ARGC} GREATER 2)
         message(FATAL_ERROR "calf_set_component invoked with incorrect number of arguments")
     endif ()
 
-    set_target_properties(${target} PROPERTIES _CALF_COMPONENT_NAME "${ARGV1}")
+    set(val "${CALF_DEFAULT_COMPONENT_NAME}")
+    if(${ARGC} EQUAL 2)
+        set(val "${ARGV1}")
+    endif()
+
+    set(CALF_CURRENT_COMP_NAME "${val}" CACHE STRING "" FORCE)
+    calf_rebuild_macro_definitions()
 endfunction()
 
 function(calf_set_default_log_dir target)
@@ -54,129 +37,62 @@ function(calf_set_default_log_dir target)
         message(FATAL_ERROR "calf_set_default_log_dir invoked with incorrect number of arguments")
     endif ()
 
-    set_target_properties(${target} PROPERTIES _CALF_DEFAULT_LOG_DIR_NAME "${ARGV1}")
+    set(val "${CALF_DEFAULT_LOG_DIR_NAME}")
+    if(${ARGC} EQUAL 2)
+        set(val "${ARGV1}")
+    endif()
+
+    set(CALF_CURRENT_LOG_DIR "${val}" CACHE STRING "" FORCE)
+    calf_rebuild_macro_definitions()
 endfunction()
 
 function(calf_log ENABLE)
     if (ENABLE)
-        set(CALF_LOG ON CACHE BOOL "Enable CALF logging" FORCE)
+        set(CALF_LOG ON CACHE BOOL "" FORCE)
     else ()
-        set(CALF_LOG OFF CACHE BOOL "Enable CALF logging" FORCE)
+        set(CALF_LOG OFF CACHE BOOL "" FORCE)
     endif ()
+    calf_rebuild_macro_definitions()
 endfunction()
 
 function(calf_build_stl ENABLE)
     if (ENABLE)
-        set(CALF_BUILD_STL ON CACHE BOOL "Build the STL (ofstream) logger" FORCE)
+        set(CALF_BUILD_STL ON CACHE BOOL "" FORCE)
     else ()
-        set(CALF_BUILD_STL OFF CACHE BOOL "Build the STL (ofstream) logger" FORCE)
+        set(CALF_BUILD_STL OFF CACHE BOOL "" FORCE)
     endif ()
+    calf_rebuild_macro_definitions()
 endfunction()
 
 function(calf_build_syscall ENABLE)
     if (ENABLE)
-        set(CALF_BUILD_SYSCALL ON CACHE BOOL "Build the syscall-interceptor logger" FORCE)
+        set(CALF_BUILD_SYSCALL ON CACHE BOOL "" FORCE)
     else ()
-        set(CALF_BUILD_SYSCALL OFF CACHE BOOL "Build the syscall-interceptor logger" FORCE)
+        set(CALF_BUILD_SYSCALL OFF CACHE BOOL "" FORCE)
     endif ()
+    calf_rebuild_macro_definitions()
 endfunction()
 
 # -------------------------------------------------------------------------
-#  STL logger — INTERFACE target
+#  Macro Collector (Exposes a single list variable to your project)
 # -------------------------------------------------------------------------
-if (CALF_BUILD_STL)
-    add_library(calf_stl INTERFACE)
-    target_link_libraries(calf_stl INTERFACE calf_core)
-    target_include_directories(calf_stl
-            INTERFACE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include/calf>
-    )
-    add_library(calf::stl ALIAS calf_stl)
-endif ()
+macro(calf_rebuild_macro_definitions)
+    set(_defs "")
 
-# -------------------------------------------------------------------------
-#  Syscall logger — INTERFACE target
-# -------------------------------------------------------------------------
-if (CALF_BUILD_SYSCALL)
-    add_library(calf_syscall INTERFACE)
-    target_link_libraries(calf_syscall INTERFACE calf_core)
-    target_include_directories(calf_syscall
-            INTERFACE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include/calf>
-    )
-    target_compile_definitions(calf_syscall
-            INTERFACE __CALF_POSIX
-    )
-    add_library(calf::syscall ALIAS calf_syscall)
-endif ()
+    if (CALF_LOG)
+        list(APPEND _defs "CALF_LOG")
+    endif ()
 
-# -------------------------------------------------------------------------
-#  Guard
-# -------------------------------------------------------------------------
-if (CALF_LOG AND NOT CALF_BUILD_STL AND NOT CALF_BUILD_SYSCALL)
-    message(WARNING
-            "CALF_LOG is ON but no logger backend is enabled. "
-            "Set CALF_BUILD_STL=ON or CALF_BUILD_SYSCALL=ON.")
-endif ()
+    list(APPEND _defs "_CALF_COMPONENT_NAME=\"${CALF_CURRENT_COMP_NAME}\"")
+    list(APPEND _defs "_CALF_DEFAULT_LOG_DIR_NAME=\"${CALF_CURRENT_LOG_DIR}\"")
 
-# -------------------------------------------------------------------------
-#  Install rules
-# -------------------------------------------------------------------------
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
+    if (CALF_BUILD_SYSCALL)
+        list(APPEND _defs "__CALF_POSIX")
+    endif ()
 
-set(_calf_install_targets calf_core)
-if (CALF_BUILD_STL)
-    list(APPEND _calf_install_targets calf_stl)
-endif ()
-if (CALF_BUILD_SYSCALL)
-    list(APPEND _calf_install_targets calf_syscall)
-endif ()
+    # Push this list straight up to your main CMake visibility scope
+    set(CALF_COMPILE_DEFINITIONS "${_defs}" PARENT_SCOPE)
+endmacro()
 
-install(
-        TARGETS ${_calf_install_targets}
-        EXPORT CalfTargets
-)
-
-install(
-        DIRECTORY calf/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/calf
-)
-
-install(
-        EXPORT CalfTargets
-        FILE CalfTargets.cmake
-        NAMESPACE calf::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Calf
-)
-
-set(_calf_config_content
-        "@PACKAGE_INIT@
-include(\"\${CMAKE_CURRENT_LIST_DIR}/CalfTargets.cmake\")
-check_required_components(Calf)
-")
-
-file(WRITE
-        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake.in"
-        "${_calf_config_content}"
-)
-
-configure_package_config_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake"
-        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Calf"
-)
-
-write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfigVersion.cmake"
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY SameMajorVersion
-)
-
-install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/CalfConfigVersion.cmake"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Calf"
-)
+# Run initially to bootstrap the default variables
+calf_rebuild_macro_definitions()
