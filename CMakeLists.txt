@@ -27,7 +27,7 @@ target_include_directories(calf_core
 target_compile_definitions(calf_core
         INTERFACE
         $<$<BOOL:${CALF_LOG}>:CALF_LOG>
-        $<$STRING:${CALF_COMPONENT_NAME}>:CALF_COMPONENT_NAME>
+        CALF_COMPONENT_NAME="${CALF_COMPONENT_NAME}"
 )
 
 add_library(calf::core ALIAS calf_core)
