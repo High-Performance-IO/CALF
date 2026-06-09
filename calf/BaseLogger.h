@@ -1,6 +1,7 @@
 #ifndef CALF_BASELOGGER_H
 #define CALF_BASELOGGER_H
 
+#include <climits>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
