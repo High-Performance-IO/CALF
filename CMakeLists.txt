@@ -40,10 +40,10 @@ add_library(calf::core ALIAS calf_core)
 #    without:     read the CALF_COMPONENT_NAME variable from the caller's scope
 # ---------------------------------------------------------------------------
 function(calf_set_component target)
-    if (ARGC GREATER 1)
-        set(_name "${ARGV1}")
+    if (ARGC NOT EQUAL 1)
+       message(FATAL_ERROR "set_calf_name invoked without target name and or component name")
     else ()
-        set(_name "${CALF_COMPONENT_NAME}")
+        set(_name "${ARGV1}")
     endif ()
     set_target_properties(${target} PROPERTIES CALF_COMPONENT_NAME "${_name}")
 endfunction()
