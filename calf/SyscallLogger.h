@@ -23,16 +23,10 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     static thread_local __attribute__((tls_model("initial-exec"))) char filePath[PATH_MAX];
 
     // Syscall function pointer — defaults to ::syscall.
-    using SyscallFn                        = long (*)(long, ...);
-    inline static SyscallFn syscallFn      = ::syscall;
-    inline static char component_name[128] = "NOT_SET";
+    using SyscallFn                   = long (*)(long, ...);
+    inline static SyscallFn syscallFn = ::syscall;
 
     static void setSyscallFn(SyscallFn fn) { syscallFn = fn; }
-
-    static void setComponentName(const char *name) {
-        ::strncpy(component_name, name, sizeof(component_name) - 1);
-        component_name[sizeof(component_name) - 1] = '\0';
-    }
 
     explicit SyscallLogger() { ensureFileOpen(); }
 
@@ -120,7 +114,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         if (d == nullptr) {
             const char *base = getLogDir();
             d                = new char[::strlen(base) + 9]{0};
-            ::sprintf(d, "%s/%s", base, component_name);
+            ::sprintf(d, "%s/%s", base, CALF_COMPONENT_NAME);
         }
         return d;
     }

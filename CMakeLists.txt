@@ -44,9 +44,7 @@ function(calf_set_component target)
         message(FATAL_ERROR "calf_set_component invoked with incorrect number of arguments")
     endif()
 
-    set(_name "${ARGV1}")
-
-    set_target_properties(${target} PROPERTIES CALF_COMPONENT_NAME "${_name}")
+    set_target_properties(${target} PROPERTIES _CALF_COMPONENT_NAME "${ARGV1}")
 endfunction()
 
 # -------------------------------------------------------------------------

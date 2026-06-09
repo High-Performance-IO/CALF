@@ -13,10 +13,6 @@
 
 #include "BaseLogger.h"
 
-#ifndef CALF_COMPONENT_NAME
-#define CALF_COMPONENT_NAME "calf"
-#endif
-
 // Cli pre messages
 constexpr char CAPIO_LOG_SERVER_CLI_LEVEL_RESET[] = "\033[0m";
 constexpr char CALF_CLI_LEVEL_STATUS[]            = "\033[1;34m";
@@ -27,7 +23,6 @@ constexpr char CALF_CLI_LEVEL_ERROR[]             = "\033[1;31m";
 struct StdoutLoggerOptions {
     std::string color         = CAPIO_LOG_SERVER_CLI_LEVEL_RESET;
     std::string workflowName  = "NOT SET";
-    std::string componentName = CALF_COMPONENT_NAME;
     bool printHeader          = true;
     bool useColor             = true;
 };
@@ -93,7 +88,7 @@ struct StdoutLogger {
 
         const bool color = options.useColor && !options.color.empty() && options.color[0] != '\0';
 
-        std::cout << "[" << options.componentName << " " << hostname << "] "
+        std::cout << "[" << CALF_COMPONENT_NAME << " " << hostname << "] "
                   << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S") << "("
                   << options.workflowName << ")" << std::left << " | ";
 
