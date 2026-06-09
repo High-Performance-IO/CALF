@@ -46,6 +46,7 @@ endfunction()
 
 function(calf_enable_log ENABLE)
     if (ENABLE)
+        message(STATUS "Enabling CALF logger")
         set(CALF_LOG ON CACHE BOOL "" FORCE)
     else ()
         set(CALF_LOG OFF CACHE BOOL "" FORCE)
