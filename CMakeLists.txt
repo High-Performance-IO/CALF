@@ -13,6 +13,7 @@ option(CALF_BUILD_STL "Build the STL (ofstream) logger" ON)
 option(CALF_BUILD_SYSCALL "Build the syscall-interceptor logger" ON)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name when a consuming target does not set one")
+set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name when a consuming target does not set one")
 
 # -------------------------------------------------------------------------
 #  Core — INTERFACE target (header-only, no sources)
@@ -29,6 +30,7 @@ target_compile_definitions(calf_core
         INTERFACE
         $<$<BOOL:${CALF_LOG}>:CALF_LOG>
         _CALF_COMPONENT_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:_CALF_COMPONENT_NAME>>,$<TARGET_PROPERTY:_CALF_COMPONENT_NAME>,${CALF_DEFAULT_COMPONENT_NAME}>"
+        _CALF_DEFAULT_LOG_DIR_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:_CALF_DEFAULT_LOG_DIR_NAME>>,$<TARGET_PROPERTY:_CALF_DEFAULT_LOG_DIR_NAME>,${CALF_DEFAULT_LOG_DIR_NAME}>"
 )
 
 add_library(calf::core ALIAS calf_core)
@@ -39,33 +41,41 @@ add_library(calf::core ALIAS calf_core)
 function(calf_set_component target)
     if (${ARGC} LESS 1 OR ${ARGC} GREATER 2)
         message(FATAL_ERROR "calf_set_component invoked with incorrect number of arguments")
-    endif()
+    endif ()
 
     set_target_properties(${target} PROPERTIES _CALF_COMPONENT_NAME "${ARGV1}")
 endfunction()
 
+function(calf_set_default_log_dir target)
+    if (${ARGC} LESS 1 OR ${ARGC} GREATER 2)
+        message(FATAL_ERROR "calf_set_default_log_dir invoked with incorrect number of arguments")
+    endif ()
+
+    set_target_properties(${target} PROPERTIES _CALF_DEFAULT_LOG_DIR_NAME "${ARGV1}")
+endfunction()
+
 function(calf_log ENABLE)
-    if(ENABLE)
+    if (ENABLE)
         set(CALF_LOG ON CACHE BOOL "Enable CALF logging" FORCE)
-    else()
+    else ()
         set(CALF_LOG OFF CACHE BOOL "Enable CALF logging" FORCE)
-    endif()
+    endif ()
 endfunction()
 
 function(calf_build_stl ENABLE)
-    if(ENABLE)
+    if (ENABLE)
         set(CALF_BUILD_STL ON CACHE BOOL "Build the STL (ofstream) logger" FORCE)
-    else()
+    else ()
         set(CALF_BUILD_STL OFF CACHE BOOL "Build the STL (ofstream) logger" FORCE)
-    endif()
+    endif ()
 endfunction()
 
 function(calf_build_syscall ENABLE)
-    if(ENABLE)
+    if (ENABLE)
         set(CALF_BUILD_SYSCALL ON CACHE BOOL "Build the syscall-interceptor logger" FORCE)
-    else()
+    else ()
         set(CALF_BUILD_SYSCALL OFF CACHE BOOL "Build the syscall-interceptor logger" FORCE)
-    endif()
+    endif ()
 endfunction()
 
 # -------------------------------------------------------------------------
