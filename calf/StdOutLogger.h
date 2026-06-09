@@ -23,7 +23,7 @@ constexpr char CALF_CLI_LEVEL_ERROR[]             = "\033[1;31m";
 struct StdoutLoggerOptions {
     std::string color         = CAPIO_LOG_SERVER_CLI_LEVEL_RESET;
     std::string workflowName  = "NOT SET";
-    std::string componentName = "NOT SET";
+    std::string componentName = CALF_COMPONENT_NAME;
     bool printHeader          = true;
     bool useColor             = true;
 };
@@ -129,9 +129,7 @@ using CalfCliLogger = TemplateLogger<StdoutLogger>;
         StdoutLogger::options.color = _calf_saved;                                                 \
     } while (0)
 
-#define UPDATE_CALF_CLI_CONFIG(component_name, workflow_name)                                      \
-    StdoutLogger::options.componentName = component_name;                                          \
-    StdoutLogger::options.workflowName  = workflow_name;
+#define UPDATE_CALF_WORKFLOW_NAME(workflow_name) StdoutLogger::options.workflowName = workflow_name;
 
 #ifdef CALF_LOG
 #define DBG_CALF_PRINT_COLOR(status, message, ...) CALF_PRINT_COLOR(status, message, ##__VA_ARGS__)

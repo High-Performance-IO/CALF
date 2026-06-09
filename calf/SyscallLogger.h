@@ -163,7 +163,6 @@ using Logger = TemplateLogger<SyscallLogger>;
     }
 
 #define SET_CALF_SYSCALL_HANDLER(syscall_ptr) SyscallLogger::setSyscallFn(syscall_ptr)
-#define SET_CALF_COMPONENT_NAME(name) SyscallLogger::setComponentName(name)
 
 #else
 
@@ -173,7 +172,6 @@ using Logger = TemplateLogger<SyscallLogger>;
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
 #define SET_CALF_SYSCALL_HANDLER(syscall_ptr)
-#define SET_CALF_COMPONENT_NAME(name)
 
 #endif
 

@@ -8,9 +8,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # -------------------------------------------------------------------------
 #  Options
 # -------------------------------------------------------------------------
-option(CALF_LOG           "Enable CALF logging"                ON)
-option(CALF_BUILD_STL     "Build the STL (ofstream) logger"       ON)
-option(CALF_BUILD_SYSCALL "Build the syscall-interceptor logger"  ON)
+option(CALF_LOG             "Enable CALF logging" ON)
+option(CALF_BUILD_STL       "Build the STL (ofstream) logger" ON)
+option(CALF_BUILD_SYSCALL   "Build the syscall-interceptor logger" ON)
+option(CALF_COMPONENT_NAME  "Default component name used in the logger" "CALF")
 
 # -------------------------------------------------------------------------
 #  Core — INTERFACE target (header-only, no sources)
@@ -26,6 +27,7 @@ target_include_directories(calf_core
 target_compile_definitions(calf_core
         INTERFACE
         $<$<BOOL:${CALF_LOG}>:CALF_LOG>
+        $<$STRING:${CALF_COMPONENT_NAME}>:CALF_COMPONENT_NAME>
 )
 
 add_library(calf::core ALIAS calf_core)
@@ -33,7 +35,7 @@ add_library(calf::core ALIAS calf_core)
 # -------------------------------------------------------------------------
 #  STL logger — INTERFACE target
 # -------------------------------------------------------------------------
-if(CALF_BUILD_STL)
+if (CALF_BUILD_STL)
     add_library(calf_stl INTERFACE)
     target_link_libraries(calf_stl INTERFACE calf_core)
     target_include_directories(calf_stl
@@ -42,12 +44,12 @@ if(CALF_BUILD_STL)
             $<INSTALL_INTERFACE:include/calf>
     )
     add_library(calf::stl ALIAS calf_stl)
-endif()
+endif ()
 
 # -------------------------------------------------------------------------
 #  Syscall logger — INTERFACE target
 # -------------------------------------------------------------------------
-if(CALF_BUILD_SYSCALL)
+if (CALF_BUILD_SYSCALL)
     add_library(calf_syscall INTERFACE)
     target_link_libraries(calf_syscall INTERFACE calf_core)
     target_include_directories(calf_syscall
@@ -59,16 +61,16 @@ if(CALF_BUILD_SYSCALL)
             INTERFACE __CALF_POSIX
     )
     add_library(calf::syscall ALIAS calf_syscall)
-endif()
+endif ()
 
 # -------------------------------------------------------------------------
 #  Guard
 # -------------------------------------------------------------------------
-if(CALF_LOG AND NOT CALF_BUILD_STL AND NOT CALF_BUILD_SYSCALL)
+if (CALF_LOG AND NOT CALF_BUILD_STL AND NOT CALF_BUILD_SYSCALL)
     message(WARNING
             "CALF_LOG is ON but no logger backend is enabled. "
             "Set CALF_BUILD_STL=ON or CALF_BUILD_SYSCALL=ON.")
-endif()
+endif ()
 
 # -------------------------------------------------------------------------
 #  Install rules
@@ -77,16 +79,16 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set(_calf_install_targets calf_core)
-if(CALF_BUILD_STL)
+if (CALF_BUILD_STL)
     list(APPEND _calf_install_targets calf_stl)
-endif()
-if(CALF_BUILD_SYSCALL)
+endif ()
+if (CALF_BUILD_SYSCALL)
     list(APPEND _calf_install_targets calf_syscall)
-endif()
+endif ()
 
 install(
-        TARGETS   ${_calf_install_targets}
-        EXPORT    CalfTargets
+        TARGETS ${_calf_install_targets}
+        EXPORT CalfTargets
 )
 
 install(
@@ -95,8 +97,8 @@ install(
 )
 
 install(
-        EXPORT    CalfTargets
-        FILE      CalfTargets.cmake
+        EXPORT CalfTargets
+        FILE CalfTargets.cmake
         NAMESPACE calf::
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Calf
 )
@@ -120,7 +122,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/CalfConfigVersion.cmake"
-        VERSION       ${PROJECT_VERSION}
+        VERSION ${PROJECT_VERSION}
         COMPATIBILITY SameMajorVersion
 )
 

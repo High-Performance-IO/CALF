@@ -87,7 +87,6 @@ using Logger = TemplateLogger<StlLogger>;
 #define DISABLE_LOGGER()                                                                           \
     SyscallLoggingSuspender sls {}
 
-#define SET_CALF_COMPONENT_NAME(name) StlLogger::setComponentName(name)
 #define DBG(tid, lambda)                                                                           \
     {                                                                                              \
         START_LOG(tid, "[  DBG  ]~~~ START ~~~[  DBG  ]");                                         \
@@ -102,7 +101,6 @@ using Logger = TemplateLogger<StlLogger>;
 #define DBG(tid, lambda)
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
-#define SET_CALF_COMPONENT_NAME(name)
 
 #endif // CALF_LOG
 
