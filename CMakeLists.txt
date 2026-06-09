@@ -11,7 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(CALF_LOG             "Enable CALF logging" ON)
 option(CALF_BUILD_STL       "Build the STL (ofstream) logger" ON)
 option(CALF_BUILD_SYSCALL   "Build the syscall-interceptor logger" ON)
-option(CALF_COMPONENT_NAME  "Default component name used in the logger" "CALF")
+option(CALF_COMPONENT_NAME  "Default component name used in the logger" CALF)
 
 # -------------------------------------------------------------------------
 #  Core — INTERFACE target (header-only, no sources)
