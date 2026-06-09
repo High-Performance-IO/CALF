@@ -36,15 +36,16 @@ add_library(calf::core ALIAS calf_core)
 # ---------------------------------------------------------------------------
 #  Helper: choose the component name a target logs under.
 #  calf_set_component(<target> [<name>])
-#    with <name>: use it verbatim
-#    without:     read the CALF_COMPONENT_NAME variable from the caller's scope
+#     with <name>: use it verbatim
+#     without:     read the CALF_COMPONENT_NAME variable from the caller's scope
 # ---------------------------------------------------------------------------
 function(calf_set_component target)
-    if (ARGC NOT EQUAL 1)
-       message(FATAL_ERROR "set_calf_name invoked without target name and or component name")
-    else ()
-        set(_name "${ARGV1}")
-    endif ()
+    if (${ARGC} LESS 1 OR ${ARGC} GREATER 2)
+        message(FATAL_ERROR "calf_set_component invoked with incorrect number of arguments")
+    endif()
+
+    set(_name "${ARGV1}")
+
     set_target_properties(${target} PROPERTIES CALF_COMPONENT_NAME "${_name}")
 endfunction()
 
