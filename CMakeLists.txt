@@ -45,8 +45,6 @@ function(calf_enable_log target ENABLE)
     if (ENABLE)
         target_compile_definitions(${target} PRIVATE CALF_LOG)
     endif ()
-
     get_filename_component(CALF_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
-
-    target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_include_directories(${target} PRIVATE "${CALF_ROOT_DIR}")
 endfunction()
