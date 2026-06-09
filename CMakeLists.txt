@@ -8,10 +8,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # -------------------------------------------------------------------------
 #  Options
 # -------------------------------------------------------------------------
-option(CALF_LOG             "Enable CALF logging" ON)
-option(CALF_BUILD_STL       "Build the STL (ofstream) logger" ON)
-option(CALF_BUILD_SYSCALL   "Build the syscall-interceptor logger" ON)
-option(CALF_COMPONENT_NAME  "Default component name used in the logger" CALF)
+option(CALF_LOG "Enable CALF logging" ON)
+option(CALF_BUILD_STL "Build the STL (ofstream) logger" ON)
+option(CALF_BUILD_SYSCALL "Build the syscall-interceptor logger" ON)
+
+set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name when a consuming target does not set one")
 
 # -------------------------------------------------------------------------
 #  Core — INTERFACE target (header-only, no sources)
@@ -27,10 +28,25 @@ target_include_directories(calf_core
 target_compile_definitions(calf_core
         INTERFACE
         $<$<BOOL:${CALF_LOG}>:CALF_LOG>
-        CALF_COMPONENT_NAME="${CALF_COMPONENT_NAME}"
+        CALF_COMPONENT_NAME="$<IF:$<BOOL:$<TARGET_PROPERTY:CALF_COMPONENT_NAME>>,$<TARGET_PROPERTY:CALF_COMPONENT_NAME>,${CALF_DEFAULT_COMPONENT_NAME}>"
 )
 
 add_library(calf::core ALIAS calf_core)
+
+# ---------------------------------------------------------------------------
+#  Helper: choose the component name a target logs under.
+#  calf_set_component(<target> [<name>])
+#    with <name>: use it verbatim
+#    without:     read the CALF_COMPONENT_NAME variable from the caller's scope
+# ---------------------------------------------------------------------------
+function(calf_set_component target)
+    if (ARGC GREATER 1)
+        set(_name "${ARGV1}")
+    else ()
+        set(_name "${CALF_COMPONENT_NAME}")
+    endif ()
+    set_target_properties(${target} PROPERTIES CALF_COMPONENT_NAME "${_name}")
+endfunction()
 
 # -------------------------------------------------------------------------
 #  STL logger — INTERFACE target

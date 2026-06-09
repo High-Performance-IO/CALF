@@ -13,6 +13,10 @@
 
 #include "BaseLogger.h"
 
+#ifndef CALF_COMPONENT_NAME
+#define CALF_COMPONENT_NAME "calf"
+#endif
+
 // Cli pre messages
 constexpr char CAPIO_LOG_SERVER_CLI_LEVEL_RESET[] = "\033[0m";
 constexpr char CALF_CLI_LEVEL_STATUS[]            = "\033[1;34m";
