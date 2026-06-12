@@ -33,7 +33,7 @@ struct StdoutLogger {
                                                            "NOT SET", true, true};
     static void setOptions(const StdoutLoggerOptions &o) { options = o; }
     static void setColor(const char *color) { options.color = color; }
-    static void setPrintHeader(bool v) { options.printHeader = v; }
+    static void setPrintHeader(const bool v) { options.printHeader = v; }
 
     static void writeOpening(unsigned long int /*timestamp*/, const char *invoker,
                              const char * /*file*/, int /*line*/, const char *message_format,
@@ -89,7 +89,7 @@ struct StdoutLogger {
 
         const bool color = options.useColor && !options.color.empty() && options.color[0] != '\0';
 
-        struct tm tm_snapshot;
+        tm tm_snapshot;
         localtime_r(&t, &tm_snapshot);
 
         std::cout << "[" << CALF_COMPONENT_NAME << " " << hostname << "] "

@@ -5,6 +5,7 @@ project(CALF VERSION 1.0.0 LANGUAGES CXX)
 #  Options & Defaults
 # -------------------------------------------------------------------------
 option(CALF_LOG "Enable CALF logging globally by default" ON)
+option(CALF_TESTS "Enable CALF unit tests" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
@@ -48,3 +49,12 @@ function(calf_enable_log target ENABLE)
     target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}")
     message(STATUS "calf_enable_log(${target}) -> include dir: ${CMAKE_CURRENT_FUNCTION_LIST_DIR}")
 endfunction()
+
+
+# ---------------------------------------------------------------------------
+#  Tests
+# ---------------------------------------------------------------------------
+if(CALF_TESTS)
+    add_executable(calf_unit_tests tests/main.cpp)
+    calf_enable_log(calf_unit_tests ON)
+endif ()

@@ -41,9 +41,9 @@ struct StlLogger : JsonLogBase<StlLogger> {
 
     explicit StlLogger() { ensureFileOpen(); }
 
-    std::string getLogFileName() const { return logFileName ? *logFileName : std::string{}; }
+    static std::string getLogFileName() { return logFileName ? *logFileName : std::string{}; }
 
-    static void rawWriteBytes(const char *buf, int len) {
+    static void rawWriteBytes(const char *buf, const int len) {
         ensureFileOpen();
         logfile->write(buf, len);
         logfile->flush();

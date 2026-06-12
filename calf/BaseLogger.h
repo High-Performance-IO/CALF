@@ -72,8 +72,8 @@ class SyscallLoggingSuspender {
 template <typename Adapter> class TemplateLogger {
     static thread_local __attribute__((tls_model("initial-exec"))) int current_log_level;
 
-    char invoker[256];
-    char file[256];
+    char invoker[256]{};
+    char file[256]{};
     unsigned int line;
     long int tid;
 

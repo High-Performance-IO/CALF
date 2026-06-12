@@ -19,8 +19,7 @@
 
 struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
-    // thread_local file state — initial-exec TLS model required for
-    // shared library (.so) compatibility.
+    // thread_local file state — initial-exec TLS model required for shared library compatibility.
     static thread_local __attribute__((tls_model("initial-exec"))) int fileFD;
     static thread_local __attribute__((tls_model("initial-exec"))) char filePath[PATH_MAX];
 
@@ -32,7 +31,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
     explicit SyscallLogger() { ensureFileOpen(); }
 
-    std::string getLogFileName() const {
+    static std::string getLogFileName() {
         return filePath[0] != '\0' ? std::string(filePath) : std::string{};
     }
 
@@ -46,7 +45,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     }
 
   private:
-    template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     static long to_arg(T v) {
         return static_cast<long>(v);
     }
