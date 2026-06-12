@@ -62,9 +62,11 @@ inline thread_local __attribute__((tls_model("initial-exec"))) bool enable_logge
 #endif
 
 class SyscallLoggingSuspender {
+    bool prev_;
+
   public:
-    SyscallLoggingSuspender() { enable_logger = false; }
-    ~SyscallLoggingSuspender() { enable_logger = true; }
+    SyscallLoggingSuspender() : prev_(enable_logger) { enable_logger = false; }
+    ~SyscallLoggingSuspender() { enable_logger = prev_; }
 };
 
 template <typename Adapter> class TemplateLogger {

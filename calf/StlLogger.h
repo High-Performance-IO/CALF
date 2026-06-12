@@ -1,6 +1,7 @@
 #ifndef CALF_STLLOGGER_H
 #define CALF_STLLOGGER_H
 
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -13,6 +14,25 @@
 
 #include "BaseLogger.h"
 #include "JsonBaseLogger.h"
+
+#if defined(__APPLE__)
+#include <pthread.h>
+#elif defined(__linux__)
+#include <sys/syscall.h>
+#include <unistd.h>
+#endif
+
+inline long calf_current_tid() {
+#if defined(__APPLE__)
+    uint64_t tid = 0;
+    pthread_threadid_np(nullptr, &tid);
+    return static_cast<long>(tid);
+#elif defined(__linux__)
+    return static_cast<long>(::syscall(SYS_gettid));
+#else
+    return static_cast<long>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+#endif
+}
 
 struct StlLogger : JsonLogBase<StlLogger> {
 
@@ -62,7 +82,7 @@ struct StlLogger : JsonLogBase<StlLogger> {
         std::filesystem::create_directories(outputFolder);
 
         const std::filesystem::path path =
-            outputFolder / (prefix + std::to_string(::syscall(SYS_gettid)) + ".log");
+            outputFolder / (prefix + std::to_string(calf_current_tid()) + ".log");
 
         logfile     = std::make_unique<std::ofstream>(path, std::ofstream::app);
         logFileName = std::make_unique<std::string>(path.string());
