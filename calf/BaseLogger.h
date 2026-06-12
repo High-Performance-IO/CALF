@@ -34,7 +34,7 @@ inline void raise_termination(const bool raise_exception, const std::string &mes
     if (raise_exception) {
         throw std::runtime_error(message);
     }
-    int write_res = write(STDERR_FILENO, message.c_str(), message.size());
+    int write_res = write(stderr, message.c_str(), message.size());
     if (write_res == -1) {
         perror("write: error printing error msg!");
     }
@@ -68,12 +68,12 @@ class SyscallLoggingSuspender {
 template <typename Adapter> class TemplateLogger {
     static thread_local __attribute__((tls_model("initial-exec"))) int current_log_level;
 
-    char invoker[256]{0};
-    char file[256]{0};
-    unsigned int line{0};
-    long int tid{0};
+    thread_local char invoker[256]{0};
+    thread_local char file[256]{0};
+    thread_local unsigned int line{0};
+    thread_local long int tid{0};
 
-    Adapter adapter;
+    thread_local Adapter adapter;
 
   public:
     TemplateLogger(const char invoker[], const char file[], unsigned int line, long int tid,

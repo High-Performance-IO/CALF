@@ -25,8 +25,8 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     static thread_local __attribute__((tls_model("initial-exec"))) char filePath[PATH_MAX];
 
     // Syscall function pointer — defaults to ::syscall.
-    using SyscallFn                   = long (*)(long, ...);
-    inline static SyscallFn syscallFn = ::syscall;
+    using SyscallFn                                = long (*)(long, ...);
+    inline static thread_local SyscallFn syscallFn = ::syscall;
 
     static void setSyscallFn(SyscallFn fn) { syscallFn = fn; }
 
