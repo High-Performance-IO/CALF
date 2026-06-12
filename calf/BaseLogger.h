@@ -1,6 +1,7 @@
 #ifndef CALF_BASELOGGER_H
 #define CALF_BASELOGGER_H
 
+#include <atomic>
 #include <climits>
 #include <cstdarg>
 #include <cstdio>
@@ -28,7 +29,7 @@
 #endif
 #endif
 
-inline bool continue_on_error = false;
+inline std::atomic<bool> continue_on_error{false};
 
 inline void raise_termination(const bool raise_exception, const std::string &message) {
     if (raise_exception) {
@@ -43,11 +44,12 @@ inline void raise_termination(const bool raise_exception, const std::string &mes
 
 inline long long current_time_in_millis() {
     timespec ts{};
-    static long long start_time = -1;
-    if (start_time == -1) {
-        clock_gettime(CLOCK_REALTIME, &ts);
-        start_time = static_cast<long long>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
-    }
+    static const long long start_time = []() {
+        timespec init_ts{};
+        clock_gettime(CLOCK_REALTIME, &init_ts);
+        return static_cast<long long>(init_ts.tv_sec) * 1000 + init_ts.tv_nsec / 1000000;
+    }();
+
     clock_gettime(CLOCK_REALTIME, &ts);
     return static_cast<long long>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000 - start_time;
 }
@@ -68,12 +70,12 @@ class SyscallLoggingSuspender {
 template <typename Adapter> class TemplateLogger {
     static thread_local __attribute__((tls_model("initial-exec"))) int current_log_level;
 
-    static thread_local char invoker[256];
-    static thread_local char file[256];
-    static thread_local unsigned int line;
-    static thread_local long int tid;
+    char invoker[256];
+    char file[256];
+    unsigned int line;
+    long int tid;
 
-    static thread_local Adapter adapter;
+    Adapter adapter;
 
   public:
     TemplateLogger(const char invoker[], const char file[], unsigned int line, long int tid,
@@ -131,21 +133,6 @@ template <typename Adapter> class TemplateLogger {
 template <typename T>
 inline thread_local
     __attribute__((tls_model("initial-exec"))) int TemplateLogger<T>::current_log_level = 0;
-
-template <typename T>
-inline thread_local
-    __attribute__((tls_model("initial-exec"))) char TemplateLogger<T>::invoker[256]{'\0'};
-
-template <typename T>
-inline thread_local
-    __attribute__((tls_model("initial-exec"))) char TemplateLogger<T>::file[256]{'\0'};
-
-template <typename T>
-inline thread_local
-    __attribute__((tls_model("initial-exec"))) unsigned int TemplateLogger<T>::line = 0;
-
-template <typename T>
-inline thread_local __attribute__((tls_model("initial-exec"))) long int TemplateLogger<T>::tid = 0;
 
 #ifdef CALF_LOG
 

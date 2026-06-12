@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <limits.h>
+#include <memory>
 #include <string>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -15,8 +16,8 @@
 
 struct StlLogger : JsonLogBase<StlLogger> {
 
-    inline static thread_local std::ofstream *logfile   = nullptr;
-    inline static thread_local std::string *logFileName = nullptr;
+    inline static thread_local std::unique_ptr<std::ofstream> logfile   = nullptr;
+    inline static thread_local std::unique_ptr<std::string> logFileName = nullptr;
 
     explicit StlLogger() { ensureFileOpen(); }
 
@@ -63,8 +64,8 @@ struct StlLogger : JsonLogBase<StlLogger> {
         const std::filesystem::path path =
             outputFolder / (prefix + std::to_string(::syscall(SYS_gettid)) + ".log");
 
-        logfile     = new std::ofstream(path, std::ofstream::app);
-        logFileName = new std::string(path.string());
+        logfile     = std::make_unique<std::ofstream>(path, std::ofstream::app);
+        logFileName = std::make_unique<std::string>(path.string());
     }
 };
 

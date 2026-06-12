@@ -89,9 +89,12 @@ struct StdoutLogger {
 
         const bool color = options.useColor && !options.color.empty() && options.color[0] != '\0';
 
+        struct tm tm_snapshot;
+        localtime_r(&t, &tm_snapshot);
+
         std::cout << "[" << CALF_COMPONENT_NAME << " " << hostname << "] "
-                  << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S") << "("
-                  << options.workflowName << ")" << std::left << " | ";
+                  << std::put_time(&tm_snapshot, "%Y-%m-%d %H:%M:%S") << "(" << options.workflowName
+                  << ")" << std::left << " | ";
 
         // Invoker + message, matching the style of the original server_println.
         std::cout << std::left << std::setw(30) << std::string(invoker).substr(0, 30) << " | ";
