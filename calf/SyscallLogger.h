@@ -1,6 +1,8 @@
 #ifndef CALF_SYSCALLLOGGER_H
 #define CALF_SYSCALLLOGGER_H
 
+#if defined(__linux__)
+
 #include <cerrno>
 #include <climits>
 #include <cstdio>
@@ -166,6 +168,8 @@ using Logger = TemplateLogger<SyscallLogger>;
 #define ENABLE_LOGGER()
 #define DISABLE_LOGGER()
 #define SET_CALF_SYSCALL_HANDLER(syscall_ptr)
+
+#endif
 
 #endif
 
