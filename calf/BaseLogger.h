@@ -34,7 +34,7 @@ inline void raise_termination(const bool raise_exception, const std::string &mes
     if (raise_exception) {
         throw std::runtime_error(message);
     }
-    int write_res = write(stderr, message.c_str(), message.size());
+    int write_res = write(fileno(stderr), message.c_str(), message.size());
     if (write_res == -1) {
         perror("write: error printing error msg!");
     }
