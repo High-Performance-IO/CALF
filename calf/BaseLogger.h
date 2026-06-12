@@ -68,12 +68,12 @@ class SyscallLoggingSuspender {
 template <typename Adapter> class TemplateLogger {
     static thread_local __attribute__((tls_model("initial-exec"))) int current_log_level;
 
-    thread_local char invoker[256]{0};
-    thread_local char file[256]{0};
-    thread_local unsigned int line{0};
-    thread_local long int tid{0};
+    static thread_local char invoker[256];
+    static thread_local char file[256];
+    static thread_local unsigned int line;
+    static thread_local long int tid;
 
-    thread_local Adapter adapter;
+    static thread_local Adapter adapter;
 
   public:
     TemplateLogger(const char invoker[], const char file[], unsigned int line, long int tid,
@@ -131,6 +131,21 @@ template <typename Adapter> class TemplateLogger {
 template <typename T>
 inline thread_local
     __attribute__((tls_model("initial-exec"))) int TemplateLogger<T>::current_log_level = 0;
+
+template <typename T>
+inline thread_local
+    __attribute__((tls_model("initial-exec"))) char TemplateLogger<T>::invoker[256]{'\0'};
+
+template <typename T>
+inline thread_local
+    __attribute__((tls_model("initial-exec"))) char TemplateLogger<T>::file[256]{'\0'};
+
+template <typename T>
+inline thread_local
+    __attribute__((tls_model("initial-exec"))) unsigned int TemplateLogger<T>::line = 0;
+
+template <typename T>
+inline thread_local __attribute__((tls_model("initial-exec"))) long int TemplateLogger<T>::tid = 0;
 
 #ifdef CALF_LOG
 
