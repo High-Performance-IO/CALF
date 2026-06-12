@@ -29,7 +29,8 @@ struct StdoutLoggerOptions {
 
 struct StdoutLogger {
 
-    static thread_local StdoutLoggerOptions options;
+    inline static thread_local StdoutLoggerOptions options{CAPIO_LOG_SERVER_CLI_LEVEL_RESET,
+                                                           "NOT SET", true, true};
     static void setOptions(const StdoutLoggerOptions &o) { options = o; }
     static void setColor(const char *color) { options.color = color; }
     static void setPrintHeader(bool v) { options.printHeader = v; }
