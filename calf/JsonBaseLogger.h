@@ -10,11 +10,10 @@
 
 template <typename Derived> struct JsonLogBase {
 
-    static thread_local __attribute__((tls_model("initial-exec"))) int nestingDepth;
-    static thread_local __attribute__((tls_model("initial-exec"))) bool rootArrayOpen;
-    static thread_local __attribute__((tls_model("initial-exec"))) int pendingLen;
-    static thread_local
-        __attribute__((tls_model("initial-exec"))) char pendingBuf[CALF_LOG_MAX_MSG_LEN * 6 + 256];
+    static thread_local int nestingDepth;
+    static thread_local bool rootArrayOpen;
+    static thread_local int pendingLen;
+    static thread_local char pendingBuf[CALF_LOG_MAX_MSG_LEN * 6 + 256];
 
     static void printFormatted(unsigned long int timestamp, const char *invoker, const char *file,
                                int line, const char * /*output_template*/,
@@ -209,14 +208,10 @@ template <typename Derived> struct JsonLogBase {
     }
 };
 
+template <typename D> thread_local int JsonLogBase<D>::nestingDepth = 0;
+template <typename D> thread_local bool JsonLogBase<D>::rootArrayOpen = false;
+template <typename D> thread_local int JsonLogBase<D>::pendingLen = 0;
 template <typename D>
-thread_local __attribute__((tls_model("initial-exec"))) int JsonLogBase<D>::nestingDepth = 0;
-template <typename D>
-thread_local __attribute__((tls_model("initial-exec"))) bool JsonLogBase<D>::rootArrayOpen = false;
-template <typename D>
-thread_local __attribute__((tls_model("initial-exec"))) int JsonLogBase<D>::pendingLen = 0;
-template <typename D>
-thread_local __attribute__((tls_model(
-    "initial-exec"))) char JsonLogBase<D>::pendingBuf[CALF_LOG_MAX_MSG_LEN * 6 + 256] = {'\0'};
+thread_local char JsonLogBase<D>::pendingBuf[CALF_LOG_MAX_MSG_LEN * 6 + 256] = {'\0'};
 
 #endif

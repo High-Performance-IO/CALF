@@ -19,9 +19,8 @@
 
 struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
-    // thread_local file state — initial-exec TLS model required for shared library compatibility.
-    static thread_local __attribute__((tls_model("initial-exec"))) int fileFD;
-    static thread_local __attribute__((tls_model("initial-exec"))) char filePath[PATH_MAX];
+    static thread_local int fileFD;
+    static thread_local char filePath[PATH_MAX];
 
     // Syscall function pointer — defaults to ::syscall.
     using SyscallFn                                = long (*)(long, ...);
@@ -131,11 +130,8 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     }
 };
 
-// Out-of-class definitions for thread_local statics.
-// The initial-exec attribute must appear on both declaration and definition.
-inline thread_local __attribute__((tls_model("initial-exec"))) int SyscallLogger::fileFD = -1;
-inline thread_local
-    __attribute__((tls_model("initial-exec"))) char SyscallLogger::filePath[PATH_MAX] = {'\0'};
+inline thread_local int SyscallLogger::fileFD               = -1;
+inline thread_local char SyscallLogger::filePath[PATH_MAX] = {'\0'};
 
 using Logger = TemplateLogger<SyscallLogger>;
 

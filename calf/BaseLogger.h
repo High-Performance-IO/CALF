@@ -55,10 +55,10 @@ inline long long current_time_in_millis() {
 }
 
 #ifdef __CALF_POSIX
-inline thread_local __attribute__((tls_model("initial-exec"))) bool enable_logger = false;
+inline thread_local bool enable_logger = false;
 #else
 // Server / non-POSIX: logging is always active from the first call.
-inline thread_local __attribute__((tls_model("initial-exec"))) bool enable_logger = true;
+inline thread_local bool enable_logger = true;
 #endif
 
 class SyscallLoggingSuspender {
@@ -70,7 +70,7 @@ class SyscallLoggingSuspender {
 };
 
 template <typename Adapter> class TemplateLogger {
-    static thread_local __attribute__((tls_model("initial-exec"))) int current_log_level;
+    static thread_local int current_log_level;
 
     char invoker[256]{};
     char file[256]{};
@@ -132,9 +132,7 @@ template <typename Adapter> class TemplateLogger {
     static void reset_log_level() { current_log_level = 0; }
 };
 
-template <typename T>
-inline thread_local
-    __attribute__((tls_model("initial-exec"))) int TemplateLogger<T>::current_log_level = 0;
+template <typename T> inline thread_local int TemplateLogger<T>::current_log_level = 0;
 
 #ifdef CALF_LOG
 
