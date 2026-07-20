@@ -6,6 +6,7 @@ project(CALF VERSION 1.0.0 LANGUAGES CXX)
 # -------------------------------------------------------------------------
 option(CALF_LOG "Enable CALF logging globally by default" ON)
 option(CALF_TESTS "Enable CALF unit tests" OFF)
+option(BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
@@ -57,4 +58,26 @@ endfunction()
 if(CALF_TESTS)
     add_executable(calf_unit_tests tests/main.cpp)
     calf_enable_log(calf_unit_tests ON)
+endif ()
+
+# ---------------------------------------------------------------------------
+#  Python bindings
+# ---------------------------------------------------------------------------
+if(BUILD_PYTHON_BINDINGS)
+    include(FetchContent)
+
+    FetchContent_Declare(
+            pybind11
+            GIT_REPOSITORY https://github.com/pybind/pybind11.git
+            GIT_TAG v3.0.1
+    )
+    FetchContent_MakeAvailable(pybind11)
+
+    pybind11_add_module(_py_calf bindings/python_bindings.cpp)
+    target_include_directories(_py_calf PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_compile_features(_py_calf PRIVATE cxx_std_17)
+    calf_set_component(_py_calf)
+    calf_set_default_log_dir(_py_calf)
+
+    install(TARGETS _py_calf LIBRARY DESTINATION calf)
 endif ()

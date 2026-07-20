@@ -32,19 +32,19 @@ Python dependencies are installed automatically from `pyproject.toml`.
 From the CALF repository root:
 
 ```bash
-python -m pip install ./profiler
+python -m pip install .
 ```
 
 For development, use an editable installation:
 
 ```bash
-python -m pip install -e ./profiler
+python -m pip install -e .
 ```
 
 To install directly from GitHub:
 
 ```bash
-python -m pip install "CALF @ git+https://github.com/High-Performance-IO/CALF.git#subdirectory=profiler"
+python -m pip install "CALF @ git+https://github.com/High-Performance-IO/CALF.git"
 ```
 
 Installation provides the `calf` command.

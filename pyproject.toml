@@ -1,0 +1,53 @@
+[build-system]
+requires = [
+    "scikit-build-core[pyproject]==0.11.6",
+    "pybind11==3.0.1",
+    "setuptools==80.9.0",
+    "wheel==0.45.1",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "CALF"
+dynamic = ["version"]
+description = "CAPIO Logging Facility and interactive trace inspector"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Marco Edoardo Santimaria", email = "marcoedoardo.santimaria@unito.it" },
+]
+dependencies = [
+    "alive-progress>=3.1.0",
+    "numpy>=1.24.0",
+    "rich>=13.3.3",
+    "textual>=0.50.0",
+]
+
+[project.urls]
+Repository = "https://github.com/High-Performance-IO/CALF"
+Issues = "https://github.com/High-Performance-IO/CALF/issues"
+
+[project.scripts]
+calf = "calf.profiler.__main__:main"
+
+[tool.scikit-build]
+cmake.version = ">=3.16"
+wheel.exclude = [
+    "calf/profiler/build/**",
+    "calf/profiler/*.egg-info/**",
+    "calf/profiler/__pycache__/**",
+]
+
+[tool.scikit-build.wheel.packages]
+"calf" = "bindings/calf"
+"calf/profiler" = "profiler"
+
+[tool.scikit-build.cmake.define]
+BUILD_PYTHON_BINDINGS = true
+
+[tool.scikit-build.metadata.version]
+provider = "scikit_build_core.metadata.regex"
+input = "CMakeLists.txt"
+regex = "(?m)VERSION\\s+(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+result = "{major}.{minor}.{patch}"

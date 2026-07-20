@@ -29,6 +29,7 @@ usage, web-server options, and keyboard shortcuts.
 - C++17 or later
 - CMake 3.16 or later
 - Linux for `SyscallLogger` backend
+- Python 3.10 or later for the Python bindings and Inspector
 
 
 ## Output format
@@ -96,6 +97,92 @@ target_link_libraries(my_interceptor PRIVATE calf::syscall)
 
 
 ## Usage
+
+### Python bindings
+
+The Python package includes bindings for the STL file logger and stdout logger,
+as well as the CALF Inspector.
+
+#### Installation
+
+Build and install the package from the repository root:
+
+```bash
+python -m pip install .
+```
+
+For development, install it in editable mode:
+
+```bash
+python -m pip install -e .
+```
+
+The build uses CMake and pybind11 automatically. To build the extension directly
+with CMake instead:
+
+```bash
+cmake -S . -B build -DBUILD_PYTHON_BINDINGS=ON
+cmake --build build
+```
+
+#### STL logger
+
+`calf.Logger` is an alias for the STL-backed `calf.StlLogger`. Use it as a
+context manager so the logging scope is closed deterministically:
+
+```python
+import calf
+
+with calf.Logger("processing request") as logger:
+    logger.log("reading input")
+    logger.log("request complete")
+    print(logger.log_file_name)
+```
+
+CALF automatically uses the current Python function name as the invoker. At
+module scope it uses the script filename, while interactive sessions use
+`python`. Pass `invoker=` to override the detected name. The other optional
+constructor arguments are `file`, `line`, and `tid`. If `tid` is omitted, CALF
+uses the current thread ID. `close()` can be used instead of a context manager,
+and `get_log_file_name()` returns the STL log path.
+
+`CALF_LOG_DIR` and `CALF_LOG_PREFIX` configure file output in the same way as
+the C++ STL logger.
+
+#### Stdout logger
+
+The stdout logger supports scoped logging and direct messages:
+
+```python
+import calf
+
+options = calf.StdoutLogger.get_options()
+options.workflow_name = "example"
+options.color = calf.CLI_LEVEL_INFO
+options.print_header = True
+options.use_color = True
+calf.StdoutLogger.set_options(options)
+
+with calf.StdoutLogger("starting") as logger:
+    logger.log("working")
+
+calf.StdoutLogger.print("finished")
+```
+
+Available colors are `CLI_LEVEL_RESET`, `CLI_LEVEL_STATUS`, `CLI_LEVEL_INFO`,
+`CLI_LEVEL_WARNING`, and `CLI_LEVEL_ERROR`.
+
+#### Inspector
+
+Installing the package also installs the bundled CALF Inspector:
+
+```bash
+calf calf_logs
+calf calf_logs --web
+```
+
+It can also be launched with `python -m calf`. See the
+[CALF Inspector documentation](profiler/README.md) for all options.
 
 ### Server / non-interceptor code
 
