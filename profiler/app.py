@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical
@@ -25,9 +26,59 @@ from .loader import TraceNode, TraceTab, compute_stats, flatten
 
 
 _GLYPH_PAD = "  "
+_DEPTH_STYLES = (
+    "bright_magenta",
+    "bright_blue",
+    "bright_cyan",
+    "bright_green",
+    "bright_yellow",
+)
+
+
+def _format_ms(value: Optional[int]) -> str:
+    if value is None:
+        return "--"
+    if value >= 1_000:
+        return f"{value / 1_000:.2f}s"
+    return f"{value}ms"
+
+
+def _duration_style(value: Optional[int]) -> str:
+    if value is None:
+        return "dim"
+    if value < 10:
+        return "bold bright_green"
+    if value < 100:
+        return "bold green_yellow"
+    if value < 1_000:
+        return "bold orange3"
+    return "bold bright_red"
+
+
+def _node_label(node: TraceNode, indented: bool = False) -> Text:
+    label = Text(_GLYPH_PAD if indented else "")
+    if node.is_leaf:
+        label.append(node.invoker, style="bold bright_cyan")
+        if node.ts is not None:
+            label.append(f"  @{_format_ms(node.ts)}", style="cyan")
+    else:
+        depth_style = _DEPTH_STYLES[node.depth % len(_DEPTH_STYLES)]
+        label.append(node.invoker, style=f"bold {depth_style}")
+        if node.duration_ms is not None:
+            label.append(
+                f"  {_format_ms(node.duration_ms)}",
+                style=_duration_style(node.duration_ms),
+            )
+    if node.args:
+        label.append("  |  ", style="grey50")
+        label.append(node.args, style="italic grey70")
+    return label
 
 def _add_nodes(tree_node: TreeNode, trace_nodes: list[TraceNode],
-               filter_pat: Optional[re.Pattern] = None) -> int:
+               filter_pat: Optional[re.Pattern] = None,
+               node_map: Optional[dict[int, TreeNode]] = None) -> int:
+    if node_map is None:
+        node_map = {}
     added = 0
     for tn in trace_nodes:
         if filter_pat:
@@ -38,22 +89,27 @@ def _add_nodes(tree_node: TreeNode, trace_nodes: list[TraceNode],
                 continue
 
         if tn.is_leaf:
-            ts_str = f"[{tn.ts}ms]" if tn.ts is not None else ""
-            tree_node.add_leaf(
-                f"{_GLYPH_PAD}{tn.invoker}  {ts_str}  {tn.args}", data=tn)
+            node = tree_node.add_leaf(_node_label(tn, indented=True), data=tn)
+            node_map[id(tn)] = node
             added += 1
         else:
-            dur   = f"  [{tn.duration_ms}ms]" if tn.duration_ms is not None else ""
-            label = f"{tn.invoker}{dur}  {tn.args}"
+            label = _node_label(tn)
             if tn.children:
                 child = tree_node.add(label, data=tn, expand=(tn.depth < 2))
-                added += _add_nodes(child, tn.children, filter_pat)
+                node_map[id(tn)] = child
+                added += _add_nodes(child, tn.children, filter_pat, node_map)
                 if not list(child.children) and filter_pat:
                     child.remove()
-                    tree_node.add_leaf(f"{_GLYPH_PAD}{label}", data=tn)
+                    child = tree_node.add_leaf(
+                        _node_label(tn, indented=True), data=tn
+                    )
+                    node_map[id(tn)] = child
             else:
                 # Scope node with no events — leaf, no triangle.
-                tree_node.add_leaf(f"{_GLYPH_PAD}{label}", data=tn)
+                node = tree_node.add_leaf(
+                    _node_label(tn, indented=True), data=tn
+                )
+                node_map[id(tn)] = node
             added += 1
     return added
 
@@ -99,19 +155,30 @@ class StatsScreen(ModalScreen):
         self._tab = tab
 
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=False)
-        yield DataTable(id="stats-dt", classes="stats-table")
-        yield Footer()
+        with Vertical(id="stats-shell"):
+            yield Static(id="stats-title")
+            yield Static(id="stats-summary")
+            yield DataTable(id="stats-dt", classes="stats-table")
+            yield Static("Esc or q  Close", classes="modal-hint")
 
     def on_mount(self) -> None:
-        self.title     = f"Statistics — {self._tab.label}"
-        self.sub_title = f"tid {self._tab.tid}"
+        self.query_one("#stats-title", Static).update(
+            Text(f"Timing statistics  /  {self._tab.label}", style="bold")
+        )
         dt = self.query_one("#stats-dt", DataTable)
+        dt.cursor_type = "row"
+        dt.zebra_stripes = True
         dt.add_columns(
             "Invoker", "Count", "Total ms",
             "Mean ms", "Median ms", "Max ms", "Min ms", "Std ms",
         )
         rows = compute_stats(self._tab.roots)
+        total_calls = sum(r["count"] for r in rows)
+        total_time = sum(r["total_ms"] for r in rows)
+        self.query_one("#stats-summary", Static).update(
+            f"{len(rows):,} invokers   {total_calls:,} timed calls   "
+            f"{_format_ms(total_time)} cumulative"
+        )
         for r in rows:
             dt.add_row(
                 r["invoker"],
@@ -124,7 +191,6 @@ class StatsScreen(ModalScreen):
                 f"{r['std_ms']:.1f}",
             )
         dt.focus()
-        self.sub_title += f"  |  {len(rows)} unique invokers"
 
 class FilePane(TabPane):
     """Innermost pane: trace tree for one log file (one thread)."""
@@ -133,38 +199,100 @@ class FilePane(TabPane):
         super().__init__(trace_tab.tid, id=f"fp-{id(trace_tab):x}")
         self._trace_tab = trace_tab
         self._filter_pat: Optional[re.Pattern] = None
+        self._trace_nodes = flatten(trace_tab.roots)
+        self._node_map: dict[int, TreeNode] = {}
+        self._search_pattern = ""
+        self._search_matches: list[TreeNode] = []
+        self._search_index = -1
+        self._visible_count = 0
 
     def compose(self) -> ComposeResult:
         with Vertical(classes="pane-container"):
+            yield Static("", id="trace-summary", classes="trace-summary")
+            yield Static(id="tree-legend", classes="tree-legend")
             yield Tree("Traces", id="trace-tree", classes="tree-pane")
-            yield Static("", id="detail-bar", classes="detail-bar")
+            with Vertical(classes="detail-panel"):
+                yield Static("Select a trace to inspect it", id="detail-title")
+                yield Static("", id="detail-meta")
+                yield Static("", id="detail-args")
 
     def on_mount(self) -> None:
+        legend = Text("COLOR", style="bold #4ecdc4")
+        legend.append("   events", style="bold cyan")
+        legend.append("   FAST <10ms", style="bold bright_green")
+        legend.append("   WARM <1s", style="bold orange3")
+        legend.append("   HOT >=1s", style="bold bright_red")
+        legend.append("   SCOPE color = nesting depth", style="dim")
+        self.query_one("#tree-legend", Static).update(legend)
         self._rebuild_tree()
+        self.query_one("#trace-tree", Tree).focus()
+
+    def _update_summary(self, visible_count: int) -> None:
+        scopes = sum(not node.is_leaf for node in self._trace_nodes)
+        events = len(self._trace_nodes) - scopes
+        timestamps = [
+            value
+            for node in self._trace_nodes
+            for value in (node.ts, node.ts_enter, node.ts_exit)
+            if value is not None
+        ]
+        elapsed = max(timestamps) - min(timestamps) if len(timestamps) > 1 else None
+        summary = Text()
+        summary.append(f" THREAD {self._trace_tab.tid} ", style="bold black on cyan")
+        summary.append(f"  {scopes:,} scopes", style="magenta")
+        summary.append(f"   {events:,} events", style="cyan")
+        summary.append(f"   {_format_ms(elapsed)} window", style="yellow")
+        if self._filter_pat:
+            summary.append(
+                f"   FILTER  {self._filter_pat.pattern}  ({visible_count:,} shown)",
+                style="bold black on yellow",
+            )
+        if self._search_matches:
+            summary.append(
+                f"   SEARCH  {self._search_pattern}  "
+                f"({self._search_index + 1}/{len(self._search_matches)})",
+                style="bold black on green",
+            )
+        self.query_one("#trace-summary", Static).update(summary)
 
     def _rebuild_tree(self) -> None:
         tree = self.query_one("#trace-tree", Tree)
         tree.clear()
         tree.root.expand()
-        count  = _add_nodes(tree.root, self._trace_tab.roots, self._filter_pat)
-        suffix = (f", filter={self._filter_pat.pattern!r}"
-                  if self._filter_pat else "")
-        tree.root.set_label(f"Traces  ({count} nodes{suffix})")
+        self._node_map.clear()
+        count = _add_nodes(
+            tree.root, self._trace_tab.roots, self._filter_pat, self._node_map
+        )
+        self._visible_count = count
+        self._clear_search()
+        tree.root.set_label(Text(f"TRACE CALLS  /  {count:,} visible", style="bold"))
+        self._update_summary(count)
 
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
         tn: Optional[TraceNode] = event.node.data
-        bar = self.query_one("#detail-bar", Static)
         if tn is None:
-            bar.update("")
+            self.query_one("#detail-title", Static).update(
+                "Select a trace to inspect it"
+            )
+            self.query_one("#detail-meta", Static).update("")
+            self.query_one("#detail-args", Static).update("")
             return
-        parts = [f"{tn.short_file}:{tn.line}"]
-        if not tn.is_leaf and tn.duration_ms is not None:
-            parts.append(f"duration={tn.duration_ms}ms")
-        if tn.ts_enter is not None:
-            parts.append(f"ts_enter={tn.ts_enter}ms")
-        if tn.ts_exit is not None:
-            parts.append(f"ts_exit={tn.ts_exit}ms")
-        bar.update("  |  ".join(parts))
+        kind = "EVENT" if tn.is_leaf else "SCOPE"
+        title = Text(f"{kind}  ", style="bold cyan" if tn.is_leaf else "bold magenta")
+        title.append(tn.invoker, style="bold bright_white")
+        self.query_one("#detail-title", Static).update(title)
+
+        parts = [f"{tn.short_file}:{tn.line}", f"depth {tn.depth}"]
+        if tn.is_leaf:
+            parts.append(f"timestamp {_format_ms(tn.ts)}")
+        else:
+            parts.append(f"duration {_format_ms(tn.duration_ms)}")
+            parts.append(f"enter {_format_ms(tn.ts_enter)}")
+            parts.append(f"exit {_format_ms(tn.ts_exit)}")
+        self.query_one("#detail-meta", Static).update("   |   ".join(parts))
+        args = Text("ARGS  ", style="bold dim")
+        args.append(tn.args or "(none)")
+        self.query_one("#detail-args", Static).update(args)
 
     def apply_filter(self, pattern: str) -> None:
         if pattern:
@@ -175,6 +303,56 @@ class FilePane(TabPane):
         else:
             self._filter_pat = None
         self._rebuild_tree()
+
+    def _clear_search(self) -> None:
+        self._search_pattern = ""
+        self._search_matches = []
+        self._search_index = -1
+
+    def search(self, pattern: str) -> None:
+        self._clear_search()
+        if not pattern:
+            self._update_summary(self._visible_count)
+            return
+        try:
+            search_pat = re.compile(pattern, re.IGNORECASE)
+        except re.error:
+            search_pat = re.compile(re.escape(pattern), re.IGNORECASE)
+
+        self._search_pattern = pattern
+        self._search_matches = [
+            self._node_map[id(node)]
+            for node in self._trace_nodes
+            if id(node) in self._node_map
+            and (
+                search_pat.search(node.invoker)
+                or search_pat.search(node.args)
+                or search_pat.search(node.file)
+            )
+        ]
+        if not self._search_matches:
+            self.app.notify(f"No traces match {pattern!r}", severity="warning")
+            self._clear_search()
+            self._update_summary(self._visible_count)
+            return
+        self.search_next()
+
+    def search_next(self, direction: int = 1) -> None:
+        if not self._search_matches:
+            self.app.notify("Press / to search traces", severity="information")
+            return
+        self._search_index = (
+            self._search_index + direction
+        ) % len(self._search_matches)
+        target = self._search_matches[self._search_index]
+        parent = target.parent
+        while parent is not None:
+            parent.expand()
+            parent = parent.parent
+        tree = self.query_one("#trace-tree", Tree)
+        tree.select_node(target)
+        tree.scroll_to_node(target)
+        self._update_summary(self._visible_count)
 
     def expand_all(self) -> None:
         for node in self.query_one("#trace-tree", Tree).root.children:
@@ -225,10 +403,14 @@ class CALFApp(App):
     CSS_PATH = "style.css"
 
     BINDINGS = [
+        Binding("/", "search",         "Search",       show=True),
+        Binding("n", "search_next",    "Next match",   show=True),
+        Binding("shift+n", "search_previous", "Previous", show=False),
         Binding("f", "filter",       "Filter",       show=True),
         Binding("s", "stats",        "Statistics",   show=True),
         Binding("e", "expand_all",   "Expand all",   show=True),
         Binding("c", "collapse_all", "Collapse all", show=True),
+        Binding("r", "clear_filter", "Clear filter", show=True),
         Binding("q", "quit",         "Quit",         show=True),
     ]
 
@@ -286,6 +468,33 @@ class CALFApp(App):
 
         self.push_screen(FilterModal(current=current), _apply)
 
+    def action_search(self) -> None:
+        pane = self._active_file_pane()
+        if pane is None:
+            return
+
+        def _apply(result: Optional[str]) -> None:
+            if result is not None:
+                pane.search(result)
+
+        self.push_screen(
+            FilterModal(
+                prompt="Search invoker, args, or source file:",
+                current=pane._search_pattern,
+            ),
+            _apply,
+        )
+
+    def action_search_next(self) -> None:
+        pane = self._active_file_pane()
+        if pane:
+            pane.search_next()
+
+    def action_search_previous(self) -> None:
+        pane = self._active_file_pane()
+        if pane:
+            pane.search_next(-1)
+
     def action_stats(self) -> None:
         pane = self._active_file_pane()
         if pane is None:
@@ -301,3 +510,8 @@ class CALFApp(App):
         pane = self._active_file_pane()
         if pane:
             pane.collapse_all()
+
+    def action_clear_filter(self) -> None:
+        pane = self._active_file_pane()
+        if pane:
+            pane.apply_filter("")

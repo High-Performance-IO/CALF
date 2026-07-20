@@ -21,7 +21,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["CALF"]
-package-data = {"CALF" = ["style.css"]}
+package-data = {"CALF" = ["style.css", "web/*"]}
 
 [tool.setuptools.package-dir]
 "CALF" = "."

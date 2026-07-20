@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 360" width="1040" height="360" role="img" aria-labelledby="calfTitle">
+    <title id="calfTitle">CALF</title>
+
+    <!-- ================= calf mark ================= -->
+    <g id="mark" transform="translate(-260,75)">
+        <!-- ears -->
+        <ellipse fill="#45B6F5" cx="314" cy="94" rx="36" ry="18" transform="rotate(-18 314 94)"/>
+        <ellipse fill="#45B6F5" cx="486" cy="94" rx="36" ry="18" transform="rotate(18 486 94)"/>
+
+        <!-- horn buds -->
+        <circle fill="#F96A18" cx="366" cy="30" r="14"/>
+        <circle fill="#F96A18" cx="434" cy="30" r="14"/>
+
+        <!-- head -->
+        <path fill="#0B4EA2" d="M335,80 Q335,42 373,40 L427,40 Q465,42 465,80 L465,106 Q465,140 433,150 L367,150 Q335,140 335,106 Z"/>
+
+        <!-- forehead patch -->
+        <path fill="#45B6F5" d="M335,80 Q335,42 373,40 L396,40 Q374,74 382,108 Q356,114 335,98 Z"/>
+
+        <!-- eyes -->
+        <circle fill="#FFFFFF" cx="368" cy="94" r="10"/>
+        <circle fill="#FFFFFF" cx="432" cy="94" r="10"/>
+
+        <!-- muzzle -->
+        <rect fill="#F96A18" x="357" y="118" width="86" height="56" rx="27"/>
+        <ellipse fill="#0B4EA2" cx="381" cy="146" rx="8" ry="6"/>
+        <ellipse fill="#0B4EA2" cx="419" cy="146" rx="8" ry="6"/>
+    </g>
+
+    <!-- ================= wordmark ================= -->
+    <g id="wordmark" transform="translate(300,-20)">
+        <!-- C -->
+        <path fill="none" stroke="#45B6F5" stroke-width="48"
+              d="M153.74,146.26 A76,76 0 1 0 153.74,253.74"/>
+        <!-- A -->
+        <path fill="#45B6F5" fill-rule="evenodd"
+              d="M216,300 L298,100 L334,100 L416,300 L362,300 L343,250 L289,250 L270,300 Z
+             M316,155 L292,222 L340,222 Z"/>
+        <!-- L -->
+        <path fill="#0B4EA2" d="M432,100 H480 V252 H572 V300 H432 Z"/>
+        <!-- F -->
+        <path fill="#F96A18" d="M588,100 H708 V148 H636 V176 H698 V224 H636 V300 H588 Z"/>
+    </g>
+
+    <!-- ================= tagline ================= -->
+    <text x="520" y="335" text-anchor="middle"
+           font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+          font-weight="700" font-size="34" fill="#0B4EA2">CAPIO <tspan fill="#F96A18">Logging Facility</tspan></text>
+</svg>

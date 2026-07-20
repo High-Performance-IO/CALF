@@ -3,22 +3,22 @@
 /* ------------------------------------------------------------------ */
 
 Screen {
-    background: $surface;
+    background: #0b1118;
     layers: base overlay;
 }
 
 Header {
     dock: top;
     height: 2;
-    background: $primary;
-    color: $text;
+    background: #111d29;
+    color: #eaf2f8;
     text-style: bold;
 }
 
 Footer {
     dock: bottom;
-    background: $primary-darken-3;
-    color: $text-muted;
+    background: #111d29;
+    color: #9db0bf;
     height: 1;
 }
 
@@ -37,7 +37,7 @@ TabPane {
 
 /* Level 1 — hostname */
 .host-tabs > Tabs {
-    background: $primary-darken-1;
+    background: #152534;
     dock: top;
     height: 3;
 }
@@ -49,14 +49,14 @@ TabPane {
 }
 
 .host-tabs > Tabs > Tab.-active {
-    color: $text;
-    background: $primary;
-    border-bottom: tall $accent;
+    color: #ffffff;
+    background: #20384b;
+    border-bottom: tall #4ecdc4;
 }
 
 /* Level 2 — backend kind (stl / syscall / unknown) */
 .kind-tabs > Tabs {
-    background: $surface-darken-1;
+    background: #0e1720;
     height: 2;
 }
 
@@ -66,15 +66,15 @@ TabPane {
 }
 
 .kind-tabs > Tabs > Tab.-active {
-    color: $accent;
-    background: $surface;
+    color: #4ecdc4;
+    background: #111d29;
     text-style: bold;
-    border-bottom: tall $accent;
+    border-bottom: tall #4ecdc4;
 }
 
 /* Level 3 — thread file */
 .file-tabs > Tabs {
-    background: $surface-darken-2;
+    background: #0b1118;
     height: 2;
 }
 
@@ -84,9 +84,9 @@ TabPane {
 }
 
 .file-tabs > Tabs > Tab.-active {
-    color: $text;
-    background: $surface-darken-1;
-    border-bottom: tall $success;
+    color: #ffffff;
+    background: #152534;
+    border-bottom: tall #ffca58;
 }
 
 /* ------------------------------------------------------------------ */
@@ -98,43 +98,70 @@ TabPane {
     layout: vertical;
 }
 
+.trace-summary {
+    height: 3;
+    padding: 1 2 0 2;
+    background: #0e1720;
+    color: #c8d5df;
+}
+
+.tree-legend {
+    height: 2;
+    padding: 0 2;
+    background: #0e1720;
+    color: #9db0bf;
+}
+
 .tree-pane {
     height: 1fr;
-    border: solid $primary-darken-2;
-    background: $surface;
+    border: tall #20384b;
+    background: #0b1118;
     scrollbar-gutter: stable;
 }
 
-.tree-pane Tree {
-    background: $surface;
+.tree-pane {
     padding: 0 1;
 }
 
-.tree-pane Tree > .tree--label {
-    color: $text;
+.tree-pane > .tree--guides {
+    color: #345269;
 }
 
-.tree-pane Tree > .tree--guides {
-    color: $primary-darken-1;
+.tree-pane > .tree--cursor {
+    background: #294a61;
+    text-style: none;
 }
 
-.tree-pane Tree > .tree--cursor > .tree--label {
-    background: $primary;
-    color: $text;
-    text-style: bold;
+.tree-pane:focus > .tree--cursor {
+    background: #294a61;
+    text-style: none;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Detail bar                                                          */
+/*  Selected trace inspector                                            */
 /* ------------------------------------------------------------------ */
 
-.detail-bar {
-    height: 3;
-    background: $surface-darken-2;
-    color: $text-muted;
+.detail-panel {
+    height: 6;
+    background: #111d29;
     padding: 0 2;
-    border: solid $primary-darken-2;
-    content-align: left middle;
+    border-top: tall #294a61;
+}
+
+#detail-title {
+    height: 2;
+    padding-top: 1;
+}
+
+#detail-meta {
+    height: 1;
+    color: #9db0bf;
+}
+
+#detail-args {
+    height: 2;
+    color: #d8e2e9;
+    padding-top: 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -144,24 +171,54 @@ TabPane {
 .stats-table {
     height: 1fr;
     border: solid $primary-darken-2;
+    background: #0b1118;
 }
 
-.stats-table DataTable {
-    background: $surface;
+StatsScreen {
+    align: center middle;
+    background: #05080d 75%;
 }
 
-.stats-table DataTable > .datatable--header {
+#stats-shell {
+    width: 94%;
+    height: 88%;
+    background: #0b1118;
+    border: double #4ecdc4;
+    padding: 0 1;
+}
+
+#stats-title {
+    height: 3;
+    padding: 1 1 0 1;
+    color: #ffffff;
+    background: #152534;
+}
+
+#stats-summary {
+    height: 2;
+    padding: 0 1;
+    color: #4ecdc4;
+    background: #152534;
+}
+
+.modal-hint {
+    height: 1;
+    content-align: center middle;
+    color: #7f93a3;
+}
+
+.stats-table > .datatable--header {
     background: $primary-darken-1;
     color: $text;
     text-style: bold;
 }
 
-.stats-table DataTable > .datatable--cursor {
+.stats-table > .datatable--cursor {
     background: $primary;
     color: $text;
 }
 
-.stats-table DataTable > .datatable--even-row {
+.stats-table > .datatable--even-row {
     background: $surface-darken-1;
 }
 
@@ -171,14 +228,14 @@ TabPane {
 
 FilterModal {
     align: center middle;
-    background: $background 70%;
+    background: #05080d 75%;
 }
 
 .modal-box {
     width: 64;
     height: 13;
-    border: double $accent;
-    background: $surface;
+    border: double #4ecdc4;
+    background: #111d29;
     padding: 1 2;
     layout: vertical;
 }
@@ -195,7 +252,7 @@ FilterModal {
 }
 
 .modal-box Input:focus {
-    border: solid $accent;
+    border: solid #4ecdc4;
 }
 
 .modal-buttons {

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="270 8 260 175" role="img" aria-labelledby="calfHeadTitle">
+  <title id="calfHeadTitle">CALF head</title>
+  <g id="mark">
+    <ellipse fill="#45B6F5" cx="314" cy="94" rx="36" ry="18" transform="rotate(-18 314 94)"/>
+    <ellipse fill="#45B6F5" cx="486" cy="94" rx="36" ry="18" transform="rotate(18 486 94)"/>
+    <circle fill="#F96A18" cx="366" cy="30" r="14"/>
+    <circle fill="#F96A18" cx="434" cy="30" r="14"/>
+    <path fill="#0B4EA2" d="M335,80 Q335,42 373,40 L427,40 Q465,42 465,80 L465,106 Q465,140 433,150 L367,150 Q335,140 335,106 Z"/>
+    <path fill="#45B6F5" d="M335,80 Q335,42 373,40 L396,40 Q374,74 382,108 Q356,114 335,98 Z"/>
+    <circle fill="#FFFFFF" cx="368" cy="94" r="10"/>
+    <circle fill="#FFFFFF" cx="432" cy="94" r="10"/>
+    <rect fill="#F96A18" x="357" y="118" width="86" height="56" rx="27"/>
+    <ellipse fill="#0B4EA2" cx="381" cy="146" rx="8" ry="6"/>
+    <ellipse fill="#0B4EA2" cx="419" cy="146" rx="8" ry="6"/>
+  </g>
+</svg>

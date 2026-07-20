@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./calf.svg?version=2" alt="CALF - CAPIO Logging Facility" width="720">
+</p>
+
 # CALF - CApio Logging Facility
 
 Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It produces indented JSON output where each logged scope becomes a self-contained object with enter/exit timestamps and a nested array of events, making logs machine-readable without post-processing.
@@ -8,6 +12,16 @@ Calf is designed to work in two distinct environments:
 - **CLI loggers (STL safe)**: logs to CLI (`StdOutLogger`)
 - **NON STL safe processes**: uses raw syscalls whenever STL is not safe (`SyscallLogger`)
 Both backends share the same JSON structure and produce identical output formats.
+
+## CALF Inspector
+
+CALF includes an interactive Inspector for exploring and analysing structured
+trace logs. It provides a terminal interface and a responsive web interface
+with call-tree navigation, lazy trace loading, search, timing details, and
+aggregated statistics.
+
+See the [CALF Inspector documentation](profiler/README.md) for installation,
+usage, web-server options, and keyboard shortcuts.
 
 
 ## Requirements
