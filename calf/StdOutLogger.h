@@ -75,11 +75,12 @@ struct StdoutLogger {
         }
 
         // Hostname — initialised once.
-        static char hostname[HOST_NAME_MAX]{'\0'};
+        static char hostname[CALF_HOSTNAME_BUFFER_SIZE]{'\0'};
         [[maybe_unused]] static bool hostname_init = []() {
-            if (::gethostname(hostname, HOST_NAME_MAX) != 0) {
-                ::snprintf(hostname, HOST_NAME_MAX, "unknown");
+            if (::gethostname(hostname, sizeof(hostname)) != 0) {
+                ::snprintf(hostname, sizeof(hostname), "unknown");
             }
+            hostname[sizeof(hostname) - 1] = '\0';
             return true;
         }();
 

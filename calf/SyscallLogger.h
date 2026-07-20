@@ -80,9 +80,10 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
     }
 
     static const char *getHostname() {
-        static char h[HOST_NAME_MAX]{'\0'};
+        static char h[CALF_HOSTNAME_BUFFER_SIZE]{'\0'};
         if (h[0] == '\0') {
-            ::gethostname(h, HOST_NAME_MAX);
+            ::gethostname(h, sizeof(h));
+            h[sizeof(h) - 1] = '\0';
         }
         return h;
     }
@@ -123,7 +124,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         static char *d = nullptr;
         if (d == nullptr) {
             const char *parent = getSyscallLogDir();
-            d                  = new char[::strlen(parent) + HOST_NAME_MAX]{0};
+            d                  = new char[::strlen(parent) + CALF_HOSTNAME_BUFFER_SIZE]{0};
             ::sprintf(d, "%s/%s", parent, getHostname());
         }
         return d;

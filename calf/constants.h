@@ -1,6 +1,8 @@
 #ifndef CALF_CONSTANTS_H
 #define CALF_CONSTANTS_H
 
+#include <cstddef>
+
 #ifndef _CALF_COMPONENT_NAME
 #define _CALF_COMPONENT_NAME "calf"
 #endif
@@ -10,6 +12,7 @@
 #endif
 
 constexpr unsigned int CALF_LOG_MAX_MSG_LEN           = 4096;
+constexpr std::size_t CALF_HOSTNAME_BUFFER_SIZE       = 256;
 constexpr char CALF_DEFAULT_LOG_FOLDER[]              = _CALF_DEFAULT_LOG_DIR_NAME;
 constexpr char CALF_SYSCALL_DEFAULT_LOG_FILE_PREFIX[] = "syscall_";
 constexpr char CALF_STL_DEFAULT_LOG_FILE_PREFIX[]     = "stl_";

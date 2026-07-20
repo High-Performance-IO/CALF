@@ -19,16 +19,6 @@
 
 #include "constants.h"
 
-#ifndef HOST_NAME_MAX
-#if defined(_POSIX_HOST_NAME_MAX)
-#define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
-#elif defined(MAXHOSTNAMELEN)
-#define HOST_NAME_MAX MAXHOSTNAMELEN
-#else
-#define HOST_NAME_MAX 255
-#endif
-#endif
-
 inline std::atomic<bool> continue_on_error{false};
 
 inline void raise_termination(const bool raise_exception, const std::string &message) {

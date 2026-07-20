@@ -74,8 +74,9 @@ struct StlLogger : JsonLogBase<StlLogger> {
             prefix = CALF_STL_DEFAULT_LOG_FILE_PREFIX;
         }
 
-        char hostname[HOST_NAME_MAX];
-        ::gethostname(hostname, HOST_NAME_MAX);
+        char hostname[CALF_HOSTNAME_BUFFER_SIZE]{};
+        ::gethostname(hostname, sizeof(hostname));
+        hostname[sizeof(hostname) - 1] = '\0';
 
         const std::filesystem::path outputFolder{logDir + "/" + CALF_COMPONENT_NAME + "/" +
                                                  hostname};
