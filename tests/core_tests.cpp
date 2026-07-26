@@ -106,6 +106,23 @@ TEST(JsonLoggerTest, EscapesJsonStrings) {
     EXPECT_TRUE(document.is_array());
 }
 
+TEST(JsonLoggerTest, PreservesLongEscapedMessages) {
+    CaptureJsonLogger::reset();
+    enable_logger = true;
+    const std::string message(3000, '\x01');
+    {
+        TemplateLogger<CaptureJsonLogger> logger("worker", "source.cpp", 42, 7, "%s",
+                                                 message.c_str());
+        logger.log("%s", message.c_str());
+    }
+
+    const nlohmann::json document = nlohmann::json::parse(CaptureJsonLogger::finish());
+    ASSERT_EQ(document.size(), 1u);
+    EXPECT_EQ(document[0]["args"], message);
+    ASSERT_EQ(document[0]["events"].size(), 1u);
+    EXPECT_EQ(document[0]["events"][0]["args"], message);
+}
+
 TEST(JsonLoggerTest, WritesNestedScopes) {
     CaptureJsonLogger::reset();
     enable_logger = true;

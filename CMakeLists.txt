@@ -52,6 +52,10 @@ function(calf_enable_log target ENABLE)
     message(STATUS "calf_enable_log(${target}) -> include dir: ${CMAKE_CURRENT_FUNCTION_LIST_DIR}")
 endfunction()
 
+function(calf_enable_warnings_as_errors target)
+    target_compile_options(${target} PRIVATE -Werror)
+endfunction()
+
 
 # ---------------------------------------------------------------------------
 #  Tests
@@ -78,12 +82,14 @@ if(CALF_TESTS)
 
     add_executable(calf_core_tests tests/core_tests.cpp)
     calf_enable_log(calf_core_tests ON)
+    calf_enable_warnings_as_errors(calf_core_tests)
     target_compile_features(calf_core_tests PRIVATE cxx_std_17)
     target_link_libraries(calf_core_tests PRIVATE GTest::gtest_main nlohmann_json::nlohmann_json)
     gtest_discover_tests(calf_core_tests)
 
     add_executable(calf_stl_tests tests/stl_tests.cpp)
     calf_enable_log(calf_stl_tests ON)
+    calf_enable_warnings_as_errors(calf_stl_tests)
     target_compile_features(calf_stl_tests PRIVATE cxx_std_17)
     target_link_libraries(calf_stl_tests PRIVATE GTest::gtest_main nlohmann_json::nlohmann_json)
     gtest_discover_tests(calf_stl_tests)
@@ -91,6 +97,7 @@ if(CALF_TESTS)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_executable(calf_syscall_tests tests/syscall_tests.cpp)
         calf_enable_log(calf_syscall_tests ON)
+        calf_enable_warnings_as_errors(calf_syscall_tests)
         target_compile_definitions(calf_syscall_tests PRIVATE __CALF_POSIX)
         target_compile_features(calf_syscall_tests PRIVATE cxx_std_17)
         target_link_libraries(calf_syscall_tests PRIVATE GTest::gtest_main
@@ -100,6 +107,7 @@ if(CALF_TESTS)
 
     add_executable(calf_disabled_tests tests/disabled_tests.cpp)
     calf_enable_log(calf_disabled_tests OFF)
+    calf_enable_warnings_as_errors(calf_disabled_tests)
     target_compile_features(calf_disabled_tests PRIVATE cxx_std_17)
     target_link_libraries(calf_disabled_tests PRIVATE GTest::gtest_main)
     gtest_discover_tests(calf_disabled_tests)
@@ -124,6 +132,7 @@ if(CALF_BUILD_PYTHON_BINDINGS OR CALF_PYTHON_TESTS)
     target_compile_features(_py_calf PRIVATE cxx_std_17)
     calf_set_component(_py_calf)
     calf_set_default_log_dir(_py_calf)
+    calf_enable_warnings_as_errors(_py_calf)
 
     if(CALF_BUILD_PYTHON_BINDINGS)
         install(TARGETS _py_calf LIBRARY DESTINATION calf)

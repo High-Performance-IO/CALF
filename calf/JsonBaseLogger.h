@@ -137,9 +137,9 @@ template <typename Derived> struct JsonLogBase {
     }
 
     static void writeField(const char *key, const char *fmt, const char *val) {
-        char tmp[768];
+        char tmp[CALF_LOG_MAX_MSG_LEN * 6 + 4];
         ::snprintf(tmp, sizeof(tmp), fmt, val);
-        char buf[1024];
+        char buf[sizeof(tmp) + 512];
         ::snprintf(buf, sizeof(buf), "%s: %s", key, tmp);
         writeImmediate(buf);
     }
