@@ -48,6 +48,9 @@ template <typename Derived> struct JsonLogBase {
             Derived::rawWriteStr("[\n");
             rootArrayOpen = true;
             nestingDepth  = 1;
+        } else if (nestingDepth == 0) {
+            Derived::reopenRootArray();
+            nestingDepth = 1;
         }
 
         char escaped_args[CALF_LOG_MAX_MSG_LEN * 6];
@@ -101,6 +104,12 @@ template <typename Derived> struct JsonLogBase {
         }
         *p++       = '}';
         pendingLen = p - pendingBuf;
+
+        if (nestingDepth == 1) {
+            flushPending(false);
+            Derived::rawWriteStr("]\n");
+            nestingDepth = 0;
+        }
     }
 
   protected:

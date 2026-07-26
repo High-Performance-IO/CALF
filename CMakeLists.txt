@@ -6,7 +6,8 @@ project(CALF VERSION 1.0.0 LANGUAGES CXX)
 # -------------------------------------------------------------------------
 option(CALF_LOG "Enable CALF logging globally by default" ON)
 option(CALF_TESTS "Enable CALF unit tests" OFF)
-option(BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
+option(CALF_PYTHON_TESTS "Enable CALF Python binding tests" ${CALF_TESTS})
+option(CALF_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
@@ -56,15 +57,60 @@ endfunction()
 #  Tests
 # ---------------------------------------------------------------------------
 if(CALF_TESTS)
-    add_executable(calf_unit_tests tests/main.cpp)
-    calf_enable_log(calf_unit_tests ON)
+    include(FetchContent)
+    FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.17.0
+            GIT_SHALLOW TRUE
+    )
+    FetchContent_Declare(
+            nlohmann_json
+            GIT_REPOSITORY https://github.com/nlohmann/json.git
+            GIT_TAG v3.12.0
+            GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(googletest)
+    FetchContent_MakeAvailable(nlohmann_json)
+
+    enable_testing()
+    include(GoogleTest)
+
+    add_executable(calf_core_tests tests/core_tests.cpp)
+    calf_enable_log(calf_core_tests ON)
+    target_compile_features(calf_core_tests PRIVATE cxx_std_17)
+    target_link_libraries(calf_core_tests PRIVATE GTest::gtest_main nlohmann_json::nlohmann_json)
+    gtest_discover_tests(calf_core_tests)
+
+    add_executable(calf_stl_tests tests/stl_tests.cpp)
+    calf_enable_log(calf_stl_tests ON)
+    target_compile_features(calf_stl_tests PRIVATE cxx_std_17)
+    target_link_libraries(calf_stl_tests PRIVATE GTest::gtest_main nlohmann_json::nlohmann_json)
+    gtest_discover_tests(calf_stl_tests)
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_executable(calf_syscall_tests tests/syscall_tests.cpp)
+        calf_enable_log(calf_syscall_tests ON)
+        target_compile_definitions(calf_syscall_tests PRIVATE __CALF_POSIX)
+        target_compile_features(calf_syscall_tests PRIVATE cxx_std_17)
+        target_link_libraries(calf_syscall_tests PRIVATE GTest::gtest_main
+                                                                 nlohmann_json::nlohmann_json)
+        gtest_discover_tests(calf_syscall_tests)
+    endif()
+
+    add_executable(calf_disabled_tests tests/disabled_tests.cpp)
+    calf_enable_log(calf_disabled_tests OFF)
+    target_compile_features(calf_disabled_tests PRIVATE cxx_std_17)
+    target_link_libraries(calf_disabled_tests PRIVATE GTest::gtest_main)
+    gtest_discover_tests(calf_disabled_tests)
 endif ()
 
 # ---------------------------------------------------------------------------
 #  Python bindings
 # ---------------------------------------------------------------------------
-if(BUILD_PYTHON_BINDINGS)
+if(BUILD_PYTHON_BINDINGS OR CALF_PYTHON_TESTS)
     include(FetchContent)
+    find_package(Python 3.10 COMPONENTS Interpreter Development.Module REQUIRED)
 
     FetchContent_Declare(
             pybind11
@@ -79,5 +125,26 @@ if(BUILD_PYTHON_BINDINGS)
     calf_set_component(_py_calf)
     calf_set_default_log_dir(_py_calf)
 
-    install(TARGETS _py_calf LIBRARY DESTINATION calf)
+    if(BUILD_PYTHON_BINDINGS)
+        install(TARGETS _py_calf LIBRARY DESTINATION calf)
+    endif()
+
+    if(CALF_PYTHON_TESTS)
+        if(NOT CALF_TESTS)
+            enable_testing()
+        endif()
+
+        add_test(
+                NAME calf_python_bindings_tests
+                COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/python_bindings_tests.py
+                        $<TARGET_FILE_DIR:_py_calf>
+        )
+        add_custom_target(
+                calf_python_tests
+                COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/python_bindings_tests.py
+                        $<TARGET_FILE_DIR:_py_calf>
+                DEPENDS _py_calf
+                USES_TERMINAL
+        )
+    endif()
 endif ()

@@ -36,7 +36,7 @@ inline long calf_current_tid() {
 
 struct StlLogger : JsonLogBase<StlLogger> {
 
-    inline static thread_local std::unique_ptr<std::ofstream> logfile   = nullptr;
+    inline static thread_local std::unique_ptr<std::fstream> logfile    = nullptr;
     inline static thread_local std::unique_ptr<std::string> logFileName = nullptr;
 
     explicit StlLogger() { ensureFileOpen(); }
@@ -51,6 +51,13 @@ struct StlLogger : JsonLogBase<StlLogger> {
 
     static void rawWriteStr(const char *buf) {
         rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
+    }
+
+    static void reopenRootArray() {
+        ensureFileOpen();
+        logfile->seekp(-2, std::ios::end);
+        logfile->write(",\n", 2);
+        logfile->flush();
     }
 
   private:
@@ -85,7 +92,8 @@ struct StlLogger : JsonLogBase<StlLogger> {
         const std::filesystem::path path =
             outputFolder / (prefix + std::to_string(calf_current_tid()) + ".log");
 
-        logfile     = std::make_unique<std::ofstream>(path, std::ofstream::app);
+        logfile = std::make_unique<std::fstream>(
+            path, std::ios::in | std::ios::out | std::ios::trunc);
         logFileName = std::make_unique<std::string>(path.string());
     }
 };

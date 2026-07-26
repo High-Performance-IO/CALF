@@ -43,6 +43,12 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
     }
 
+    static void reopenRootArray() {
+        ensureFileOpen();
+        calf_syscall(SYS_lseek, fileFD, -2, SEEK_END);
+        calf_syscall(SYS_write, fileFD, ",\n", static_cast<size_t>(2));
+    }
+
   private:
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     static long to_arg(T v) {
@@ -70,7 +76,7 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
         calf_syscall(SYS_mkdirat, AT_FDCWD, getHostLogDir(), 0755);
 
         fileFD = static_cast<int>(
-            calf_syscall(SYS_openat, AT_FDCWD, filePath, O_CREAT | O_WRONLY | O_APPEND, 0644));
+            calf_syscall(SYS_openat, AT_FDCWD, filePath, O_CREAT | O_RDWR | O_TRUNC, 0644));
 
         if (fileFD == -1) {
             const char *msg = "CALF: failed to open log file\n";

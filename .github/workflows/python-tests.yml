@@ -1,0 +1,58 @@
+name: Python Bindings Unit Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: python-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-tests:
+    name: Python ${{ matrix.python_version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15-intel, macos-26]
+        python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python_version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Install build tools on Ubuntu
+        if: startsWith(matrix.os, 'ubuntu-')
+        run: sudo apt-get update && sudo apt-get install -y cmake git ninja-build
+
+      - name: Set up Homebrew
+        if: startsWith(matrix.os, 'macos-')
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Install build tools on macOS
+        if: startsWith(matrix.os, 'macos-')
+        run: brew install cmake ninja
+
+      - name: Configure Python bindings
+        run: |
+          cmake -S "${GITHUB_WORKSPACE}" \
+                -B "${GITHUB_WORKSPACE}/build" \
+                -G Ninja \
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DCALF_TESTS=OFF \
+                -DCALF_PYTHON_TESTS=ON \
+                -DPython_EXECUTABLE="$(python -c 'import sys; print(sys.executable)')"
+
+      - name: Build Python bindings
+        run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
+
+      - name: Run Python binding tests
+        working-directory: build
+        run: ctest --output-on-failure -R '^calf_python_bindings_tests$'

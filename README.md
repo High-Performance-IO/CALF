@@ -4,6 +4,12 @@
 
 # CALF - CApio Logging Facility
 
+![C++ 17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
+![Python 3.10-3.14](https://img.shields.io/badge/Python-3.10--3.14-blue.svg)
+
+[![C++ tests](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml/badge.svg)](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml)
+[![Python tests](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml/badge.svg)](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml)
+
 Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It produces indented JSON output where each logged scope becomes a self-contained object with enter/exit timestamps and a nested array of events, making logs machine-readable without post-processing.
 
 Calf is designed to work in two distinct environments:
@@ -30,6 +36,25 @@ usage, web-server options, and keyboard shortcuts.
 - CMake 3.16 or later
 - Linux for `SyscallLogger` backend
 - Python 3.10 or later for the Python bindings and Inspector
+
+## Testing
+
+The GoogleTest C++ suites and Python binding tests run on Linux and macOS. The
+raw syscall logger suite is built only on Linux because that backend is not
+supported on macOS.
+
+```bash
+cmake -S . -B build -DCALF_TESTS=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+```
+
+`CALF_TESTS=ON` enables `CALF_PYTHON_TESTS` by default and builds the Python
+extension needed by those tests. To run only the Python binding test target:
+
+```bash
+cmake --build build --target calf_python_tests
+```
 
 
 ## Output format
@@ -71,8 +96,8 @@ FetchContent_Declare(
 )
 
 set(CALF_LOG ON CACHE BOOL "" FORCE)
-set(CALF_BUILD_STL ON CACHE BOOL "" FORCE)
-set(CALF_BUILD_SYSCALL ON CACHE BOOL "" FORCE)
+set(BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
+set(CALF_TESTS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(calf)
 ```
@@ -89,11 +114,32 @@ target_link_libraries(my_interceptor PRIVATE calf::syscall)
 
 ## CMake options
 
-| Option                  | Default | Description                                      |
-|-------------------------|---------|--------------------------------------------------|
-| `CALF_LOG`           | `ON`    | Enable logging. When OFF all macros are no-ops.  |
-| `CALF_BUILD_STL`     | `ON`    | Include the STL (`std::ofstream`) backend.       |
-| `CALF_BUILD_SYSCALL` | `ON`    | Include the raw-syscall backend.                 |
+| Flag | Default | Description |
+|------|---------|-------------|
+| `CALF_LOG` | `ON` | Enable logging macros. When disabled, logging macros are no-ops. |
+| `CALF_TESTS` | `OFF` | Build and register the GoogleTest suites with CTest. |
+| `CALF_PYTHON_TESTS` | Value of `CALF_TESTS` | Build the Python extension and register its binding tests. |
+| `BUILD_PYTHON_BINDINGS` | `OFF` | Build and install the `_py_calf` Python extension. |
+| `CALF_DEFAULT_COMPONENT_NAME` | `calf` | Component directory and CLI header name used by configured targets. |
+| `CALF_DEFAULT_LOG_DIR_NAME` | `./calf_logs` | Default log root when `CALF_LOG_DIR` is unset. |
+
+Pass flags during configuration with `-D<flag>=<value>`. Common examples:
+
+```bash
+# Build all C++ and Python tests.
+cmake -S . -B build -DCALF_TESTS=ON
+
+# Build only the C++ tests.
+cmake -S . -B build -DCALF_TESTS=ON -DCALF_PYTHON_TESTS=OFF
+
+# Build the Python bindings without tests.
+cmake -S . -B build -DBUILD_PYTHON_BINDINGS=ON
+
+# Override compiled-in logging defaults.
+cmake -S . -B build \
+  -DCALF_DEFAULT_COMPONENT_NAME=my_component \
+  -DCALF_DEFAULT_LOG_DIR_NAME=/var/log/calf
+```
 
 
 ## Usage

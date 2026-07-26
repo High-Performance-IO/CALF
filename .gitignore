@@ -70,6 +70,7 @@ Testing/
 
 *build*
 .idea
+.junie
 .venv
 *.egg-info
 __pycache__
