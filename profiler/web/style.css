@@ -96,6 +96,7 @@ button { border: 0; }
 .tree-node { user-select: none; }
 .node-row { min-height: 31px; display: flex; align-items: center; gap: 6px; margin: 1px 0; padding-right: 8px; border-radius: 3px; cursor: pointer; }
 .node-row:hover { background: #f2f4f4; }
+.node-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .node-row.selected, .event-table tr.selected { background: var(--accent-soft); box-shadow: inset 2px 0 var(--accent); }
 .node-row.correlated, .event-table tr.correlated { background: #fff4d8; box-shadow: inset 2px 0 #c18a20; }
 .correlation-jump, .sync-jump { flex: 0 0 auto; min-height: 21px; margin-left: auto; padding: 0 6px; color: var(--accent); background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, white); border-radius: 3px; white-space: nowrap; font-size: 8px; font-weight: 700; cursor: pointer; }

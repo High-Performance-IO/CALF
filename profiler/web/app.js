@@ -246,7 +246,7 @@ async function loadTrace(column, id) {
 
 function createNode(column, node) {
   const wrapper = document.createElement("div"); wrapper.className = `tree-node ${node.is_event ? "event" : "scope"}`; wrapper.dataset.nodeId = node.id;
-  const row = document.createElement("div"); row.className = "node-row"; row.style.paddingLeft = `${8 + node.depth * 16}px`; row.setAttribute("role", "treeitem");
+  const row = document.createElement("div"); row.className = "node-row"; row.style.paddingLeft = `${8 + node.depth * 16}px`; row.setAttribute("role", "treeitem"); row.tabIndex = -1;
   const toggle = document.createElement(node.child_count ? "button" : "span"); toggle.className = node.child_count ? "toggle" : "toggle-spacer";
   if (node.child_count) { toggle.type = "button"; toggle.textContent = "+"; toggle.setAttribute("aria-label", `Expand ${node.invoker}`); toggle.setAttribute("aria-expanded", "false"); }
   const name = document.createElement("span"); name.className = "node-name"; name.textContent = node.invoker;
@@ -380,7 +380,15 @@ async function revealNodeId(column, nodeId, behavior = "smooth") {
   if (!node || !wrapper) return null;
   const row = $(":scope > .node-row", wrapper);
   selectNode(column, node, row);
-  row.scrollIntoView({ block: "center", behavior });
+  row.focus({ preventScroll: true });
+  const tree = $(".tree", column.root);
+  const viewport = tree.getBoundingClientRect();
+  const bounds = row.getBoundingClientRect();
+  const margin = 10;
+  let delta = 0;
+  if (bounds.top < viewport.top + margin) delta = bounds.top - viewport.top - margin;
+  else if (bounds.bottom > viewport.bottom - margin) delta = bounds.bottom - viewport.bottom + margin;
+  if (delta) tree.scrollTo({ top: tree.scrollTop + delta, behavior });
   return row;
 }
 
@@ -550,7 +558,7 @@ function addSyncJump(row, column, request) {
   button.title = `Expand to request ${request.request}`;
   button.addEventListener("click", event => {
     event.preventDefault(); event.stopPropagation();
-    revealNodeId(column, request.id);
+    revealNodeId(column, request.id, "auto");
   });
   row.append(button);
 }
