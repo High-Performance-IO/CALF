@@ -14,7 +14,7 @@ from ._py_calf import (
     StlLogger,
 )
 
-__version__ = version("CAPIO-CALF")
+__version__ = version("CAPIO_CALF")
 
 __all__ = [
     "CLI_LEVEL_ERROR",

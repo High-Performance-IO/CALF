@@ -160,7 +160,7 @@ python -m pip install .
 Install a published release from PyPI with:
 
 ```bash
-python -m pip install CAPIO-CALF
+python -m pip install CAPIO_CALF
 ```
 
 For development, install it in editable mode:

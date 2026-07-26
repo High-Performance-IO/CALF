@@ -8,7 +8,7 @@ requires = [
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "CAPIO-CALF"
+name = "CAPIO_CALF"
 dynamic = ["version"]
 description = "CAPIO Logging Facility and interactive trace inspector"
 readme = "README.md"
