@@ -63,7 +63,7 @@ def _serialize_node(node: TraceNode, node_id: str) -> dict:
         "depth": node.depth,
         "is_event": node.is_leaf,
         "duration_ms": node.duration_ms,
-        "timestamp_ms": node.ts,
+        "timestamp_ms": node.timestamp,
         "enter_ms": node.ts_enter,
         "exit_ms": node.ts_exit,
         "child_count": len(node.children),
@@ -106,6 +106,30 @@ def _search_nodes(roots: list[TraceNode], query: str, limit: int = 500) -> list[
 
     walk(roots)
     return matches
+
+
+def _event_nodes(roots: list[TraceNode], query: str = "") -> list[dict]:
+    events: list[dict] = []
+    needle = query.casefold()
+
+    def walk(nodes: list[TraceNode], parent_id: str = "") -> None:
+        for index, node in enumerate(nodes):
+            node_id = f"{parent_id}.{index}" if parent_id else str(index)
+            if node.is_leaf:
+                haystack = f"{node.invoker} {node.args} {node.file}".casefold()
+                if not needle or needle in haystack:
+                    event = _serialize_node(node, node_id)
+                    event["context"] = node.parent.invoker if node.parent else "Root"
+                    events.append(event)
+            walk(node.children, node_id)
+
+    walk(roots)
+    events.sort(
+        key=lambda event: (
+            event["timestamp_ms"] if event["timestamp_ms"] is not None else -1
+        )
+    )
+    return events
 
 
 def create_web_server(
@@ -187,6 +211,25 @@ def create_web_server(
                 term = query.get("q", [""])[0].strip()
                 matches = _search_nodes(tab.roots, term) if term else []
                 self._send_json({"matches": matches, "limited": len(matches) >= 500})
+                return
+            if parsed.path == "/api/events":
+                query = parse_qs(parsed.query)
+                try:
+                    index = int(query.get("trace", [""])[0])
+                    offset = max(0, int(query.get("offset", ["0"])[0]))
+                    limit = min(1000, max(1, int(query.get("limit", ["250"])[0])))
+                    tab = tabs[index]
+                    if index < 0:
+                        raise IndexError
+                except (ValueError, IndexError):
+                    self._send_json({"error": "Invalid event query"}, status=404)
+                    return
+                events = _event_nodes(tab.roots, query.get("q", [""])[0].strip())
+                self._send_json({
+                    "events": events[offset:offset + limit],
+                    "total": len(events),
+                    "offset": offset,
+                })
                 return
             asset = _ASSETS.get(parsed.path)
             if asset is not None:

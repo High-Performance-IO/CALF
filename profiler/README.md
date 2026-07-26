@@ -105,8 +105,10 @@ calf calf_logs --web
 ```
 
 Inspector listens on `127.0.0.1:8765` and opens the default browser. The page
-provides source navigation, a scrollable call tree, node details, server-side
-search, and aggregated statistics.
+starts with one trace column. Each column selects a log directory and provides
+tabs for its thread logs, a scrollable call tree, a paginated event table, node
+details, server-side search, and aggregated statistics. Use **Add column** to
+compare directories or threads side by side.
 
 The browser initially receives only root trace nodes. Expanding a node requests
 only its immediate children. The **Expand level** control advances one loaded
