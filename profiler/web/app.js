@@ -1,5 +1,101 @@
 const workspace = { tabs: [], columns: [], nextColumnId: 1 };
 const $ = (selector, root = document) => root.querySelector(selector);
+const columnThemes = [
+  ["#315e57", "#e7f0ee"], ["#35679a", "#e8f0f8"], ["#76539a", "#f0eaf6"],
+  ["#a56324", "#f8eee3"], ["#a64458", "#f8e9ed"], ["#36775a", "#e7f3ec"],
+];
+let activeConnection = null;
+
+function correlationOverlay() {
+  let overlay = $("#correlation-overlay");
+  if (overlay) return overlay;
+  overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  overlay.id = "correlation-overlay";
+  overlay.innerHTML = '<defs><linearGradient id="correlation-gradient" gradientUnits="userSpaceOnUse"><stop offset="0%"></stop><stop offset="100%"></stop></linearGradient><marker id="correlation-arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"></path></marker></defs><path class="correlation-line"></path><path class="correlation-hit"></path>';
+  const dismiss = event => {
+    event.preventDefault(); event.stopPropagation(); hideCorrelationArrow();
+  };
+  $(".correlation-line", overlay).addEventListener("click", dismiss);
+  $(".correlation-hit", overlay).addEventListener("click", dismiss);
+  document.body.append(overlay);
+  return overlay;
+}
+
+function hideCorrelationArrow() {
+  activeConnection?.observer?.disconnect();
+  activeConnection?.hiddenButtons?.forEach(button => button.hidden = false);
+  document.querySelectorAll(".connection-close").forEach(button => button.remove());
+  document.querySelectorAll(".correlation-jump:not(.connection-close)").forEach(button => button.hidden = false);
+  activeConnection = null;
+  const overlay = $("#correlation-overlay");
+  if (overlay) overlay.remove();
+}
+
+function drawCorrelationArrow() {
+  if (!activeConnection) return;
+  const { sourceRow, targetRow } = activeConnection;
+  if (!rowIsVisible(sourceRow) || !rowIsVisible(targetRow)) {
+    hideCorrelationArrow(); return;
+  }
+  const source = sourceRow.getBoundingClientRect();
+  const target = targetRow.getBoundingClientRect();
+  const leftToRight = source.left < target.left;
+  const x1 = leftToRight ? source.right : source.left;
+  const x2 = leftToRight ? target.left : target.right;
+  const y1 = source.top + source.height / 2;
+  const y2 = target.top + target.height / 2;
+  const bend = Math.max(50, Math.abs(x2 - x1) * 0.45);
+  const direction = leftToRight ? 1 : -1;
+  const path = `M ${x1} ${y1} C ${x1 + bend * direction} ${y1}, ${x2 - bend * direction} ${y2}, ${x2} ${y2}`;
+  const overlay = correlationOverlay();
+  const gradient = $("#correlation-gradient", overlay);
+  gradient.setAttribute("x1", x1); gradient.setAttribute("y1", y1);
+  gradient.setAttribute("x2", x2); gradient.setAttribute("y2", y2);
+  const sourceColor = getComputedStyle(sourceRow.closest(".trace-column")).getPropertyValue("--accent").trim();
+  const targetColor = getComputedStyle(targetRow.closest(".trace-column")).getPropertyValue("--accent").trim();
+  $("stop:first-child", gradient).setAttribute("stop-color", sourceColor);
+  $("stop:last-child", gradient).setAttribute("stop-color", targetColor);
+  $("#correlation-arrowhead path", overlay).setAttribute("fill", targetColor);
+  $(".correlation-line", overlay).setAttribute("d", path);
+  $(".correlation-hit", overlay).setAttribute("d", path);
+  overlay.hidden = false;
+}
+
+function rowIsVisible(row) {
+  if (!row.isConnected || !row.offsetParent) return false;
+  const rect = row.getBoundingClientRect();
+  if (rect.bottom <= 0 || rect.top >= window.innerHeight || rect.right <= 0 || rect.left >= window.innerWidth) return false;
+  const scroller = row.closest(".tree, .event-table-wrap");
+  if (!scroller) return true;
+  const clip = scroller.getBoundingClientRect();
+  return rect.bottom > clip.top && rect.top < clip.bottom && rect.right > clip.left && rect.left < clip.right;
+}
+
+function addConnectionClose(row) {
+  const host = row.matches("tr") ? row.lastElementChild : row;
+  const button = document.createElement("button");
+  button.className = "correlation-jump connection-close";
+  button.textContent = "Close connection";
+  button.addEventListener("click", event => {
+    event.preventDefault(); event.stopPropagation(); hideCorrelationArrow();
+  });
+  host.append(button);
+}
+
+function showCorrelationArrow(sourceRow, targetRow, source, target, sourceTrace, targetTrace) {
+  const observer = new IntersectionObserver(entries => {
+    if (entries.some(entry => !entry.isIntersecting)) hideCorrelationArrow();
+  }, { threshold: 0.01 });
+  observer.observe(sourceRow); observer.observe(targetRow);
+  const hiddenButtons = [
+    ...source.root.querySelectorAll(`.correlation-jump[data-trace-id="${targetTrace}"]`),
+    ...target.root.querySelectorAll(`.correlation-jump[data-trace-id="${sourceTrace}"]`),
+  ];
+  hiddenButtons.forEach(button => button.hidden = true);
+  activeConnection = { sourceRow, targetRow, source, target, sourceTrace, targetTrace, observer, hiddenButtons };
+  addConnectionClose(sourceRow); addConnectionClose(targetRow);
+  requestAnimationFrame(() => requestAnimationFrame(drawCorrelationArrow));
+}
 
 function ms(value) {
   if (value === null || value === undefined) return "--";
@@ -21,13 +117,17 @@ function metric(label, value) {
   item.append(small, strong); return item;
 }
 
-function createColumn(kind) {
+function createColumn(kind, initialTraceId = null, pendingNode = null) {
   const column = {
     id: workspace.nextColumnId++, kind, trace: null, nodes: new Map(), matches: [],
     match: -1, searchVersion: 0, loadVersion: 0, view: "tree", eventOffset: 0,
-    eventTotal: 0, root: document.createElement("section"),
+    eventTotal: 0, correlationVersion: 0, selectedNode: null, pendingNode,
+    requestLinks: new Set(), root: document.createElement("section"),
   };
   column.root.className = "trace-column";
+  const theme = columnThemes[(column.id - 1) % columnThemes.length];
+  column.root.style.setProperty("--accent", theme[0]);
+  column.root.style.setProperty("--accent-soft", theme[1]);
   column.root.innerHTML = `
     <header class="column-head">
       <label><span>Directory</span><select class="directory-select"></select></label>
@@ -40,7 +140,8 @@ function createColumn(kind) {
       <label class="search"><span>Search</span><input type="search" placeholder="Invoker, arguments, or source"><kbd class="match-count"></kbd></label>
       <button class="previous-match" title="Previous match">Prev</button><button class="next-match" title="Next match">Next</button>
       <div class="tree-actions"><button class="expand-all">Expand</button><button class="collapse-all">Collapse</button></div>
-      <button class="show-stats">Stats</button>
+      <button class="show-insights">Analysis</button>
+      <details class="export-menu"><summary>Export</summary><div><button data-format="json">JSON</button><button data-format="csv">CSV</button><button data-format="html">HTML report</button><button class="copy-link">Copy link</button></div></details>
     </div>
     <div class="content-grid">
       <div class="tree-panel"><div class="panel-label"><span>Call tree</span><span class="legend"><i class="event-dot"></i>event <i class="fast-dot"></i>fast <i class="hot-dot"></i>hot</span></div><div class="tree" role="tree"></div><div class="tree-empty empty" hidden>No trace nodes match this search.</div></div>
@@ -63,7 +164,9 @@ function createColumn(kind) {
   $(".next-match", column.root).addEventListener("click", () => stepMatch(column, 1));
   $(".expand-all", column.root).addEventListener("click", () => expandLoadedLevel(column));
   $(".collapse-all", column.root).addEventListener("click", () => column.root.querySelectorAll(".tree-node").forEach(collapseNode));
-  $(".show-stats", column.root).addEventListener("click", () => showStats(column));
+  $(".show-insights", column.root).addEventListener("click", () => showInsights(column));
+  column.root.querySelectorAll(".export-menu [data-format]").forEach(button => button.addEventListener("click", () => exportEvents(column, button.dataset.format)));
+  $(".copy-link", column.root).addEventListener("click", event => copyLink(column, event.currentTarget));
   const searchInput = $(".search input", column.root);
   searchInput.addEventListener("input", () => search(column));
   searchInput.addEventListener("keydown", event => {
@@ -73,11 +176,13 @@ function createColumn(kind) {
   workspace.columns.push(column);
   $("#columns").append(column.root);
   updateRemoveButtons();
-  setDirectory(column, kind);
+  column.ready = setDirectory(column, kind, initialTraceId);
+  return column;
 }
 
 function removeColumn(column) {
   if (workspace.columns.length === 1) return;
+  hideCorrelationArrow();
   workspace.columns = workspace.columns.filter(item => item !== column);
   column.root.remove();
   updateRemoveButtons();
@@ -88,7 +193,8 @@ function updateRemoveButtons() {
   workspace.columns.forEach(column => $(".remove-column", column.root).hidden = disabled);
 }
 
-function setDirectory(column, kind) {
+function setDirectory(column, kind, initialTraceId = null) {
+  hideCorrelationArrow();
   column.kind = kind;
   $(".directory-select", column.root).value = kind;
   const tabs = workspace.tabs.filter(tab => tab.kind === kind);
@@ -100,7 +206,8 @@ function setDirectory(column, kind) {
     button.addEventListener("click", () => loadTrace(column, tab.id));
     nav.append(button);
   });
-  if (tabs.length) loadTrace(column, tabs[0].id);
+  const selected = tabs.find(tab => tab.id === initialTraceId) || tabs[0];
+  return selected ? loadTrace(column, selected.id) : Promise.resolve();
 }
 
 function registerNodes(column, nodes, parent = null) {
@@ -110,6 +217,7 @@ function registerNodes(column, nodes, parent = null) {
 }
 
 async function loadTrace(column, id) {
+  hideCorrelationArrow();
   const version = ++column.loadVersion;
   column.root.querySelectorAll(".thread-tabs button").forEach(item => item.classList.toggle("active", Number(item.dataset.id) === id));
   $(".trace-summary h1", column.root).textContent = "Loading...";
@@ -117,6 +225,7 @@ async function loadTrace(column, id) {
   const trace = await response.json();
   if (version !== column.loadVersion) return;
   column.trace = trace; column.nodes.clear(); registerNodes(column, trace.roots);
+  column.requestLinks.clear();
   const summary = trace.summary;
   $(".trace-path", column.root).textContent = `${summary.hostname} / ${summary.kind}`;
   $(".trace-summary h1", column.root).textContent = `Thread ${summary.tid}`;
@@ -129,6 +238,10 @@ async function loadTrace(column, id) {
   $(".match-count", column.root).textContent = "";
   renderTree(column); showEmptyInspector(column);
   if (column.view === "events") loadEvents(column, true);
+  if (column.pendingNode) {
+    const nodeId = column.pendingNode; column.pendingNode = null;
+    await revealNodeId(column, nodeId);
+  }
 }
 
 function createNode(column, node) {
@@ -139,9 +252,12 @@ function createNode(column, node) {
   const name = document.createElement("span"); name.className = "node-name"; name.textContent = node.invoker;
   const time = document.createElement("span"); time.className = `node-time ${durationClass(node.duration_ms)}`; time.textContent = node.is_event ? `@${ms(node.timestamp_ms)}` : ms(node.duration_ms);
   const args = document.createElement("span"); args.className = "node-args"; args.textContent = node.args ? `| ${node.args}` : "";
+  row.dataset.invoker = node.invoker; row.dataset.nodeId = node.id;
   row.append(toggle, name, time, args); wrapper.append(row);
   row.addEventListener("click", () => selectNode(column, node, row));
   if (node.child_count) toggle.addEventListener("click", event => { event.stopPropagation(); toggleNode(column, wrapper, node); });
+  attachRequestJumps(column, node, row);
+  (node.linked_requests || []).filter(request => request.id !== node.id).forEach(request => addSyncJump(row, column, request));
   return wrapper;
 }
 
@@ -169,6 +285,7 @@ async function expandNode(column, wrapper, node) {
 }
 
 function collapseNode(wrapper) {
+  hideCorrelationArrow();
   const children = $(":scope > .children", wrapper); if (!children) return;
   children.hidden = true; const toggle = $(":scope > .node-row > .toggle", wrapper);
   toggle.textContent = "+"; toggle.setAttribute("aria-expanded", "false");
@@ -188,6 +305,7 @@ function renderTree(column) {
 function selectNode(column, node, row) {
   column.root.querySelectorAll(".node-row.selected, .event-table tr.selected").forEach(item => item.classList.remove("selected"));
   row.classList.add("selected");
+  column.selectedNode = node;
   const inspector = $(".inspector", column.root); inspector.replaceChildren();
   const label = document.createElement("div"); label.className = "panel-label"; label.textContent = "Inspector";
   const body = document.createElement("div"); body.className = "inspect-body";
@@ -198,6 +316,7 @@ function selectNode(column, node, row) {
   const grid = $(".inspect-grid", body);
   values.forEach(([key, value]) => { const cell = document.createElement("div"); const small = document.createElement("small"); small.textContent = key; const span = document.createElement("span"); span.textContent = value; cell.append(small, span); grid.append(cell); });
   $(".inspect-args", body).textContent = node.args || "No arguments"; inspector.append(label, body);
+  correlateSelection(column, node, inspector);
 }
 
 function showEmptyInspector(column) {
@@ -206,11 +325,15 @@ function showEmptyInspector(column) {
 
 function createEventRow(column, event) {
   const row = document.createElement("tr");
+  row.dataset.invoker = event.invoker;
+  row.dataset.nodeId = event.id;
   [ms(event.timestamp_ms), event.invoker, event.args || "--", event.context, `${event.file}:${event.line}`].forEach((value, index) => {
     const cell = document.createElement("td"); cell.textContent = value;
     if (index === 0) cell.className = "event-time"; if (index === 1) cell.className = "event-name"; row.append(cell);
   });
-  row.addEventListener("click", () => selectNode(column, event, row)); return row;
+  row.addEventListener("click", () => selectNode(column, event, row));
+  attachRequestJumps(column, event, row);
+  return row;
 }
 
 async function loadEvents(column, reset = false) {
@@ -231,6 +354,7 @@ async function loadEvents(column, reset = false) {
 }
 
 function setView(column, view) {
+  hideCorrelationArrow();
   column.view = view; const events = view === "events";
   $(".tree-panel", column.root).hidden = events; $(".events-panel", column.root).hidden = !events;
   $(".tree-actions", column.root).hidden = events; $(".previous-match", column.root).hidden = events; $(".next-match", column.root).hidden = events;
@@ -239,6 +363,25 @@ function setView(column, view) {
   $(".search input", column.root).placeholder = events ? "Filter events, details, or source" : "Invoker, arguments, or source";
   $(".match-count", column.root).textContent = "";
   if (events) loadEvents(column, true); else search(column);
+}
+
+async function revealNodeId(column, nodeId, behavior = "smooth") {
+  setView(column, "tree");
+  const parts = nodeId.split(".");
+  for (let length = 1; length < parts.length; length += 1) {
+    const ancestorId = parts.slice(0, length).join(".");
+    const ancestor = column.nodes.get(ancestorId);
+    const wrapper = column.root.querySelector(`[data-node-id="${ancestorId}"]`);
+    if (!ancestor || !wrapper) return null;
+    await expandNode(column, wrapper, ancestor);
+  }
+  const node = column.nodes.get(nodeId);
+  const wrapper = column.root.querySelector(`[data-node-id="${nodeId}"]`);
+  if (!node || !wrapper) return null;
+  const row = $(":scope > .node-row", wrapper);
+  selectNode(column, node, row);
+  row.scrollIntoView({ block: "center", behavior });
+  return row;
 }
 
 async function revealMatch(column) {
@@ -283,15 +426,183 @@ async function expandLoadedLevel(column) {
   await Promise.all(currentLevel.map(node => { const wrapper = column.root.querySelector(`[data-node-id="${node.id}"]`); return wrapper && node.child_count ? expandNode(column, wrapper, node) : null; }));
 }
 
-function showStats(column) {
-  const body = $("#stats-body"); body.replaceChildren();
-  column.trace.stats.forEach(stat => {
-    const row = document.createElement("tr");
-    [stat.invoker, stat.count, ms(stat.total_ms), ms(stat.mean_ms.toFixed(1)), ms(stat.median_ms.toFixed(1)), ms(stat.max_ms), ms(stat.min_ms), ms(stat.std_ms.toFixed(1))].forEach(value => { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); });
-    body.append(row);
+function appendTableRow(body, values, onClick = null) {
+  const row = document.createElement("tr");
+  values.forEach(value => { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); });
+  if (onClick) { row.classList.add("clickable"); row.addEventListener("click", onClick); }
+  body.append(row);
+}
+
+function showInsights(column) {
+  const analysis = column.trace.analysis;
+  $("#insights-title").textContent = `${column.kind} / Thread ${column.trace.summary.tid}`;
+  const percentiles = $("#percentiles"); percentiles.replaceChildren();
+  Object.entries(analysis.percentiles).forEach(([label, value]) => percentiles.append(metric(label, ms(value))));
+  const slowest = $("#slowest-body"); slowest.replaceChildren();
+  analysis.slowest.forEach(item => appendTableRow(slowest, [item.invoker, item.path, ms(item.duration_ms)], () => { $("#insights-panel").hidden = true; revealNodeId(column, item.id); }));
+  const frequent = $("#frequent-body"); frequent.replaceChildren();
+  analysis.frequent.forEach(item => appendTableRow(frequent, [item.invoker, item.kind, item.count.toLocaleString()]));
+  const paths = $("#paths-body"); paths.replaceChildren();
+  analysis.call_paths.forEach(item => appendTableRow(paths, [item.path, item.count.toLocaleString(), ms(item.total_ms)]));
+  const stats = $("#stats-body"); stats.replaceChildren();
+  column.trace.stats.forEach(item => appendTableRow(stats, [item.invoker, item.count, ms(item.total_ms), ms(item.mean_ms.toFixed(1)), ms(item.median_ms.toFixed(1)), ms(item.max_ms), ms(item.min_ms), ms(item.std_ms.toFixed(1))]));
+  $("#insights-panel").hidden = false;
+}
+
+function exportEvents(column, format) {
+  const query = $(".search input", column.root).value.trim();
+  window.location.href = `/api/export?trace=${column.trace.summary.id}&format=${format}&q=${encodeURIComponent(query)}`;
+  $(".export-menu", column.root).open = false;
+}
+
+async function copyLink(column, button) {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.searchParams.set("trace", column.trace.summary.id);
+  if (column.selectedNode) url.searchParams.set("node", column.selectedNode.id);
+  try {
+    await navigator.clipboard.writeText(url.toString());
+    const original = button.textContent; button.textContent = "Copied";
+    setTimeout(() => { button.textContent = original; }, 1200);
+  } catch (error) {
+    window.prompt("Copy trace link", url.toString());
+  }
+}
+
+async function openCorrelatedNode(target, traceId, nodeId) {
+  if (!target.trace || target.trace.summary.id !== traceId) await loadTrace(target, traceId);
+  return revealNodeId(target, nodeId, "auto");
+}
+
+function correlationTarget(source, traceId) {
+  const tab = workspace.tabs.find(item => item.id === traceId);
+  return workspace.columns.find(item => item !== source && item.kind === tab?.kind) || null;
+}
+
+async function openCorrelationTarget(source, traceId, nodeId) {
+  const tab = workspace.tabs.find(item => item.id === traceId);
+  if (!tab) return null;
+  let target = correlationTarget(source, traceId);
+  if (!target) {
+    target = createColumn(tab.kind, traceId);
+    await target.ready;
+  }
+  const row = await openCorrelatedNode(target, traceId, nodeId);
+  return { target, row };
+}
+
+async function connectCorrelatedNodes(source, sourceNodeId, traceId, targetNodeId, sourceRow = null) {
+  hideCorrelationArrow();
+  const destinationPromise = openCorrelationTarget(source, traceId, targetNodeId);
+  const sourcePromise = sourceRow?.isConnected
+    ? Promise.resolve(sourceRow)
+    : revealNodeId(source, sourceNodeId, "auto");
+  const [destinationResult, sourceResult] = await Promise.allSettled([destinationPromise, sourcePromise]);
+  if (destinationResult.status === "rejected") throw destinationResult.reason;
+  const destination = destinationResult.value;
+  const resolvedSourceRow = sourceResult.status === "fulfilled" ? sourceResult.value : null;
+  if (resolvedSourceRow && destination?.row) {
+    showCorrelationArrow(resolvedSourceRow, destination.row, source, destination.target, source.trace.summary.id, traceId);
+  }
+}
+
+function addCorrelationJump(row, source, sourceNodeId, traceId, node, persistent = false) {
+  if (!row) return;
+  const host = row.matches("tr") ? row.lastElementChild : row;
+  if (host.querySelector(`.correlation-jump[data-trace-id="${traceId}"]`)) return;
+  const tab = workspace.tabs.find(item => item.id === traceId);
+  const button = document.createElement("button");
+  button.className = "correlation-jump";
+  button.classList.toggle("persistent", persistent);
+  button.dataset.traceId = traceId;
+  button.textContent = `Open ${tab?.kind || "match"}`;
+  button.title = `Open the associated request in ${tab?.kind || "another component"} / thread ${tab?.tid || "?"}`;
+  button.addEventListener("click", async event => {
+    event.stopPropagation();
+    const label = button.textContent;
+    button.textContent = "Opening..."; button.disabled = true;
+    try {
+      await connectCorrelatedNodes(source, sourceNodeId, traceId, node.id, row);
+    } catch (error) {
+      console.error(error);
+      button.textContent = `Retry ${tab?.kind || "match"}`;
+      button.disabled = false;
+      return;
+    }
+    button.textContent = label; button.disabled = false;
   });
-  $("#stats-title").textContent = `${column.kind} / Thread ${column.trace.summary.tid}`;
-  $("#stats-panel").hidden = false;
+  host.append(button);
+  if (activeConnection && (
+    (source === activeConnection.source && traceId === activeConnection.targetTrace)
+    || (source === activeConnection.target && traceId === activeConnection.sourceTrace)
+  )) {
+    button.hidden = true;
+    activeConnection.hiddenButtons.push(button);
+  }
+}
+
+function addSyncJump(row, column, request) {
+  if (row.querySelector(`.sync-jump[data-node-id="${request.id}"]`)) return;
+  const button = document.createElement("button");
+  button.className = "sync-jump";
+  button.dataset.nodeId = request.id;
+  button.textContent = "Go to sync event";
+  button.title = `Expand to request ${request.request}`;
+  button.addEventListener("click", event => {
+    event.preventDefault(); event.stopPropagation();
+    revealNodeId(column, request.id);
+  });
+  row.append(button);
+}
+
+async function attachRequestJumps(column, node, row) {
+  if (!node.request) return;
+  const key = `${column.trace.summary.id}:${node.id}`;
+  if (column.requestLinks.has(key)) return;
+  column.requestLinks.add(key);
+  const traceIds = workspace.tabs.map(tab => tab.id);
+  const response = await fetch(`/api/correlate?source=${column.trace.summary.id}&node=${encodeURIComponent(node.id)}&traces=${traceIds.join(",")}`);
+  const payload = await response.json();
+  if (!row.isConnected || !column.trace || column.trace.summary.id !== Number(row.closest(".trace-column")?.querySelector(".thread-tabs .active")?.dataset.id)) return;
+  payload.matches.forEach(match => addCorrelationJump(row, column, node.id, match.trace, match.node, true));
+}
+
+async function correlateSelection(column, node, inspector) {
+  const version = ++column.correlationVersion;
+  workspace.columns.forEach(item => {
+    item.root.querySelectorAll(".correlation-jump:not(.persistent)").forEach(button => button.remove());
+    item.root.querySelectorAll("[data-invoker]").forEach(row => {
+      row.classList.toggle("correlated", item !== column && row.dataset.invoker === node.invoker);
+    });
+  });
+  const traceIds = workspace.tabs.map(tab => tab.id);
+  const response = await fetch(`/api/correlate?source=${column.trace.summary.id}&node=${encodeURIComponent(node.id)}&traces=${traceIds.join(",")}`);
+  if (version !== column.correlationVersion || column.selectedNode !== node) return;
+  const payload = await response.json();
+  const matches = payload.matches;
+  if (!matches.length) return;
+  const section = document.createElement("div"); section.className = "correlations";
+  const title = document.createElement("small");
+  title.textContent = payload.mode === "request" ? `Request interaction: ${payload.request || payload.terms.join(" / ")}` : "Cross-column matches";
+  section.append(title);
+  const sourceRow = [...column.root.querySelectorAll(".node-row, .event-table tr")].find(row => row.dataset.nodeId === node.id);
+  matches.forEach(match => {
+    const targetTab = workspace.tabs.find(tab => tab.id === match.trace);
+    const target = correlationTarget(column, match.trace);
+    const loadedRow = target?.trace?.summary.id === match.trace
+      ? [...target.root.querySelectorAll(".node-row, .event-table tr")].find(row => row.dataset.nodeId === match.node.id)
+      : null;
+    if (loadedRow) {
+      loadedRow.classList.add("correlated");
+      addCorrelationJump(loadedRow, target, match.node.id, column.trace.summary.id, node, true);
+    }
+    addCorrelationJump(sourceRow, column, node.id, match.trace, match.node, true);
+    const button = document.createElement("button");
+    const relation = payload.mode === "request" ? `${Math.round(match.score * 100)}% parameter match` : `${match.delta_ms >= 0 ? "+" : ""}${ms(match.delta_ms)}`;
+    button.textContent = `${targetTab.kind} / thread ${targetTab.tid}  ${relation}`;
+    button.addEventListener("click", () => connectCorrelatedNodes(column, node.id, match.trace, match.node.id, sourceRow)); section.append(button);
+  });
+  inspector.append(section);
 }
 
 function addColumn() {
@@ -301,14 +612,29 @@ function addColumn() {
 }
 
 $("#add-column").addEventListener("click", addColumn);
-$("#close-stats").addEventListener("click", () => $("#stats-panel").hidden = true);
-document.addEventListener("keydown", event => {
-  if (event.key === "/" && !event.target.matches("input, select")) { event.preventDefault(); $(".trace-column .search input")?.focus(); }
-  if (event.key === "Escape") $("#stats-panel").hidden = true;
+$("#close-insights").addEventListener("click", () => $("#insights-panel").hidden = true);
+let globalSearchTimer;
+$("#global-search").addEventListener("input", event => {
+  clearTimeout(globalSearchTimer);
+  globalSearchTimer = setTimeout(() => {
+    workspace.columns.forEach(column => { $(".search input", column.root).value = event.target.value; search(column); });
+  }, 120);
 });
+document.addEventListener("keydown", event => {
+  if (event.key === "/" && !event.target.matches("input, select")) { event.preventDefault(); $("#global-search").focus(); }
+  if (event.key === "Escape") $("#insights-panel").hidden = true;
+});
+window.addEventListener("resize", drawCorrelationArrow);
+document.addEventListener("scroll", () => {
+  if (activeConnection) requestAnimationFrame(drawCorrelationArrow);
+}, true);
 
 fetch("/api/overview").then(response => response.json()).then(data => {
   workspace.tabs = data.tabs; $("#columns").replaceChildren();
-  if (workspace.tabs.length) createColumn(workspace.tabs[0].kind);
+  const params = new URLSearchParams(window.location.search);
+  const linkedTrace = Number(params.get("trace"));
+  const linkedTab = params.has("trace") ? workspace.tabs.find(tab => tab.id === linkedTrace) : null;
+  if (linkedTab) createColumn(linkedTab.kind, linkedTab.id, params.get("node"));
+  else if (workspace.tabs.length) createColumn(workspace.tabs[0].kind);
   else $("#columns").innerHTML = '<div class="loading">No trace logs found.</div>';
 });

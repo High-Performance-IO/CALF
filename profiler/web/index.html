@@ -10,12 +10,18 @@
 <body>
   <header class="topbar">
     <div class="brand"><img class="brand-mark" src="/calf.svg" alt="CALF"><div><strong>CALF Inspector</strong><small>Trace explorer</small></div></div>
-    <div class="topbar-actions"><button class="add-column" id="add-column">+ Add column</button></div>
+    <div class="topbar-actions"><label class="global-search"><span>All columns</span><input id="global-search" type="search" placeholder="Search visible logs"></label><button class="add-column" id="add-column">+ Add column</button></div>
   </header>
   <main class="workspace"><div class="columns" id="columns"><div class="loading">Loading trace directories...</div></div></main>
-  <section class="stats-panel" id="stats-panel" hidden>
-    <div class="stats-head"><div><div class="eyebrow">Aggregated timings</div><h2 id="stats-title">Invoker statistics</h2></div><button class="btn" id="close-stats">Close</button></div>
-    <div class="table-wrap"><table><thead><tr><th>Invoker</th><th>Calls</th><th>Total</th><th>Mean</th><th>Median</th><th>Max</th><th>Min</th><th>Std dev</th></tr></thead><tbody id="stats-body"></tbody></table></div>
+  <section class="insights-panel" id="insights-panel" hidden>
+    <div class="stats-head"><div><div class="eyebrow">Trace analysis</div><h2 id="insights-title">Performance analysis</h2></div><button class="btn" id="close-insights">Close</button></div>
+    <div class="insights-content">
+      <section><h3>Duration percentiles</h3><div class="percentiles" id="percentiles"></div></section>
+      <section><h3>Slowest scopes</h3><div class="table-wrap"><table><thead><tr><th>Scope</th><th>Path</th><th>Duration</th></tr></thead><tbody id="slowest-body"></tbody></table></div></section>
+      <section><h3>Most frequent</h3><div class="table-wrap"><table><thead><tr><th>Invoker</th><th>Kind</th><th>Count</th></tr></thead><tbody id="frequent-body"></tbody></table></div></section>
+      <section><h3>Costliest call paths</h3><div class="table-wrap"><table><thead><tr><th>Path</th><th>Calls</th><th>Total</th></tr></thead><tbody id="paths-body"></tbody></table></div></section>
+      <section class="invoker-stats"><h3>Invoker statistics</h3><div class="table-wrap"><table><thead><tr><th>Invoker</th><th>Calls</th><th>Total</th><th>Mean</th><th>Median</th><th>Max</th><th>Min</th><th>Std dev</th></tr></thead><tbody id="stats-body"></tbody></table></div></section>
+    </div>
   </section>
   <script src="/app.js" defer></script>
 </body>

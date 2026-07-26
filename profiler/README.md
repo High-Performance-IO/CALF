@@ -14,8 +14,13 @@ responsive browser interface over the same trace loader and statistics engine.
 - Explore nested scopes and events as a colour-coded call tree.
 - Inspect source locations, arguments, timestamps, and durations.
 - Search invokers, arguments, and source paths.
+- Search every visible web column at once. Serialized `req=` messages are
+  correlated by their complete normalized request and occurrence order, with a
+  shared-parameter fallback for older logs; other calls use invoker and time.
 - Filter the terminal tree with regular expressions.
 - Compare aggregated timing statistics by invoker.
+- Review duration percentiles, slow scopes, frequent calls, and costly call paths.
+- Export filtered web events as JSON, CSV, or a standalone HTML report.
 - Repair and read logs truncated by an abrupt process exit.
 - Load web traces one level at a time to limit browser memory usage.
 
