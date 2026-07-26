@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(CALF VERSION 0.0.2 LANGUAGES CXX)
+project(CALF VERSION 0.1.0 LANGUAGES CXX)
 
 # -------------------------------------------------------------------------
 #  Options & Defaults
@@ -7,7 +7,7 @@ project(CALF VERSION 0.0.2 LANGUAGES CXX)
 option(CALF_LOG "Enable CALF logging globally by default" ON)
 option(CALF_TESTS "Enable CALF unit tests" OFF)
 option(CALF_PYTHON_TESTS "Enable CALF Python binding tests" ${CALF_TESTS})
-option(BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
+option(CALF_BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
@@ -108,7 +108,7 @@ endif ()
 # ---------------------------------------------------------------------------
 #  Python bindings
 # ---------------------------------------------------------------------------
-if(BUILD_PYTHON_BINDINGS OR CALF_PYTHON_TESTS)
+if(CALF_BUILD_PYTHON_BINDINGS OR CALF_PYTHON_TESTS)
     include(FetchContent)
     find_package(Python 3.10 COMPONENTS Interpreter Development.Module REQUIRED)
 
@@ -125,7 +125,7 @@ if(BUILD_PYTHON_BINDINGS OR CALF_PYTHON_TESTS)
     calf_set_component(_py_calf)
     calf_set_default_log_dir(_py_calf)
 
-    if(BUILD_PYTHON_BINDINGS)
+    if(CALF_BUILD_PYTHON_BINDINGS)
         install(TARGETS _py_calf LIBRARY DESTINATION calf)
     endif()
 
@@ -134,17 +134,25 @@ if(BUILD_PYTHON_BINDINGS OR CALF_PYTHON_TESTS)
             enable_testing()
         endif()
 
-        add_test(
-                NAME calf_python_bindings_tests
-                COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/python_bindings_tests.py
-                        $<TARGET_FILE_DIR:_py_calf>
-        )
+        if(WIN32)
+            set(CALF_TEST_PYTHON ${CMAKE_CURRENT_BINARY_DIR}/calf-python-test-env/Scripts/python.exe)
+        else()
+            set(CALF_TEST_PYTHON ${CMAKE_CURRENT_BINARY_DIR}/calf-python-test-env/bin/python)
+        endif()
+
         add_custom_target(
                 calf_python_tests
-                COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/python_bindings_tests.py
-                        $<TARGET_FILE_DIR:_py_calf>
-                DEPENDS _py_calf
+                COMMAND ${Python_EXECUTABLE} -m venv
+                        ${CMAKE_CURRENT_BINARY_DIR}/calf-python-test-env
+                COMMAND ${CALF_TEST_PYTHON} -m pip install "${CMAKE_CURRENT_SOURCE_DIR}[test]"
+                COMMAND ${CALF_TEST_PYTHON} -m pytest -v
+                        ${CMAKE_CURRENT_SOURCE_DIR}/tests/python_bindings_tests.py
                 USES_TERMINAL
+        )
+        add_test(
+                NAME calf_python_bindings_tests
+                COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}
+                        --target calf_python_tests
         )
     endif()
 endif ()

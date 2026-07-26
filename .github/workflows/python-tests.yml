@@ -40,19 +40,8 @@ jobs:
         if: startsWith(matrix.os, 'macos-')
         run: brew install cmake ninja
 
-      - name: Configure Python bindings
-        run: |
-          cmake -S "${GITHUB_WORKSPACE}" \
-                -B "${GITHUB_WORKSPACE}/build" \
-                -G Ninja \
-                -DCMAKE_BUILD_TYPE=Debug \
-                -DCALF_TESTS=OFF \
-                -DCALF_PYTHON_TESTS=ON \
-                -DPython_EXECUTABLE="$(python -c 'import sys; print(sys.executable)')"
-
-      - name: Build Python bindings
-        run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
+      - name: Build and install capio-calf
+        run: python -m pip install ".[test]"
 
       - name: Run Python binding tests
-        working-directory: build
-        run: ctest --output-on-failure -R '^calf_python_bindings_tests$'
+        run: python -m pytest -v tests/python_bindings_tests.py

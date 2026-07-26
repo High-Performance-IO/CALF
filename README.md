@@ -96,7 +96,7 @@ FetchContent_Declare(
 )
 
 set(CALF_LOG ON CACHE BOOL "" FORCE)
-set(BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
+set(CALF_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
 set(CALF_TESTS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(calf)
@@ -119,7 +119,7 @@ target_link_libraries(my_interceptor PRIVATE calf::syscall)
 | `CALF_LOG` | `ON` | Enable logging macros. When disabled, logging macros are no-ops. |
 | `CALF_TESTS` | `OFF` | Build and register the GoogleTest suites with CTest. |
 | `CALF_PYTHON_TESTS` | Value of `CALF_TESTS` | Build the Python extension and register its binding tests. |
-| `BUILD_PYTHON_BINDINGS` | `OFF` | Build and install the `_py_calf` Python extension. |
+| `CALF_BUILD_PYTHON_BINDINGS` | `OFF` | Build and install the private `calf._py_calf` Python extension. |
 | `CALF_DEFAULT_COMPONENT_NAME` | `calf` | Component directory and CLI header name used by configured targets. |
 | `CALF_DEFAULT_LOG_DIR_NAME` | `./calf_logs` | Default log root when `CALF_LOG_DIR` is unset. |
 
@@ -133,7 +133,7 @@ cmake -S . -B build -DCALF_TESTS=ON
 cmake -S . -B build -DCALF_TESTS=ON -DCALF_PYTHON_TESTS=OFF
 
 # Build the Python bindings without tests.
-cmake -S . -B build -DBUILD_PYTHON_BINDINGS=ON
+cmake -S . -B build -DCALF_BUILD_PYTHON_BINDINGS=ON
 
 # Override compiled-in logging defaults.
 cmake -S . -B build \
@@ -160,7 +160,7 @@ python -m pip install .
 Install a published release from PyPI with:
 
 ```bash
-python -m pip install CAPIO_CALF
+python -m pip install capio-calf
 ```
 
 For development, install it in editable mode:
@@ -173,7 +173,7 @@ The build uses CMake and pybind11 automatically. To build the extension directly
 with CMake instead:
 
 ```bash
-cmake -S . -B build -DBUILD_PYTHON_BINDINGS=ON
+cmake -S . -B build -DCALF_BUILD_PYTHON_BINDINGS=ON
 cmake --build build
 ```
 

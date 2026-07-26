@@ -44,7 +44,7 @@ python -m pip install -e .
 To install directly from GitHub:
 
 ```bash
-python -m pip install "CALF @ git+https://github.com/High-Performance-IO/CALF.git"
+python -m pip install "capio-calf @ git+https://github.com/High-Performance-IO/CALF.git"
 ```
 
 Installation provides the `calf` command.

@@ -38,7 +38,10 @@ jobs:
 
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           if git ls-remote --exit-code --tags origin "refs/tags/v${version}" >/dev/null 2>&1; then
-            echo "Version v${version} is already released"
+            echo "Git tag v${version} already exists"
+            echo "should_publish=false" >> "${GITHUB_OUTPUT}"
+          elif curl --fail --silent "https://pypi.org/pypi/capio-calf/${version}/json" >/dev/null; then
+            echo "capio-calf ${version} is already published on PyPI"
             echo "should_publish=false" >> "${GITHUB_OUTPUT}"
           else
             echo "Preparing release v${version}"
@@ -131,7 +134,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_DEPLOY_KEY }}
-        run: python -m twine upload dist/*
+        run: python -m twine upload --verbose dist/*
 
   github-release:
     name: Create GitHub release
