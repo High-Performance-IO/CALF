@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(CALF VERSION 1.0.0 LANGUAGES CXX)
+project(CALF VERSION 0.0.1 LANGUAGES CXX)
 
 # -------------------------------------------------------------------------
 #  Options & Defaults
@@ -7,7 +7,7 @@ project(CALF VERSION 1.0.0 LANGUAGES CXX)
 option(CALF_LOG "Enable CALF logging globally by default" ON)
 option(CALF_TESTS "Enable CALF unit tests" OFF)
 option(CALF_PYTHON_TESTS "Enable CALF Python binding tests" ${CALF_TESTS})
-option(CALF_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
+option(BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")

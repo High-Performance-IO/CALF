@@ -7,8 +7,8 @@
 ![C++ 17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
 ![Python 3.10-3.14](https://img.shields.io/badge/Python-3.10--3.14-blue.svg)
 
-[![C++ tests](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml/badge.svg)](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml)
-[![Python tests](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml/badge.svg)](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml)
+[![C++ tests](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml/badge.svg?branch=main)](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml?query=branch%3Amain)
+[![Python tests](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml/badge.svg?branch=main)](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml?query=branch%3Amain)
 
 Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It produces indented JSON output where each logged scope becomes a self-contained object with enter/exit timestamps and a nested array of events, making logs machine-readable without post-processing.
 
@@ -155,6 +155,12 @@ Build and install the package from the repository root:
 
 ```bash
 python -m pip install .
+```
+
+Install a published release from PyPI with:
+
+```bash
+python -m pip install CAPIO-CALF
 ```
 
 For development, install it in editable mode:
