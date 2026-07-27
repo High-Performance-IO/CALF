@@ -108,10 +108,11 @@ if(CALF_PROTOBUF)
         add_custom_target(calf_regenerate_protobuf
                 COMMAND protobuf::protoc
                         --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}
+                        --python_out=${CMAKE_CURRENT_SOURCE_DIR}/bindings
                         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
                         ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto
                 DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto protobuf::protoc
-                COMMENT "Regenerating CALF protobuf C++ sources"
+                COMMENT "Regenerating CALF protobuf C++ and Python sources"
                 VERBATIM
         )
     endif()

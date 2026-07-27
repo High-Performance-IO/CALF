@@ -19,6 +19,7 @@ authors = [
 ]
 dependencies = [
     "numpy>=1.24.0",
+    "protobuf>=6.31.1,<7",
 ]
 
 [project.optional-dependencies]
@@ -45,6 +46,7 @@ wheel.exclude = [
 
 [tool.scikit-build.cmake.define]
 CALF_BUILD_PYTHON_BINDINGS = true
+CALF_PROTOBUF = false
 
 [tool.scikit-build.metadata.version]
 provider = "scikit_build_core.metadata.regex"
