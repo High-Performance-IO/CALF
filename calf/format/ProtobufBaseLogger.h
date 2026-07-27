@@ -8,8 +8,8 @@
 #include <cstring>
 #include <string>
 
+#include "calf/utils/constants.h"
 #include "calf/protobuf/calf_trace.pb.h"
-#include "calf/constants.h"
 
 template <typename Derived> struct ProtobufLogBase {
     using RecordKind = calf::proto::TraceRecord::Kind;

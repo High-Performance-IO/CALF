@@ -2,7 +2,7 @@
 #define CALF_LOGFORMAT_H
 
 #if defined(CALF_LOG_FORMAT_PROTOBUF)
-#include "../protobuf/ProtobufBaseLogger.h"
+#include "calf/format/ProtobufBaseLogger.h"
 template <typename Derived> using CalfLogBase = ProtobufLogBase<Derived>;
 inline constexpr char CALF_LOG_FILE_EXTENSION[] = ".pb";
 inline constexpr bool CALF_LOG_FILE_BINARY = true;

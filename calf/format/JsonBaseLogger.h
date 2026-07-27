@@ -6,7 +6,7 @@
 #include <cstring>
 #include <string>
 
-#include "../constants.h"
+#include "calf/utils/constants.h"
 
 template <typename Derived> struct JsonLogBase {
 

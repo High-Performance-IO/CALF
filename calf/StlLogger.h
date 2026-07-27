@@ -5,14 +5,14 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <limits.h>
+#include <climits>
 #include <memory>
 #include <string>
 #include <unistd.h>
 
-#include "BaseLogger.h"
-#include "detail/ThreadId.h"
+#include "format/BaseLogger.h"
 #include "format/LogFormat.h"
+#include "utils//ThreadId.h"
 
 struct StlLogger : CalfLogBase<StlLogger> {
 

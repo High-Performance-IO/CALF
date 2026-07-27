@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <unistd.h>
 
-#include "BaseLogger.h"
+#include "format/BaseLogger.h"
 #include "format/LogFormat.h"
 
 struct SyscallLogger : CalfLogBase<SyscallLogger> {
