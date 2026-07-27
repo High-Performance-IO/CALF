@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package calf.proto;
+
+// Records are flat so a logger can append them without retaining a complete
+// trace in memory. scope_id and parent_scope_id reconstruct the call tree.
+message TraceRecord {
+  enum Kind {
+    SCOPE_ENTER = 0;
+    EVENT = 1;
+    SCOPE_EXIT = 2;
+  }
+
+  uint64 timestamp_ms = 1;
+  uint64 scope_id = 2;
+  uint64 parent_scope_id = 3;
+  Kind kind = 4;
+  string invoker = 5;
+  string file = 6;
+  uint32 line = 7;
+  string args = 8;
+}
+
+message TraceFile {
+  repeated TraceRecord records = 1;
+}

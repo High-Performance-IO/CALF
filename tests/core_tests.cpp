@@ -1,4 +1,4 @@
-#include "calf/JsonBaseLogger.h"
+#include "calf/format/JsonBaseLogger.h"
 #include "calf/StdOutLogger.h"
 
 #include <gtest/gtest.h>

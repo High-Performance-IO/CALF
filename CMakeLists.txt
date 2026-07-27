@@ -8,9 +8,91 @@ option(CALF_LOG "Enable CALF logging globally by default" ON)
 option(CALF_TESTS "Enable CALF unit tests" OFF)
 option(CALF_PYTHON_TESTS "Enable CALF Python binding tests" ${CALF_TESTS})
 option(CALF_BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
+option(CALF_PROTOBUF "Build the Google Protobuf C++ logging component. Fallback to JSON logging when turned OFF" ON)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
+
+add_library(calf_headers INTERFACE)
+add_library(calf::stl ALIAS calf_headers)
+add_library(calf::syscall ALIAS calf_headers)
+target_include_directories(calf_headers INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+if(CALF_LOG)
+    target_compile_definitions(calf_headers INTERFACE CALF_LOG)
+endif()
+
+# ---------------------------------------------------------------------------
+#  Protobuf component
+# ---------------------------------------------------------------------------
+if(CALF_PROTOBUF)
+    find_package(Protobuf QUIET)
+    if(NOT Protobuf_FOUND)
+        include(FetchContent)
+        if(DEFINED BUILD_TESTING)
+            set(_CALF_SAVED_BUILD_TESTING "${BUILD_TESTING}")
+            set(_CALF_BUILD_TESTING_WAS_DEFINED ON)
+        endif()
+        set(BUILD_TESTING OFF)
+        set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_LIBUPB ON CACHE BOOL "" FORCE) # Required by protoc in v31.1.
+        set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
+        set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
+        set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+        set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+        set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+        set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
+        set(ABSL_IDE_FOLDER "ThirdParty/Abseil" CACHE STRING "" FORCE)
+        FetchContent_Declare(
+                protobuf
+                GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+                GIT_TAG v31.1
+                GIT_SHALLOW TRUE
+        )
+        FetchContent_MakeAvailable(protobuf)
+        if(_CALF_BUILD_TESTING_WAS_DEFINED)
+            set(BUILD_TESTING "${_CALF_SAVED_BUILD_TESTING}")
+        else()
+            unset(BUILD_TESTING)
+        endif()
+        unset(_CALF_SAVED_BUILD_TESTING)
+        unset(_CALF_BUILD_TESTING_WAS_DEFINED)
+    endif()
+
+    set(CALF_PROTOBUF_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+    set(CALF_PROTOBUF_SOURCE
+            "${CALF_PROTOBUF_GENERATED_DIR}/calf/protobuf/calf_trace.pb.cc")
+    set(CALF_PROTOBUF_HEADER
+            "${CALF_PROTOBUF_GENERATED_DIR}/calf/protobuf/calf_trace.pb.h")
+    file(MAKE_DIRECTORY "${CALF_PROTOBUF_GENERATED_DIR}/calf/protobuf")
+    add_custom_command(
+            OUTPUT "${CALF_PROTOBUF_SOURCE}" "${CALF_PROTOBUF_HEADER}"
+            COMMAND protobuf::protoc
+            ARGS --cpp_out=${CALF_PROTOBUF_GENERATED_DIR}
+                 --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+                 ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto protobuf::protoc
+            VERBATIM
+    )
+    add_library(calf_protobuf_schema STATIC
+            "${CALF_PROTOBUF_SOURCE}"
+            "${CALF_PROTOBUF_HEADER}"
+    )
+    add_library(calf::protobuf ALIAS calf_protobuf_schema)
+    target_compile_features(calf_protobuf_schema PUBLIC cxx_std_17)
+    target_include_directories(calf_protobuf_schema
+            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CALF_PROTOBUF_GENERATED_DIR}")
+    target_link_libraries(calf_protobuf_schema PUBLIC protobuf::libprotobuf calf_headers)
+    target_compile_definitions(calf_protobuf_schema INTERFACE CALF_LOG_FORMAT_PROTOBUF)
+    foreach(_CALF_PROTOBUF_TARGET libprotobuf libprotobuf-lite libprotoc protoc libupb
+                                  protoc-gen-upb protoc-gen-upbdefs)
+        if(TARGET ${_CALF_PROTOBUF_TARGET})
+            set_property(TARGET ${_CALF_PROTOBUF_TARGET} PROPERTY FOLDER "ThirdParty/Protobuf")
+        endif()
+    endforeach()
+endif()
 
 # ---------------------------------------------------------------------------
 #  Helper functions (Now modifying targets directly)
@@ -93,6 +175,24 @@ if(CALF_TESTS)
     target_compile_features(calf_stl_tests PRIVATE cxx_std_17)
     target_link_libraries(calf_stl_tests PRIVATE GTest::gtest_main nlohmann_json::nlohmann_json)
     gtest_discover_tests(calf_stl_tests)
+
+    if(CALF_PROTOBUF)
+        add_executable(calf_protobuf_tests tests/protobuf_tests.cpp)
+        calf_enable_warnings_as_errors(calf_protobuf_tests)
+        target_compile_features(calf_protobuf_tests PRIVATE cxx_std_17)
+        target_link_libraries(calf_protobuf_tests PRIVATE GTest::gtest_main calf::protobuf)
+        gtest_discover_tests(calf_protobuf_tests)
+
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            add_executable(calf_syscall_protobuf_tests tests/syscall_protobuf_tests.cpp)
+            calf_enable_warnings_as_errors(calf_syscall_protobuf_tests)
+            target_compile_definitions(calf_syscall_protobuf_tests PRIVATE __CALF_POSIX)
+            target_compile_features(calf_syscall_protobuf_tests PRIVATE cxx_std_17)
+            target_link_libraries(calf_syscall_protobuf_tests PRIVATE GTest::gtest_main
+                                                                       calf::protobuf)
+            gtest_discover_tests(calf_syscall_protobuf_tests)
+        endif()
+    endif()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_executable(calf_syscall_tests tests/syscall_tests.cpp)
