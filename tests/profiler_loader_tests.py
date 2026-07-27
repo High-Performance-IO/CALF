@@ -1,6 +1,7 @@
 import json
+import sys
 
-from calf.profiler.loader import discover_tabs, load_trace
+from calf.profiler.loader import TraceTab, discover_tabs, load_trace
 from calf.protobuf import calf_trace_pb2
 
 
@@ -43,3 +44,67 @@ def test_discovers_json_and_protobuf_traces(tmp_path):
 
     tabs = discover_tabs(str(tmp_path))
     assert [tab.tid for tab in tabs] == ["1", "2"]
+
+
+def test_protobuf_loader_uses_bounded_reads(tmp_path, monkeypatch):
+    trace = calf_trace_pb2.TraceFile()
+    _record(trace, calf_trace_pb2.TraceRecord.EVENT, 1, 10, invoker="event")
+    path = tmp_path / "trace.pb"
+    path.write_bytes(trace.SerializeToString())
+
+    real_open = open
+
+    class BoundedReader:
+        def __init__(self, wrapped):
+            self.wrapped = wrapped
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return self.wrapped.__exit__(*args)
+
+        def read(self, size=-1):
+            assert size >= 0
+            return self.wrapped.read(size)
+
+    def bounded_open(*args, **kwargs):
+        return BoundedReader(real_open(*args, **kwargs))
+
+    monkeypatch.setattr("builtins.open", bounded_open)
+    assert load_trace(str(path))[0]["invoker"] == "event"
+
+
+def test_web_server_creation_does_not_load_tabs(tmp_path):
+    from calf.profiler.web import create_web_server
+
+    path = tmp_path / "trace.pb"
+    path.write_bytes(calf_trace_pb2.TraceFile().SerializeToString())
+    tab = TraceTab(hostname="host", kind="syscall", path=str(path))
+
+    server = create_web_server([tab], port=0)
+    try:
+        assert tab._roots is None
+    finally:
+        server.server_close()
+
+
+def test_cli_does_not_load_tabs(tmp_path, monkeypatch):
+    from calf.profiler import __main__ as profiler_main
+
+    trace_dir = tmp_path / "syscall" / "host"
+    trace_dir.mkdir(parents=True)
+    (trace_dir / "trace.pb").write_bytes(
+        calf_trace_pb2.TraceFile().SerializeToString()
+    )
+    captured_tabs = []
+
+    def fake_run_web(tabs, host, port):
+        captured_tabs.extend(tabs)
+
+    monkeypatch.setattr("calf.profiler.web.run_web", fake_run_web)
+    monkeypatch.setattr(sys, "argv", ["calf", str(tmp_path)])
+
+    profiler_main.main()
+    assert captured_tabs
+    assert all(tab._roots is None for tab in captured_tabs)

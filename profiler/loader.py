@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import BinaryIO, Iterable, Iterator, Optional
 
 from calf.protobuf import calf_trace_pb2
 
@@ -74,43 +75,50 @@ def repair_and_load(path: str) -> list:
 
 def load_protobuf(path: str) -> list:
     """Load a CALF protobuf stream, ignoring an incomplete final record."""
-    with open(path, "rb") as trace_file:
-        raw = trace_file.read()
-
-    records = []
-    offset = 0
-    while offset < len(raw):
-        if raw[offset] != 0x0A:  # TraceFile.records, length-delimited
-            raise RuntimeError(f"Cannot parse {path}: invalid protobuf field at byte {offset}")
-        offset += 1
-        length, offset = _read_varint(raw, offset)
-        end = offset + length
-        if end > len(raw):
-            break
-        record = calf_trace_pb2.TraceRecord()
-        record.ParseFromString(raw[offset:end])
-        records.append(record)
-        offset = end
-
-    return _protobuf_records_to_entries(records)
+    return _protobuf_records_to_entries(_iter_protobuf_records(path))
 
 
-def _read_varint(raw: bytes, offset: int) -> tuple[int, int]:
+def _iter_protobuf_records(path: str) -> Iterator[calf_trace_pb2.TraceRecord]:
+    with open(path, "rb", buffering=1024 * 1024) as trace_file:
+        offset = 0
+        while field := trace_file.read(1):
+            if field != b"\x0a":  # TraceFile.records, length-delimited
+                raise RuntimeError(
+                    f"Cannot parse {path}: invalid protobuf field at byte {offset}"
+                )
+            offset += 1
+            length, offset = _read_varint(trace_file, path, offset)
+            if length is None:
+                break
+            payload = trace_file.read(length)
+            if len(payload) < length:
+                break
+            offset += length
+            record = calf_trace_pb2.TraceRecord()
+            record.ParseFromString(payload)
+            yield record
+
+
+def _read_varint(
+    trace_file: BinaryIO, path: str, offset: int
+) -> tuple[Optional[int], int]:
     value = 0
     shift = 0
-    while offset < len(raw) and shift < 64:
-        byte = raw[offset]
+    start = offset
+    while shift < 64:
+        raw = trace_file.read(1)
+        if not raw:
+            return None, offset
+        byte = raw[0]
         offset += 1
         value |= (byte & 0x7F) << shift
         if byte < 0x80:
             return value, offset
         shift += 7
-    if offset >= len(raw):
-        return len(raw), len(raw)
-    raise RuntimeError(f"Invalid protobuf varint at byte {offset}")
+    raise RuntimeError(f"Cannot parse {path}: invalid protobuf varint at byte {start}")
 
 
-def _protobuf_records_to_entries(records: list) -> list:
+def _protobuf_records_to_entries(records: Iterable[calf_trace_pb2.TraceRecord]) -> list:
     roots = []
     scopes = {}
 
@@ -268,6 +276,7 @@ class TraceTab:
     kind:     str        # "syscall", "stl", or ...
     path:     str        # path to the single .log or .pb file this tab represents
     _roots:   Optional[list[TraceNode]] = field(default=None, repr=False)
+    _load_lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
     def tid(self) -> str:
@@ -285,11 +294,13 @@ class TraceTab:
     @property
     def roots(self) -> list[TraceNode]:
         if self._roots is None:
-            try:
-                data = load_trace(self.path)
-                self._roots = build_tree(data)
-            except Exception:
-                self._roots = []
+            with self._load_lock:
+                if self._roots is None:
+                    try:
+                        data = load_trace(self.path)
+                        self._roots = build_tree(data)
+                    except Exception:
+                        self._roots = []
         return self._roots
 
     @property

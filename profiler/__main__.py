@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .loader import build_tree, discover_tabs, load_trace
+from .loader import discover_tabs
 
 
 def main() -> None:
@@ -47,16 +47,9 @@ def main() -> None:
     print(f"Found {len(tabs)} tab(s) across {total_files} file(s):")
 
     for tab in tabs:
-        try:
-            data = load_trace(tab.path)
-            tab._roots = build_tree(data)
-            print(f"  [LOADED: {tab.kind:8}]  {tab.hostname}  tid={tab.tid}")
-        except Exception as exc:
-            print(f"  [SKIP:   {tab.kind:8}]  {tab.hostname}  tid={tab.tid}: {exc}")
-            tab._roots = []
+        print(f"  [READY:  {tab.kind:8}]  {tab.hostname}  tid={tab.tid}")
 
-    total_nodes = sum(t.total_nodes for t in tabs)
-    print(f"Loaded {total_nodes:,} trace nodes.")
+    print("Trace data will be loaded when selected.")
     from .web import run_web
     run_web(tabs, args.host, args.port)
 
