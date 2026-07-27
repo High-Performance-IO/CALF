@@ -37,25 +37,42 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install prebuilt Protobuf
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: calf-ci
+          create-args: libprotobuf=6.31.1
+          cache-environment: true
+
       - name: Install build tools
         run: |
           apt-get update
           apt-get install -y cmake git ninja-build
 
       - name: Configure
-        shell: bash
+        shell: bash -el {0}
         run: |
+          export LDFLAGS="-L${CONDA_PREFIX}/lib"
           cmake -S "${GITHUB_WORKSPACE}" \
                 -B "${GITHUB_WORKSPACE}/build" \
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -DCMAKE_BUILD_RPATH="${CONDA_PREFIX}/lib" \
+                -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
                 -DCALF_TESTS=ON \
-                -DCALF_PYTHON_TESTS=OFF
+                -DCALF_PYTHON_TESTS=OFF \
+                -DCALF_PROTOBUF_FETCH=OFF
+
+      - name: Verify prebuilt Protobuf
+        shell: bash
+        run: test ! -d "${GITHUB_WORKSPACE}/build/_deps/protobuf-src"
 
       - name: Build
+        shell: bash -el {0}
         run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
 
       - name: Run C++ tests
+        shell: bash -el {0}
         working-directory: build
         run: ctest --output-on-failure
 
@@ -70,21 +87,38 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install prebuilt Protobuf
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: calf-ci
+          create-args: libprotobuf=6.31.1
+          cache-environment: true
+
       - name: Install build tools
         run: brew install cmake ninja
 
       - name: Configure
+        shell: bash -el {0}
         run: |
           cmake -S "${GITHUB_WORKSPACE}" \
                 -B "${GITHUB_WORKSPACE}/build" \
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -DCMAKE_BUILD_RPATH="${CONDA_PREFIX}/lib" \
+                -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
                 -DCALF_TESTS=ON \
-                -DCALF_PYTHON_TESTS=OFF
+                -DCALF_PYTHON_TESTS=OFF \
+                -DCALF_PROTOBUF_FETCH=OFF
+
+      - name: Verify prebuilt Protobuf
+        shell: bash
+        run: test ! -d "${GITHUB_WORKSPACE}/build/_deps/protobuf-src"
 
       - name: Build
+        shell: bash -el {0}
         run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
 
       - name: Run C++ tests
+        shell: bash -el {0}
         working-directory: build
         run: ctest --output-on-failure

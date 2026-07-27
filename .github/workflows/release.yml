@@ -77,7 +77,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: >-
-            python -c "import calf; assert calf.__version__ == '${{ needs.release-version.outputs.version }}'"
+            python -c "import calf, google.protobuf; from calf.protobuf import calf_trace_pb2; assert calf.__version__ == '${{ needs.release-version.outputs.version }}'; assert calf_trace_pb2.TraceFile() is not None"
           MACOSX_DEPLOYMENT_TARGET: "15.0"
         run: python -m cibuildwheel --output-dir wheelhouse
 
