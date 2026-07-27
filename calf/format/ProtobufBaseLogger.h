@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <string>
 
 #include "calf/utils/constants.h"
 #include "calf/protobuf/calf_trace.pb.h"
@@ -72,40 +71,57 @@ template <typename Derived> struct ProtobufLogBase {
                             const char *invoker, const char *file, int line, const char *message) {
         // Concatenating serialized messages is valid protobuf: repeated records
         // from each TraceFile chunk are merged when the complete file is parsed.
-        // LD_PRELOAD users can still be intercepted while thread-local destructors run.
-#if defined(__CALF_POSIX)
-        // Keep these process-lifetime buffers alive to avoid allocator syscalls during teardown.
-        static thread_local auto *chunk   = new calf::proto::TraceFile;
-        static thread_local auto *encoded = new std::string;
-#else
-        static thread_local calf::proto::TraceFile chunkStorage;
-        static thread_local std::string encodedStorage;
-        auto *chunk   = &chunkStorage;
-        auto *encoded = &encodedStorage;
-#endif
-        chunk->Clear();
-        calf::proto::TraceRecord *record = chunk->add_records();
-        record->set_timestamp_ms(timestamp);
-        record->set_scope_id(recordScopeId);
+        char recordBuffer[CALF_LOG_MAX_MSG_LEN + 1024];
+        char *record = recordBuffer;
+        appendUInt64(record, 1, timestamp);
+        appendUInt64(record, 2, recordScopeId);
         if (recordParentScopeId != 0) {
-            record->set_parent_scope_id(recordParentScopeId);
+            appendUInt64(record, 3, recordParentScopeId);
         }
-        record->set_kind(kind);
+        if (kind != calf::proto::TraceRecord::SCOPE_ENTER) {
+            appendUInt64(record, 4, static_cast<std::uint64_t>(kind));
+        }
         if (invoker != nullptr) {
-            record->set_invoker(invoker, ::strnlen(invoker, 255));
+            appendString(record, 5, invoker, ::strnlen(invoker, 255));
         }
         if (file != nullptr) {
-            record->set_file(file, ::strnlen(file, 255));
+            appendString(record, 6, file, ::strnlen(file, 255));
         }
         if (line > 0) {
-            record->set_line(static_cast<std::uint32_t>(line));
+            appendUInt64(record, 7, static_cast<std::uint32_t>(line));
         }
         if (message != nullptr) {
-            record->set_args(message, ::strnlen(message, CALF_LOG_MAX_MSG_LEN - 1));
+            appendString(record, 8, message, ::strnlen(message, CALF_LOG_MAX_MSG_LEN - 1));
         }
-        if (chunk->SerializeToString(encoded)) {
-            Derived::rawWriteBytes(encoded->data(), static_cast<int>(encoded->size()));
+
+        char outputBuffer[sizeof(recordBuffer) + 16];
+        char *output = outputBuffer;
+        *output++ = static_cast<char>((1U << 3U) | 2U);
+        appendVarint(output, static_cast<std::uint64_t>(record - recordBuffer));
+        ::memcpy(output, recordBuffer, static_cast<std::size_t>(record - recordBuffer));
+        output += record - recordBuffer;
+        Derived::rawWriteBytes(outputBuffer, static_cast<int>(output - outputBuffer));
+    }
+
+    static void appendVarint(char *&output, std::uint64_t value) {
+        while (value >= 0x80U) {
+            *output++ = static_cast<char>((value & 0x7fU) | 0x80U);
+            value >>= 7U;
         }
+        *output++ = static_cast<char>(value);
+    }
+
+    static void appendUInt64(char *&output, std::uint32_t field, std::uint64_t value) {
+        appendVarint(output, static_cast<std::uint64_t>(field << 3U));
+        appendVarint(output, value);
+    }
+
+    static void appendString(char *&output, std::uint32_t field, const char *value,
+                             std::size_t length) {
+        appendVarint(output, static_cast<std::uint64_t>((field << 3U) | 2U));
+        appendVarint(output, length);
+        ::memcpy(output, value, length);
+        output += length;
     }
 };
 
