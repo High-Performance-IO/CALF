@@ -45,13 +45,26 @@ if(CALF_PROTOBUF)
         set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
         set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
         set(ABSL_IDE_FOLDER "ThirdParty/Abseil" CACHE STRING "" FORCE)
+        if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.25)
+            set(_CALF_PROTOBUF_SYSTEM SYSTEM)
+        endif()
         FetchContent_Declare(
                 protobuf
                 GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
                 GIT_TAG v31.1
                 GIT_SHALLOW TRUE
+                ${_CALF_PROTOBUF_SYSTEM}
         )
+        unset(_CALF_PROTOBUF_SYSTEM)
+        # Parent projects may enable -Werror globally. Do not apply that policy to
+        # third-party sources, which use supported compiler extensions such as __int128.
+        get_directory_property(_CALF_SAVED_COMPILE_OPTIONS COMPILE_OPTIONS)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+            add_compile_options(-Wno-error)
+        endif()
         FetchContent_MakeAvailable(protobuf)
+        set_property(DIRECTORY PROPERTY COMPILE_OPTIONS "${_CALF_SAVED_COMPILE_OPTIONS}")
+        unset(_CALF_SAVED_COMPILE_OPTIONS)
         if(_CALF_BUILD_TESTING_WAS_DEFINED)
             set(BUILD_TESTING "${_CALF_SAVED_BUILD_TESTING}")
         else()
@@ -82,6 +95,9 @@ if(CALF_PROTOBUF)
     )
     add_library(calf::protobuf ALIAS calf_protobuf_schema)
     target_compile_features(calf_protobuf_schema PUBLIC cxx_std_17)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(calf_protobuf_schema PRIVATE -Wno-error)
+    endif()
     target_include_directories(calf_protobuf_schema
             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CALF_PROTOBUF_GENERATED_DIR}")
     target_link_libraries(calf_protobuf_schema PUBLIC protobuf::libprotobuf calf_headers)
