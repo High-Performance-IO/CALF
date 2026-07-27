@@ -9,6 +9,7 @@ option(CALF_TESTS "Enable CALF unit tests" OFF)
 option(CALF_PYTHON_TESTS "Enable CALF Python binding tests" ${CALF_TESTS})
 option(CALF_BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
 option(CALF_PROTOBUF "Build the Google Protobuf C++ logging component. Fallback to JSON logging when turned OFF" ON)
+option(CALF_PROTOBUF_REGENERATE "Build protoc and add the calf_regenerate_protobuf target" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
@@ -25,7 +26,7 @@ endif()
 #  Protobuf component
 # ---------------------------------------------------------------------------
 if(CALF_PROTOBUF)
-    find_package(Protobuf QUIET)
+    find_package(Protobuf 6.31.1 EXACT QUIET)
     if(NOT Protobuf_FOUND)
         include(FetchContent)
         if(DEFINED BUILD_TESTING)
@@ -37,7 +38,9 @@ if(CALF_PROTOBUF)
         set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
         set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
         set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
-        set(protobuf_BUILD_LIBUPB ON CACHE BOOL "" FORCE) # Required by protoc in v31.1.
+        set(protobuf_BUILD_PROTOC_BINARIES ${CALF_PROTOBUF_REGENERATE} CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_LIBPROTOC ${CALF_PROTOBUF_REGENERATE} CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_LIBUPB ${CALF_PROTOBUF_REGENERATE} CACHE BOOL "" FORCE)
         set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
         set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
         set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
@@ -74,24 +77,9 @@ if(CALF_PROTOBUF)
         unset(_CALF_BUILD_TESTING_WAS_DEFINED)
     endif()
 
-    set(CALF_PROTOBUF_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
-    set(CALF_PROTOBUF_SOURCE
-            "${CALF_PROTOBUF_GENERATED_DIR}/calf/protobuf/calf_trace.pb.cc")
-    set(CALF_PROTOBUF_HEADER
-            "${CALF_PROTOBUF_GENERATED_DIR}/calf/protobuf/calf_trace.pb.h")
-    file(MAKE_DIRECTORY "${CALF_PROTOBUF_GENERATED_DIR}/calf/protobuf")
-    add_custom_command(
-            OUTPUT "${CALF_PROTOBUF_SOURCE}" "${CALF_PROTOBUF_HEADER}"
-            COMMAND protobuf::protoc
-            ARGS --cpp_out=${CALF_PROTOBUF_GENERATED_DIR}
-                 --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
-                 ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto protobuf::protoc
-            VERBATIM
-    )
     add_library(calf_protobuf_schema STATIC
-            "${CALF_PROTOBUF_SOURCE}"
-            "${CALF_PROTOBUF_HEADER}"
+            calf/protobuf/calf_trace.pb.cc
+            calf/protobuf/calf_trace.pb.h
     )
     add_library(calf::protobuf ALIAS calf_protobuf_schema)
     target_compile_features(calf_protobuf_schema PUBLIC cxx_std_17)
@@ -99,15 +87,29 @@ if(CALF_PROTOBUF)
         target_compile_options(calf_protobuf_schema PRIVATE -Wno-error)
     endif()
     target_include_directories(calf_protobuf_schema
-            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CALF_PROTOBUF_GENERATED_DIR}")
+            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
     target_link_libraries(calf_protobuf_schema PUBLIC protobuf::libprotobuf calf_headers)
     target_compile_definitions(calf_protobuf_schema INTERFACE CALF_LOG_FORMAT_PROTOBUF)
-    foreach(_CALF_PROTOBUF_TARGET libprotobuf libprotobuf-lite libprotoc protoc libupb
-                                  protoc-gen-upb protoc-gen-upbdefs)
+    foreach(_CALF_PROTOBUF_TARGET libprotobuf libprotobuf-lite)
         if(TARGET ${_CALF_PROTOBUF_TARGET})
             set_property(TARGET ${_CALF_PROTOBUF_TARGET} PROPERTY FOLDER "ThirdParty/Protobuf")
         endif()
     endforeach()
+
+    if(CALF_PROTOBUF_REGENERATE)
+        if(NOT TARGET protobuf::protoc)
+            message(FATAL_ERROR "CALF_PROTOBUF_REGENERATE requires the protobuf::protoc target")
+        endif()
+        add_custom_target(calf_regenerate_protobuf
+                COMMAND protobuf::protoc
+                        --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}
+                        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+                        ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto
+                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto protobuf::protoc
+                COMMENT "Regenerating CALF protobuf C++ sources"
+                VERBATIM
+        )
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
