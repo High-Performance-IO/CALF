@@ -3,20 +3,18 @@ from __future__ import annotations
 import argparse
 import sys
 
-from alive_progress import alive_bar
-
-from .loader import discover_tabs
+from .loader import build_tree, discover_tabs, repair_and_load
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="calf",
         description=(
-            "Interactive viewer and analyser for CALF structured JSON traces.\n\n"
+            "Web inspector and profiler for CALF structured JSON traces.\n\n"
             "Traces are read from a log directory laid out as:\n"
             "  <log_dir>/syscall/<hostname>/<tid>.log\n"
             "  <log_dir>/stl/<hostname>/<tid>.log\n\n"
-            "Each (hostname, type) pair becomes one tab in the UI."
+            "Each trace file becomes a tab in the web inspector."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -27,10 +25,6 @@ def main() -> None:
         help="Root log directory (default: calf_logs)",
     )
     parser.add_argument(
-        "--web", action="store_true",
-        help="Launch the browser-based trace explorer instead of the TUI",
-    )
-    parser.add_argument(
         "--host", default="127.0.0.1",
         help="Web server bind address (default: 127.0.0.1)",
     )
@@ -38,10 +32,7 @@ def main() -> None:
         "--port", type=int, default=8765,
         help="Web server port (default: 8765)",
     )
-    parser.add_argument(
-        "--no-browser", action="store_true",
-        help="Do not open a browser automatically in web mode",
-    )
+
     args = parser.parse_args()
 
     # Discover tabs (fast — no file parsing yet)
@@ -53,35 +44,20 @@ def main() -> None:
 
     total_files = len(tabs)
     print(f"Found {len(tabs)} tab(s) across {total_files} file(s):")
-    for t in tabs:
-        print(f"  [{t.kind:8}]  {t.hostname}  tid={t.tid}")
 
-    # Pre-load all tabs with a progress bar so the UI opens instantly
-    print()
-    with alive_bar(total_files, title="Loading traces", spinner="dots") as bar:
-        for tab in tabs:
-            from .loader import repair_and_load, build_tree
-            try:
-                data = repair_and_load(tab.path)
-                tab._roots = build_tree(data)
-            except Exception as exc:
-                print(f"  warning: skipping {tab.path}: {exc}", file=sys.stderr)
-                tab._roots = []
-            bar()
+    for tab in tabs:
+        try:
+            data = repair_and_load(tab.path)
+            tab._roots = build_tree(data)
+            print(f"  [LOADED: {tab.kind:8}]  {tab.hostname}  tid={tab.tid}")
+        except Exception as exc:
+            print(f"  [SKIP:   {tab.kind:8}]  {tab.hostname}  tid={tab.tid}: {exc}")
+            tab._roots = []
 
     total_nodes = sum(t.total_nodes for t in tabs)
     print(f"Loaded {total_nodes:,} trace nodes.")
-    print()
-
-    if args.web:
-        from .web import run_web
-        run_web(tabs, args.host, args.port, open_browser=not args.no_browser)
-        return
-
-    # Launch the Textual app
-    from .app import CALFApp
-    app = CALFApp(tabs)
-    app.run()
+    from .web import run_web
+    run_web(tabs, args.host, args.port)
 
 
 if __name__ == "__main__":

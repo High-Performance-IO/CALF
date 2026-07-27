@@ -22,12 +22,11 @@ Both backends share the same JSON structure and produce identical output formats
 ## CALF Inspector
 
 CALF includes an interactive Inspector for exploring and analysing structured
-trace logs. It provides a terminal interface and a responsive web interface
-with call-tree navigation, lazy trace loading, search, timing details, and
-aggregated statistics.
+trace logs. Its responsive web interface provides call-tree navigation, lazy
+trace loading, search, timing details, and aggregated statistics.
 
 See the [CALF Inspector documentation](profiler/README.md) for installation,
-usage, web-server options, and keyboard shortcuts.
+usage and web-server options.
 
 
 ## Requirements
@@ -230,7 +229,6 @@ Installing the package also installs the bundled CALF Inspector:
 
 ```bash
 calf calf_logs
-calf calf_logs --web
 ```
 
 It can also be launched with `python -m calf`. See the

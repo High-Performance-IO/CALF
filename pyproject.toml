@@ -18,10 +18,7 @@ authors = [
     { name = "Marco Edoardo Santimaria", email = "marcoedoardo.santimaria@unito.it" },
 ]
 dependencies = [
-    "alive-progress>=3.1.0",
     "numpy>=1.24.0",
-    "rich>=13.3.3",
-    "textual>=0.50.0",
 ]
 
 [project.optional-dependencies]

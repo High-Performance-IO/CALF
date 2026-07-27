@@ -5,19 +5,18 @@
 # CALF Inspector
 
 CALF Inspector is an interactive viewer and analyser for structured trace logs
-produced by [CALF](../README.md). It provides both a terminal interface and a
-responsive browser interface over the same trace loader and statistics engine.
+produced by [CALF](../README.md). It provides a responsive browser interface
+backed by the CALF trace loader and statistics engine.
 
 ## Features
 
 - Navigate logs by host, backend, and thread.
-- Explore nested scopes and events as a colour-coded call tree.
+- Explore nested scopes and events as a call tree.
 - Inspect source locations, arguments, timestamps, and durations.
 - Search invokers, arguments, and source paths.
 - Search every visible web column at once. Serialized `req=` messages are
   correlated by their complete normalized request and occurrence order, with a
   shared-parameter fallback for older logs; other calls use invoker and time.
-- Filter the terminal tree with regular expressions.
 - Compare aggregated timing statistics by invoker.
 - Review duration percentiles, slow scopes, frequent calls, and costly call paths.
 - Export filtered web events as JSON, CSV, or a standalone HTML report.
@@ -27,8 +26,7 @@ responsive browser interface over the same trace loader and statistics engine.
 ## Requirements
 
 - Python 3.10 or later
-- A terminal with colour support for the TUI
-- A modern browser for the web interface
+- A modern browser
 
 Python dependencies are installed automatically from `pyproject.toml`.
 
@@ -71,9 +69,9 @@ calf_logs/
 Each log file is presented independently. Files outside this three-level layout
 are still loaded and grouped under an `unknown` backend when possible.
 
-## Terminal interface
+## Web interface
 
-Launch the TUI with a log directory:
+Launch the browser interface with:
 
 ```bash
 calf calf_logs
@@ -81,33 +79,6 @@ calf calf_logs
 
 If the directory is omitted, Inspector uses `calf_logs` in the current working
 directory.
-
-### Keyboard controls
-
-| Key                 | Action                                      |
-|---------------------|---------------------------------------------|
-| `Tab` / `Shift-Tab` | Move between host, backend, and thread tabs |
-| Arrow keys          | Navigate the active call tree               |
-| `Enter` / `Space`   | Expand or collapse a node                   |
-| `/`                 | Search the visible traces                   |
-| `n` / `Shift-N`     | Select the next or previous search match    |
-| `f`                 | Filter by invoker or arguments              |
-| `r`                 | Clear the active filter                     |
-| `e`                 | Expand all nodes                            |
-| `c`                 | Collapse all nodes                          |
-| `s`                 | Open timing statistics                      |
-| `q`                 | Quit                                        |
-
-Search moves between matching nodes without hiding the rest of the tree. A
-filter rebuilds the tree so only matching branches remain visible.
-
-## Web interface
-
-Launch the browser interface with:
-
-```bash
-calf calf_logs --web
-```
 
 Inspector listens on `127.0.0.1:8765` and opens the default browser. The page
 starts with one trace column. Each column selects a log directory and provides
@@ -130,7 +101,7 @@ level at a time rather than downloading the complete trace tree.
 For remote access, bind to all interfaces and disable automatic browser launch:
 
 ```bash
-calf calf_logs --web --host 0.0.0.0 --port 8765 --no-browser
+calf calf_logs --host 0.0.0.0 --port 8765 --no-browser
 ```
 
 The built-in server does not provide authentication or TLS. Expose it only on a

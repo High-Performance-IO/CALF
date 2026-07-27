@@ -605,17 +605,13 @@ def create_web_server(
 
 
 def run_web(
-    tabs: list[TraceTab], host: str = "127.0.0.1", port: int = 8765,
-    open_browser: bool = True,
+    tabs: list[TraceTab], host: str = "127.0.0.1", port: int = 8765
 ) -> None:
     server = create_web_server(tabs, host, port)
     bound_host, bound_port = server.server_address[:2]
     browser_host = "127.0.0.1" if bound_host in ("0.0.0.0", "::") else bound_host
-    url = f"http://{browser_host}:{bound_port}"
-    print(f"CALF web explorer: {url}")
+    print(f"CALF web explorer: http://{browser_host}:{bound_port}")
     print("Press Ctrl-C to stop.")
-    if open_browser:
-        threading.Timer(0.3, webbrowser.open, args=(url,)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:

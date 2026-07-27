@@ -85,4 +85,4 @@ def test_installed_distribution_metadata_and_cli():
         text=True,
     )
     assert result.returncode == 0, result.stderr
-    assert "Interactive viewer" in result.stdout
+    assert "Web inspector and profiler" in result.stdout
