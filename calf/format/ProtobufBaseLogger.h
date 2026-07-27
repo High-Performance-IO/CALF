@@ -72,10 +72,19 @@ template <typename Derived> struct ProtobufLogBase {
                             const char *invoker, const char *file, int line, const char *message) {
         // Concatenating serialized messages is valid protobuf: repeated records
         // from each TraceFile chunk are merged when the complete file is parsed.
-        static thread_local calf::proto::TraceFile chunk;
-        static thread_local std::string encoded;
-        chunk.Clear();
-        calf::proto::TraceRecord *record = chunk.add_records();
+        // LD_PRELOAD users can still be intercepted while thread-local destructors run.
+#if defined(__CALF_POSIX)
+        // Keep these process-lifetime buffers alive to avoid allocator syscalls during teardown.
+        static thread_local auto *chunk   = new calf::proto::TraceFile;
+        static thread_local auto *encoded = new std::string;
+#else
+        static thread_local calf::proto::TraceFile chunkStorage;
+        static thread_local std::string encodedStorage;
+        auto *chunk   = &chunkStorage;
+        auto *encoded = &encodedStorage;
+#endif
+        chunk->Clear();
+        calf::proto::TraceRecord *record = chunk->add_records();
         record->set_timestamp_ms(timestamp);
         record->set_scope_id(recordScopeId);
         if (recordParentScopeId != 0) {
@@ -94,8 +103,8 @@ template <typename Derived> struct ProtobufLogBase {
         if (message != nullptr) {
             record->set_args(message, ::strnlen(message, CALF_LOG_MAX_MSG_LEN - 1));
         }
-        if (chunk.SerializeToString(&encoded)) {
-            Derived::rawWriteBytes(encoded.data(), static_cast<int>(encoded.size()));
+        if (chunk->SerializeToString(encoded)) {
+            Derived::rawWriteBytes(encoded->data(), static_cast<int>(encoded->size()));
         }
     }
 };
