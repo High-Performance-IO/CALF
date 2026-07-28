@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install prebuilt Protobuf
+      - name: Install Protobuf
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: calf-ci
@@ -63,7 +63,7 @@ jobs:
                 -DCALF_PYTHON_TESTS=OFF \
                 -DCALF_PROTOBUF_FETCH=OFF
 
-      - name: Verify prebuilt Protobuf
+      - name: Verify Protobuf
         shell: bash
         run: test ! -d "${GITHUB_WORKSPACE}/build/_deps/protobuf-src"
 
@@ -71,7 +71,7 @@ jobs:
         shell: bash -el {0}
         run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
 
-      - name: Run C++ tests
+      - name: Run tests
         shell: bash -el {0}
         working-directory: build
         run: ctest --output-on-failure
@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install prebuilt Protobuf
+      - name: Install Protobuf
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: calf-ci
@@ -110,7 +110,7 @@ jobs:
                 -DCALF_PYTHON_TESTS=OFF \
                 -DCALF_PROTOBUF_FETCH=OFF
 
-      - name: Verify prebuilt Protobuf
+      - name: Verify Protobuf
         shell: bash
         run: test ! -d "${GITHUB_WORKSPACE}/build/_deps/protobuf-src"
 
@@ -118,7 +118,7 @@ jobs:
         shell: bash -el {0}
         run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
 
-      - name: Run C++ tests
+      - name: Run tests
         shell: bash -el {0}
         working-directory: build
         run: ctest --output-on-failure
