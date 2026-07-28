@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install Protobuf
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           environment-name: calf-ci
           create-args: libprotobuf=6.31.1
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install Protobuf
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           environment-name: calf-ci
           create-args: libprotobuf=6.31.1
