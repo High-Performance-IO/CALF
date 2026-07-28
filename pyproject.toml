@@ -1,6 +1,7 @@
 [build-system]
 requires = [
-    "scikit-build-core[pyproject]==0.11.6",
+    "scikit-build-core[pyproject]==1.0.3",
+    "dynamic-metadata==0.5.0",
     "pybind11==3.0.1",
     "setuptools==80.9.0",
     "wheel==0.45.1",
@@ -9,17 +10,13 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "capio-calf"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 description = "CAPIO Logging Facility and interactive trace inspector"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors = [
     { name = "Marco Edoardo Santimaria", email = "marcoedoardo.santimaria@unito.it" },
-]
-dependencies = [
-    "numpy>=1.24.0",
-    "protobuf>=6.31.1,<7",
 ]
 
 [project.optional-dependencies]
@@ -48,8 +45,14 @@ wheel.exclude = [
 CALF_BUILD_PYTHON_BINDINGS = true
 CALF_PROTOBUF = false
 
-[tool.scikit-build.metadata.version]
+[[tool.dynamic-metadata]]
 provider = "scikit_build_core.metadata.regex"
+field = "version"
 input = "CMakeLists.txt"
 regex = "(?m)VERSION\\s+(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 result = "{major}.{minor}.{patch}"
+
+[[tool.dynamic-metadata]]
+provider = "dynamic_metadata.from_file"
+field = "dependencies"
+path = "requirements.txt"

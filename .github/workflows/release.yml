@@ -1,4 +1,4 @@
-name: Release Python Wheels
+name: Release New Version
 
 on:
   workflow_run:
@@ -88,7 +88,7 @@ jobs:
           if-no-files-found: error
 
   sdist:
-    name: Source distribution
+    name: Sdist
     needs: release-version
     if: needs.release-version.outputs.should_publish == 'true'
     runs-on: ubuntu-24.04
