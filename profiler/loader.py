@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import BinaryIO, Iterable, Iterator, Optional
+
+from calf.protobuf import calf_trace_pb2
+
 
 def repair_and_load(path: str) -> list:
     """
@@ -67,6 +71,94 @@ def repair_and_load(path: str) -> list:
     if isinstance(data, dict):
         data = [data]
     return data
+
+
+def load_protobuf(path: str) -> list:
+    """Load a CALF protobuf stream, ignoring an incomplete final record."""
+    return _protobuf_records_to_entries(_iter_protobuf_records(path))
+
+
+def _iter_protobuf_records(path: str) -> Iterator[calf_trace_pb2.TraceRecord]:
+    with open(path, "rb", buffering=1024 * 1024) as trace_file:
+        offset = 0
+        while field := trace_file.read(1):
+            if field != b"\x0a":  # TraceFile.records, length-delimited
+                raise RuntimeError(
+                    f"Cannot parse {path}: invalid protobuf field at byte {offset}"
+                )
+            offset += 1
+            length, offset = _read_varint(trace_file, path, offset)
+            if length is None:
+                break
+            payload = trace_file.read(length)
+            if len(payload) < length:
+                break
+            offset += length
+            record = calf_trace_pb2.TraceRecord()
+            record.ParseFromString(payload)
+            yield record
+
+
+def _read_varint(
+    trace_file: BinaryIO, path: str, offset: int
+) -> tuple[Optional[int], int]:
+    value = 0
+    shift = 0
+    start = offset
+    while shift < 64:
+        raw = trace_file.read(1)
+        if not raw:
+            return None, offset
+        byte = raw[0]
+        offset += 1
+        value |= (byte & 0x7F) << shift
+        if byte < 0x80:
+            return value, offset
+        shift += 7
+    raise RuntimeError(f"Cannot parse {path}: invalid protobuf varint at byte {start}")
+
+
+def _protobuf_records_to_entries(records: Iterable[calf_trace_pb2.TraceRecord]) -> list:
+    roots = []
+    scopes = {}
+
+    for record in records:
+        if record.kind == calf_trace_pb2.TraceRecord.SCOPE_ENTER:
+            entry = {
+                "invoker": record.invoker or "?",
+                "args": record.args,
+                "file": record.file,
+                "line": record.line,
+                "ts_enter": record.timestamp_ms,
+                "ts_exit": None,
+                "events": [],
+            }
+            scopes[record.scope_id] = entry
+            parent = scopes.get(record.parent_scope_id)
+            (parent["events"] if parent is not None else roots).append(entry)
+        elif record.kind == calf_trace_pb2.TraceRecord.EVENT:
+            entry = {
+                "invoker": record.invoker or "?",
+                "args": record.args,
+                "file": record.file,
+                "line": record.line,
+                "ts": record.timestamp_ms,
+            }
+            parent = scopes.get(record.scope_id)
+            (parent["events"] if parent is not None else roots).append(entry)
+        elif record.kind == calf_trace_pb2.TraceRecord.SCOPE_EXIT:
+            scope = scopes.get(record.scope_id)
+            if scope is not None:
+                scope["ts_exit"] = record.timestamp_ms
+
+    return roots
+
+
+def load_trace(path: str) -> list:
+    if path.lower().endswith(".pb"):
+        return load_protobuf(path)
+    return repair_and_load(path)
+
 
 @dataclass
 class TraceNode:
@@ -182,8 +274,9 @@ class TraceTab:
     """
     hostname: str
     kind:     str        # "syscall", "stl", or ...
-    path:     str        # path to the single .log file this tab represents
+    path:     str        # path to the single .log or .pb file this tab represents
     _roots:   Optional[list[TraceNode]] = field(default=None, repr=False)
+    _load_lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
     def tid(self) -> str:
@@ -201,11 +294,13 @@ class TraceTab:
     @property
     def roots(self) -> list[TraceNode]:
         if self._roots is None:
-            try:
-                data = repair_and_load(self.path)
-                self._roots = build_tree(data)
-            except Exception:
-                self._roots = []
+            with self._load_lock:
+                if self._roots is None:
+                    try:
+                        data = load_trace(self.path)
+                        self._roots = build_tree(data)
+                    except Exception:
+                        self._roots = []
         return self._roots
 
     @property
@@ -215,7 +310,7 @@ class TraceTab:
 
 def discover_tabs(log_dir: str) -> list[TraceTab]:
     """
-    Walk log_dir and create one TraceTab per .log file.
+    Walk log_dir and create one TraceTab per .log or .pb file.
 
     Expected CALF layout:
         <log_dir>/syscall/<hostname>/<tid>.log
@@ -229,7 +324,7 @@ def discover_tabs(log_dir: str) -> list[TraceTab]:
     for root, dirs, files in os.walk(log_dir):
         dirs.sort()
         for fname in sorted(files):
-            if not fname.endswith(".log"):
+            if not fname.lower().endswith((".log", ".pb")):
                 continue
             full  = os.path.join(root, fname)
             rel   = os.path.relpath(full, log_dir).replace("\\", "/")
@@ -244,7 +339,7 @@ def discover_tabs(log_dir: str) -> list[TraceTab]:
             tabs.append(TraceTab(hostname=hostname, kind=kind, path=full))
 
     if not tabs:
-        raise RuntimeError(f"No .log files found under {log_dir!r}")
+        raise RuntimeError(f"No .log or .pb files found under {log_dir!r}")
 
     order = {"syscall": 0, "stl": 1, "unknown": 2}
     tabs.sort(key=lambda t: (order.get(t.kind, 9), t.hostname, t.tid))

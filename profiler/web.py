@@ -58,6 +58,22 @@ def _tab_summary(index: int, tab: TraceTab) -> dict:
     }
 
 
+def _tab_metadata(index: int, tab: TraceTab) -> dict:
+    return {
+        "id": index,
+        "hostname": tab.hostname,
+        "kind": tab.kind,
+        "tid": tab.tid,
+        "file": Path(tab.path).name,
+        "nodes": None,
+        "scopes": None,
+        "events": None,
+        "start_ms": None,
+        "end_ms": None,
+        "window_ms": None,
+    }
+
+
 def _serialize_node(node: TraceNode, node_id: str) -> dict:
     return {
         "id": node_id,
@@ -368,7 +384,7 @@ def _export_events(tab: TraceTab, summary: dict, query: str, format_name: str) -
 def create_web_server(
     tabs: list[TraceTab], host: str = "127.0.0.1", port: int = 8765
 ) -> ThreadingHTTPServer:
-    summaries = [_tab_summary(index, tab) for index, tab in enumerate(tabs)]
+    summaries = [_tab_metadata(index, tab) for index, tab in enumerate(tabs)]
 
     class TraceHandler(BaseHTTPRequestHandler):
         def _send_json(self, payload: object, status: int = 200) -> None:
@@ -417,11 +433,14 @@ def create_web_server(
                 except (ValueError, IndexError):
                     self._send_json({"error": "Unknown trace"}, status=404)
                     return
+                roots = tab.roots
+                summary = _tab_summary(index, tab)
+                summaries[index] = summary
                 self._send_json({
-                    "summary": summaries[index],
-                    "roots": _serialize_level(tab.roots),
-                    "stats": compute_stats(tab.roots),
-                    "analysis": _trace_analysis(tab.roots),
+                    "summary": summary,
+                    "roots": _serialize_level(roots),
+                    "stats": compute_stats(roots),
+                    "analysis": _trace_analysis(roots),
                 })
                 return
             if parsed.path == "/api/children":
@@ -583,7 +602,7 @@ def create_web_server(
                         raise IndexError
                     body, content_type, filename = _export_events(
                         tab,
-                        summaries[index],
+                        _tab_summary(index, tab),
                         query.get("q", [""])[0].strip(),
                         query.get("format", ["json"])[0],
                     )

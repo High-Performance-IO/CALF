@@ -3,17 +3,18 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .loader import build_tree, discover_tabs, repair_and_load
+from .loader import discover_tabs
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="calf",
         description=(
-            "Web inspector and profiler for CALF structured JSON traces.\n\n"
+            "Web inspector and profiler for CALF JSON and protobuf traces.\n\n"
             "Traces are read from a log directory laid out as:\n"
             "  <log_dir>/syscall/<hostname>/<tid>.log\n"
-            "  <log_dir>/stl/<hostname>/<tid>.log\n\n"
+            "  <log_dir>/stl/<hostname>/<tid>.log\n"
+            "  <log_dir>/syscall/<hostname>/<tid>.pb\n\n"
             "Each trace file becomes a tab in the web inspector."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -46,16 +47,9 @@ def main() -> None:
     print(f"Found {len(tabs)} tab(s) across {total_files} file(s):")
 
     for tab in tabs:
-        try:
-            data = repair_and_load(tab.path)
-            tab._roots = build_tree(data)
-            print(f"  [LOADED: {tab.kind:8}]  {tab.hostname}  tid={tab.tid}")
-        except Exception as exc:
-            print(f"  [SKIP:   {tab.kind:8}]  {tab.hostname}  tid={tab.tid}: {exc}")
-            tab._roots = []
+        print(f"  [READY:  {tab.kind:8}]  {tab.hostname}  tid={tab.tid}")
 
-    total_nodes = sum(t.total_nodes for t in tabs)
-    print(f"Loaded {total_nodes:,} trace nodes.")
+    print("Trace data will be loaded when selected.")
     from .web import run_web
     run_web(tabs, args.host, args.port)
 

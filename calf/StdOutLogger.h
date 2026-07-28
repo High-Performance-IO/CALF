@@ -11,7 +11,7 @@
 #include <string>
 #include <unistd.h>
 
-#include "BaseLogger.h"
+#include "format/BaseLogger.h"
 
 // Cli pre messages
 constexpr char CAPIO_LOG_SERVER_CLI_LEVEL_RESET[] = "\033[0m";

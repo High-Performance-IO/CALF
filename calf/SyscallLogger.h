@@ -14,10 +14,10 @@
 #include <type_traits>
 #include <unistd.h>
 
-#include "BaseLogger.h"
-#include "JsonBaseLogger.h"
+#include "format/BaseLogger.h"
+#include "format/LogFormat.h"
 
-struct SyscallLogger : JsonLogBase<SyscallLogger> {
+struct SyscallLogger : CalfLogBase<SyscallLogger> {
 
     static thread_local int fileFD;
     static thread_local char filePath[PATH_MAX];
@@ -36,12 +36,22 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
 
     static void rawWriteBytes(const char *buf, int len) {
         ensureFileOpen();
-        calf_syscall(SYS_write, fileFD, buf, static_cast<size_t>(len));
+        int written = 0;
+        while (written < len) {
+            const long result = calf_syscall(SYS_write, fileFD, buf + written,
+                                             static_cast<size_t>(len - written));
+            if (result <= 0) {
+                return;
+            }
+            written += static_cast<int>(result);
+        }
     }
 
     static void rawWriteStr(const char *buf) {
         rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
     }
+
+    static void flush() {}
 
     static void reopenRootArray() {
         ensureFileOpen();
@@ -68,8 +78,8 @@ struct SyscallLogger : JsonLogBase<SyscallLogger> {
             return;
         }
 
-        ::snprintf(filePath, PATH_MAX, "%s/%s%ld.log", getHostLogDir(), getLogPrefix(),
-                   calf_syscall(SYS_gettid));
+        ::snprintf(filePath, PATH_MAX, "%s/%s%ld%s", getHostLogDir(), getLogPrefix(),
+                   calf_syscall(SYS_gettid), CALF_LOG_FILE_EXTENSION);
 
         calf_syscall(SYS_mkdirat, AT_FDCWD, getLogDir(), 0755);
         calf_syscall(SYS_mkdirat, AT_FDCWD, getSyscallLogDir(), 0755);

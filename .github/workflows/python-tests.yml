@@ -40,8 +40,8 @@ jobs:
         if: startsWith(matrix.os, 'macos-')
         run: brew install cmake ninja
 
-      - name: Build and install capio-calf
+      - name: Build and install capio-calf with PyPI Protobuf
         run: python -m pip install ".[test]"
 
-      - name: Run Python binding tests
-        run: python -m pytest -v tests/python_bindings_tests.py
+      - name: Run Python tests
+        run: python -m pytest -v tests/python_bindings_tests.py tests/profiler_loader_tests.py

@@ -10,7 +10,7 @@
 [![C++ tests](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml/badge.svg?branch=main)](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml?query=branch%3Amain)
 [![Python tests](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml/badge.svg?branch=main)](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml?query=branch%3Amain)
 
-Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It produces indented JSON output where each logged scope becomes a self-contained object with enter/exit timestamps and a nested array of events, making logs machine-readable without post-processing.
+Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It supports indented JSON output and an opt-in streaming protobuf format for lower-overhead trace creation.
 
 Calf is designed to work in two distinct environments:
 
@@ -18,6 +18,13 @@ Calf is designed to work in two distinct environments:
 - **CLI loggers (STL safe)**: logs to CLI (`StdOutLogger`)
 - **NON STL safe processes**: uses raw syscalls whenever STL is not safe (`SyscallLogger`)
 Both backends share the same JSON structure and produce identical output formats.
+
+The C++ protobuf format works with both `StlLogger` and `SyscallLogger`. It uses
+Google's generated Protobuf C++ classes and writes `.pb` files matching
+`calf/protobuf/calf_trace.proto`.
+Each file is a valid `calf.proto.TraceFile`; flat
+scope-enter, event, and scope-exit records can be streamed and reconstructed
+through `scope_id` and `parent_scope_id`.
 
 ## CALF Inspector
 
@@ -79,6 +86,30 @@ Each log scope opened by `START_LOG` becomes one JSON object in a root array. In
 
 Each thread writes to its own log file under the log directory, named after the thread ID.
 
+### Protobuf output
+
+Select protobuf by linking the application target with `calf::protobuf`. The
+existing logger include and macro interface remain unchanged:
+
+```cmake
+target_link_libraries(my_server PRIVATE calf::protobuf)
+```
+
+```cpp
+#include <calf/StlLogger.h>
+
+void handle_request(const char *path) {
+    START_LOG(calf_current_tid(), "path=%s", path);
+    LOG("processing");
+}
+```
+
+CMake uses an installed Google Protobuf package when available and otherwise
+downloads it from source through `FetchContent`. Without the `calf::protobuf`
+link dependency, `StlLogger.h` and `SyscallLogger.h` produce JSON. The syscall
+backend writes serialized protobuf bytes through raw syscalls; constructing the
+generated messages still uses Google's C++ runtime and its allocations.
+
 
 ## Integration
 
@@ -119,6 +150,7 @@ target_link_libraries(my_interceptor PRIVATE calf::syscall)
 | `CALF_TESTS` | `OFF` | Build and register the GoogleTest suites with CTest. |
 | `CALF_PYTHON_TESTS` | Value of `CALF_TESTS` | Build the Python extension and register its binding tests. |
 | `CALF_BUILD_PYTHON_BINDINGS` | `OFF` | Build and install the private `calf._py_calf` Python extension. |
+| `CALF_PROTOBUF` | `ON` | Build the Google Protobuf C++ logger and `calf::protobuf` target. |
 | `CALF_DEFAULT_COMPONENT_NAME` | `calf` | Component directory and CLI header name used by configured targets. |
 | `CALF_DEFAULT_LOG_DIR_NAME` | `./calf_logs` | Default log root when `CALF_LOG_DIR` is unset. |
 
