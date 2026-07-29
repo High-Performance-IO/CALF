@@ -2,7 +2,7 @@
 requires = [
     "scikit-build-core[pyproject]==1.0.3",
     "pybind11==3.0.4",
-    "setuptools==80.9.0",
+    "setuptools==83.0.0",
     "wheel==0.45.1",
 ]
 build-backend = "scikit_build_core.build"
