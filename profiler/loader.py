@@ -74,15 +74,15 @@ def repair_and_load(path: str) -> list:
 
 
 def load_protobuf(path: str) -> list:
-    """Load a CALF protobuf stream, ignoring an incomplete final record."""
-    return _protobuf_records_to_entries(_iter_protobuf_records(path))
+    """Load a Perfetto trace stream, ignoring an incomplete final packet."""
+    return _perfetto_packets_to_entries(_iter_perfetto_packets(path))
 
 
-def _iter_protobuf_records(path: str) -> Iterator[calf_trace_pb2.TraceRecord]:
+def _iter_perfetto_packets(path: str) -> Iterator[calf_trace_pb2.TracePacket]:
     with open(path, "rb", buffering=1024 * 1024) as trace_file:
         offset = 0
         while field := trace_file.read(1):
-            if field != b"\x0a":  # TraceFile.records, length-delimited
+            if field != b"\x0a":  # perfetto.protos.Trace.packet
                 raise RuntimeError(
                     f"Cannot parse {path}: invalid protobuf field at byte {offset}"
                 )
@@ -94,9 +94,9 @@ def _iter_protobuf_records(path: str) -> Iterator[calf_trace_pb2.TraceRecord]:
             if len(payload) < length:
                 break
             offset += length
-            record = calf_trace_pb2.TraceRecord()
-            record.ParseFromString(payload)
-            yield record
+            packet = calf_trace_pb2.TracePacket()
+            packet.ParseFromString(payload)
+            yield packet
 
 
 def _read_varint(
@@ -118,44 +118,57 @@ def _read_varint(
     raise RuntimeError(f"Cannot parse {path}: invalid protobuf varint at byte {start}")
 
 
-def _protobuf_records_to_entries(records: Iterable[calf_trace_pb2.TraceRecord]) -> list:
+def _perfetto_packets_to_entries(
+    packets: Iterable[calf_trace_pb2.TracePacket],
+) -> list:
     roots = []
-    scopes = {}
+    stacks: dict[int, list[dict]] = {}
 
-    for record in records:
-        if record.kind == calf_trace_pb2.TraceRecord.SCOPE_ENTER:
+    for packet in packets:
+        if not packet.HasField("track_event"):
+            continue
+        event = packet.track_event
+        stack = stacks.setdefault(event.track_uuid, [])
+        timestamp_ms = packet.timestamp // 1_000_000
+        source = event.source_location
+        args = next(
+            (
+                annotation.string_value
+                for annotation in event.debug_annotations
+                if annotation.name == "args"
+            ),
+            "",
+        )
+
+        if event.type == calf_trace_pb2.TrackEvent.TYPE_SLICE_BEGIN:
             entry = {
-                "invoker": record.invoker or "?",
-                "args": record.args,
-                "file": record.file,
-                "line": record.line,
-                "ts_enter": record.timestamp_ms,
+                "invoker": event.name or source.function_name or "?",
+                "args": args,
+                "file": source.file_name,
+                "line": source.line_number,
+                "ts_enter": timestamp_ms,
                 "ts_exit": None,
                 "events": [],
             }
-            scopes[record.scope_id] = entry
-            parent = scopes.get(record.parent_scope_id)
-            (parent["events"] if parent is not None else roots).append(entry)
-        elif record.kind == calf_trace_pb2.TraceRecord.EVENT:
+            (stack[-1]["events"] if stack else roots).append(entry)
+            stack.append(entry)
+        elif event.type == calf_trace_pb2.TrackEvent.TYPE_INSTANT:
             entry = {
-                "invoker": record.invoker or "?",
-                "args": record.args,
-                "file": record.file,
-                "line": record.line,
-                "ts": record.timestamp_ms,
+                "invoker": event.name or source.function_name or "?",
+                "args": args,
+                "file": source.file_name,
+                "line": source.line_number,
+                "ts": timestamp_ms,
             }
-            parent = scopes.get(record.scope_id)
-            (parent["events"] if parent is not None else roots).append(entry)
-        elif record.kind == calf_trace_pb2.TraceRecord.SCOPE_EXIT:
-            scope = scopes.get(record.scope_id)
-            if scope is not None:
-                scope["ts_exit"] = record.timestamp_ms
+            (stack[-1]["events"] if stack else roots).append(entry)
+        elif event.type == calf_trace_pb2.TrackEvent.TYPE_SLICE_END and stack:
+            stack.pop()["ts_exit"] = timestamp_ms
 
     return roots
 
 
 def load_trace(path: str) -> list:
-    if path.lower().endswith(".pb"):
+    if path.lower().endswith(".perfetto-trace"):
         return load_protobuf(path)
     return repair_and_load(path)
 
@@ -274,7 +287,7 @@ class TraceTab:
     """
     hostname: str
     kind:     str        # "syscall", "stl", or ...
-    path:     str        # path to the single .log or .pb file this tab represents
+    path:     str        # path to the single .log or Perfetto file this tab represents
     _roots:   Optional[list[TraceNode]] = field(default=None, repr=False)
     _load_lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
@@ -310,7 +323,7 @@ class TraceTab:
 
 def discover_tabs(log_dir: str) -> list[TraceTab]:
     """
-    Walk log_dir and create one TraceTab per .log or .pb file.
+    Walk log_dir and create one TraceTab per .log or .perfetto-trace file.
 
     Expected CALF layout:
         <log_dir>/syscall/<hostname>/<tid>.log
@@ -324,7 +337,7 @@ def discover_tabs(log_dir: str) -> list[TraceTab]:
     for root, dirs, files in os.walk(log_dir):
         dirs.sort()
         for fname in sorted(files):
-            if not fname.lower().endswith((".log", ".pb")):
+            if not fname.lower().endswith((".log", ".perfetto-trace")):
                 continue
             full  = os.path.join(root, fname)
             rel   = os.path.relpath(full, log_dir).replace("\\", "/")
@@ -339,7 +352,7 @@ def discover_tabs(log_dir: str) -> list[TraceTab]:
             tabs.append(TraceTab(hostname=hostname, kind=kind, path=full))
 
     if not tabs:
-        raise RuntimeError(f"No .log or .pb files found under {log_dir!r}")
+        raise RuntimeError(f"No .log or .perfetto-trace files found under {log_dir!r}")
 
     order = {"syscall": 0, "stl": 1, "unknown": 2}
     tabs.sort(key=lambda t: (order.get(t.kind, 9), t.hostname, t.tid))

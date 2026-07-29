@@ -33,29 +33,36 @@ TEST(ProtobufLoggerTest, WritesStreamableNestedTrace) {
     std::ifstream input(path, std::ios::binary);
     const std::string data((std::istreambuf_iterator<char>(input)),
                            std::istreambuf_iterator<char>());
-    calf::proto::TraceFile trace;
+    perfetto::protos::Trace trace;
     ASSERT_TRUE(trace.ParseFromString(data));
 
-    ASSERT_EQ(trace.records_size(), 6);
-    EXPECT_EQ(trace.records(0).kind(), calf::proto::TraceRecord::SCOPE_ENTER);
-    EXPECT_EQ(trace.records(0).scope_id(), 1u);
-    EXPECT_EQ(trace.records(0).parent_scope_id(), 0u);
-    EXPECT_EQ(trace.records(0).invoker(), "outer");
-    EXPECT_EQ(trace.records(0).file(), "trace.cpp");
-    EXPECT_EQ(trace.records(0).line(), 10u);
-    EXPECT_EQ(trace.records(0).args(), "request=7");
-    EXPECT_EQ(trace.records(1).kind(), calf::proto::TraceRecord::EVENT);
-    EXPECT_EQ(trace.records(1).scope_id(), 1u);
-    EXPECT_EQ(trace.records(1).args(), "started");
-    EXPECT_EQ(trace.records(2).scope_id(), 2u);
-    EXPECT_EQ(trace.records(2).parent_scope_id(), 1u);
-    EXPECT_EQ(trace.records(3).args(), "value=ok");
-    EXPECT_EQ(trace.records(4).kind(), calf::proto::TraceRecord::SCOPE_EXIT);
-    EXPECT_EQ(trace.records(4).scope_id(), 2u);
-    EXPECT_EQ(trace.records(5).kind(), calf::proto::TraceRecord::SCOPE_EXIT);
-    EXPECT_EQ(trace.records(5).scope_id(), 1u);
+    ASSERT_EQ(trace.packet_size(), 7);
+    ASSERT_TRUE(trace.packet(0).has_track_descriptor());
+    EXPECT_EQ(trace.packet(0).track_descriptor().thread().pid(), ::getpid());
+
+    const auto &outerBegin = trace.packet(1).track_event();
+    EXPECT_EQ(trace.packet(1).timestamp_clock_id(), 3u);
+    EXPECT_EQ(outerBegin.type(), perfetto::protos::TrackEvent::TYPE_SLICE_BEGIN);
+    EXPECT_EQ(outerBegin.name(), "outer");
+    EXPECT_EQ(outerBegin.source_location().file_name(), "trace.cpp");
+    EXPECT_EQ(outerBegin.source_location().line_number(), 10u);
+    ASSERT_EQ(outerBegin.debug_annotations_size(), 1);
+    EXPECT_EQ(outerBegin.debug_annotations(0).name(), "args");
+    EXPECT_EQ(outerBegin.debug_annotations(0).string_value(), "request=7");
+
+    EXPECT_EQ(trace.packet(2).track_event().type(),
+              perfetto::protos::TrackEvent::TYPE_INSTANT);
+    EXPECT_EQ(trace.packet(2).track_event().debug_annotations(0).string_value(), "started");
+    EXPECT_EQ(trace.packet(3).track_event().type(),
+              perfetto::protos::TrackEvent::TYPE_SLICE_BEGIN);
+    EXPECT_EQ(trace.packet(4).track_event().debug_annotations(0).string_value(), "value=ok");
+    EXPECT_EQ(trace.packet(5).track_event().type(),
+              perfetto::protos::TrackEvent::TYPE_SLICE_END);
+    EXPECT_EQ(trace.packet(6).track_event().type(),
+              perfetto::protos::TrackEvent::TYPE_SLICE_END);
+    EXPECT_EQ(outerBegin.track_uuid(), trace.packet(0).track_descriptor().uuid());
     EXPECT_FALSE(data.empty());
-    EXPECT_EQ(std::filesystem::path(path).extension(), ".pb");
+    EXPECT_EQ(std::filesystem::path(path).extension(), ".perfetto-trace");
 
     std::filesystem::remove_all(root);
 }

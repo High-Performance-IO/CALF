@@ -6,29 +6,25 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <unistd.h>
 
 #include "calf/utils/constants.h"
-#include "calf/protobuf/calf_trace.pb.h"
+#include "calf/utils/ThreadId.h"
 
 template <typename Derived> struct ProtobufLogBase {
-    using RecordKind = calf::proto::TraceRecord::Kind;
+    enum class EventType : std::uint64_t { SliceBegin = 1, SliceEnd = 2, Instant = 3 };
 
-    std::uint64_t scopeId{0};
-    std::uint64_t parentScopeId{0};
-
-    inline static thread_local std::uint64_t currentScopeId = 0;
-    inline static thread_local std::uint64_t nextScopeId    = 1;
+    bool scopeOpen{false};
+    inline static thread_local bool descriptorWritten = false;
 
     void writeOpening(unsigned long timestamp, const char *invoker, const char *file, int line,
                       const char *messageFormat, va_list args) {
         char message[CALF_LOG_MAX_MSG_LEN]{};
         expandMessage(messageFormat, args, message, sizeof(message));
 
-        parentScopeId = currentScopeId;
-        scopeId       = nextScopeId++;
-        currentScopeId = scopeId;
-        writeRecord(timestamp, scopeId, parentScopeId, calf::proto::TraceRecord::SCOPE_ENTER,
-                    invoker, file, line, message);
+        ensureTrackDescriptor();
+        scopeOpen = true;
+        writeEvent(timestamp, EventType::SliceBegin, invoker, file, line, message);
     }
 
     static void printFormatted(unsigned long timestamp, const char *invoker, const char *file,
@@ -36,25 +32,21 @@ template <typename Derived> struct ProtobufLogBase {
                                const char *messageFormat, va_list args) {
         char message[CALF_LOG_MAX_MSG_LEN]{};
         expandMessage(messageFormat, args, message, sizeof(message));
-        writeRecord(timestamp, currentScopeId, 0, calf::proto::TraceRecord::EVENT, invoker, file,
-                    line, message);
+        ensureTrackDescriptor();
+        writeEvent(timestamp, EventType::Instant, invoker, file, line, message);
     }
 
     void writeEpilogue(unsigned long timestamp) {
-        if (scopeId == 0) {
+        if (!scopeOpen) {
             return;
         }
-        writeRecord(timestamp, scopeId, parentScopeId, calf::proto::TraceRecord::SCOPE_EXIT,
-                    nullptr, nullptr, 0, nullptr);
-        currentScopeId = parentScopeId;
-        if (currentScopeId == 0) {
-            Derived::flush();
-        }
+        writeEvent(timestamp, EventType::SliceEnd, nullptr, nullptr, 0, nullptr);
+        scopeOpen = false;
+        Derived::flush();
     }
 
     static void resetProtobufState() {
-        currentScopeId = 0;
-        nextScopeId    = 1;
+        descriptorWritten = false;
     }
 
   private:
@@ -66,40 +58,90 @@ template <typename Derived> struct ProtobufLogBase {
         va_end(copy);
     }
 
-    static void writeRecord(unsigned long timestamp, std::uint64_t recordScopeId,
-                            std::uint64_t recordParentScopeId, RecordKind kind,
-                            const char *invoker, const char *file, int line, const char *message) {
-        // Concatenating serialized messages is valid protobuf: repeated records
-        // from each TraceFile chunk are merged when the complete file is parsed.
-        char recordBuffer[CALF_LOG_MAX_MSG_LEN + 1024];
-        char *record = recordBuffer;
-        appendUInt64(record, 1, timestamp);
-        appendUInt64(record, 2, recordScopeId);
-        if (recordParentScopeId != 0) {
-            appendUInt64(record, 3, recordParentScopeId);
-        }
-        if (kind != calf::proto::TraceRecord::SCOPE_ENTER) {
-            appendUInt64(record, 4, static_cast<std::uint64_t>(kind));
-        }
-        if (invoker != nullptr) {
-            appendString(record, 5, invoker, ::strnlen(invoker, 255));
-        }
-        if (file != nullptr) {
-            appendString(record, 6, file, ::strnlen(file, 255));
-        }
-        if (line > 0) {
-            appendUInt64(record, 7, static_cast<std::uint32_t>(line));
-        }
-        if (message != nullptr) {
-            appendString(record, 8, message, ::strnlen(message, CALF_LOG_MAX_MSG_LEN - 1));
+    static std::uint64_t trackUuid() {
+        return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(::getpid())) << 32U) |
+               static_cast<std::uint32_t>(calf_current_tid());
+    }
+
+    static void ensureTrackDescriptor() {
+        if (descriptorWritten) {
+            return;
         }
 
-        char outputBuffer[sizeof(recordBuffer) + 16];
+        char threadBuffer[128];
+        char *thread = threadBuffer;
+        appendUInt64(thread, 1, static_cast<std::uint32_t>(::getpid()));
+        appendUInt64(thread, 2, static_cast<std::uint64_t>(calf_current_tid()));
+        appendString(thread, 5, "CALF thread", 11);
+
+        char descriptorBuffer[256];
+        char *descriptor = descriptorBuffer;
+        appendUInt64(descriptor, 1, trackUuid());
+        appendString(descriptor, 2, "CALF", 4);
+        appendMessage(descriptor, 4, threadBuffer, thread);
+
+        char packetBuffer[320];
+        char *packet = packetBuffer;
+        appendUInt64(packet, 10, sequenceId());
+        appendMessage(packet, 60, descriptorBuffer, descriptor);
+        writePacket(packetBuffer, packet);
+        descriptorWritten = true;
+    }
+
+    static void writeEvent(unsigned long /*timestamp*/, EventType type, const char *invoker,
+                           const char *file, int line, const char *message) {
+        char eventBuffer[CALF_LOG_MAX_MSG_LEN + 1024];
+        char *event = eventBuffer;
+        appendUInt64(event, 9, static_cast<std::uint64_t>(type));
+        appendUInt64(event, 11, trackUuid());
+        if (type != EventType::SliceEnd) {
+            appendString(event, 22, "calf", 4);
+        }
+        if (invoker != nullptr) {
+            appendString(event, 23, invoker, ::strnlen(invoker, 255));
+        }
+        if (message != nullptr) {
+            char annotationBuffer[CALF_LOG_MAX_MSG_LEN + 32];
+            char *annotation = annotationBuffer;
+            appendString(annotation, 10, "args", 4);
+            appendString(annotation, 6, message, ::strnlen(message, CALF_LOG_MAX_MSG_LEN - 1));
+            appendMessage(event, 4, annotationBuffer, annotation);
+        }
+        if (file != nullptr) {
+            char locationBuffer[768];
+            char *location = locationBuffer;
+            appendString(location, 2, file, ::strnlen(file, 255));
+            if (invoker != nullptr) {
+                appendString(location, 3, invoker, ::strnlen(invoker, 255));
+            }
+            if (line > 0) {
+                appendUInt64(location, 4, static_cast<std::uint32_t>(line));
+            }
+            appendMessage(event, 33, locationBuffer, location);
+        }
+
+        char packetBuffer[sizeof(eventBuffer) + 64];
+        char *packet = packetBuffer;
+        timespec now{};
+        ::clock_gettime(CLOCK_MONOTONIC, &now);
+        const auto timestampNs = static_cast<std::uint64_t>(now.tv_sec) * 1000000000U +
+                                 static_cast<std::uint64_t>(now.tv_nsec);
+        appendUInt64(packet, 8, timestampNs);
+        appendUInt64(packet, 10, sequenceId());
+        appendMessage(packet, 11, eventBuffer, event);
+        appendUInt64(packet, 58, 3); // Perfetto BuiltinClocks::MONOTONIC.
+        writePacket(packetBuffer, packet);
+    }
+
+    static std::uint32_t sequenceId() {
+        const auto id = static_cast<std::uint32_t>(calf_current_tid());
+        return id == 0 ? 1 : id;
+    }
+
+    static void writePacket(const char *begin, const char *end) {
+        char outputBuffer[CALF_LOG_MAX_MSG_LEN + 1120];
         char *output = outputBuffer;
-        *output++ = static_cast<char>((1U << 3U) | 2U);
-        appendVarint(output, static_cast<std::uint64_t>(record - recordBuffer));
-        ::memcpy(output, recordBuffer, static_cast<std::size_t>(record - recordBuffer));
-        output += record - recordBuffer;
+        appendMessage(output, 1, begin, end);
         Derived::rawWriteBytes(outputBuffer, static_cast<int>(output - outputBuffer));
     }
 
@@ -117,11 +159,16 @@ template <typename Derived> struct ProtobufLogBase {
     }
 
     static void appendString(char *&output, std::uint32_t field, const char *value,
-                             std::size_t length) {
+                              std::size_t length) {
         appendVarint(output, static_cast<std::uint64_t>((field << 3U) | 2U));
         appendVarint(output, length);
         ::memcpy(output, value, length);
         output += length;
+    }
+
+    static void appendMessage(char *&output, std::uint32_t field, const char *begin,
+                              const char *end) {
+        appendString(output, field, begin, static_cast<std::size_t>(end - begin));
     }
 };
 

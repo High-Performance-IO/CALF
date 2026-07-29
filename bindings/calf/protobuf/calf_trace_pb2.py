@@ -24,17 +24,27 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63\x61lf/protobuf/calf_trace.proto\x12\ncalf.proto\"\xe9\x01\n\x0bTraceRecord\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x04\x12\x10\n\x08scope_id\x18\x02 \x01(\x04\x12\x17\n\x0fparent_scope_id\x18\x03 \x01(\x04\x12*\n\x04kind\x18\x04 \x01(\x0e\x32\x1c.calf.proto.TraceRecord.Kind\x12\x0f\n\x07invoker\x18\x05 \x01(\t\x12\x0c\n\x04\x66ile\x18\x06 \x01(\t\x12\x0c\n\x04line\x18\x07 \x01(\r\x12\x0c\n\x04\x61rgs\x18\x08 \x01(\t\"2\n\x04Kind\x12\x0f\n\x0bSCOPE_ENTER\x10\x00\x12\t\n\x05\x45VENT\x10\x01\x12\x0e\n\nSCOPE_EXIT\x10\x02\"5\n\tTraceFile\x12(\n\x07records\x18\x01 \x03(\x0b\x32\x17.calf.proto.TraceRecordb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63\x61lf/protobuf/calf_trace.proto\x12\x0fperfetto.protos\"5\n\x05Trace\x12,\n\x06packet\x18\x01 \x03(\x0b\x32\x1c.perfetto.protos.TracePacket\"\xce\x01\n\x0bTracePacket\x12\x11\n\ttimestamp\x18\x08 \x01(\x04\x12\"\n\x1atrusted_packet_sequence_id\x18\n \x01(\r\x12\x30\n\x0btrack_event\x18\x0b \x01(\x0b\x32\x1b.perfetto.protos.TrackEvent\x12\x1a\n\x12timestamp_clock_id\x18: \x01(\r\x12:\n\x10track_descriptor\x18< \x01(\x0b\x32 .perfetto.protos.TrackDescriptor\"\xc3\x02\n\nTrackEvent\x12;\n\x11\x64\x65\x62ug_annotations\x18\x04 \x03(\x0b\x32 .perfetto.protos.DebugAnnotation\x12.\n\x04type\x18\t \x01(\x0e\x32 .perfetto.protos.TrackEvent.Type\x12\x12\n\ntrack_uuid\x18\x0b \x01(\x04\x12\x12\n\ncategories\x18\x16 \x03(\t\x12\x0c\n\x04name\x18\x17 \x01(\t\x12\x38\n\x0fsource_location\x18! \x01(\x0b\x32\x1f.perfetto.protos.SourceLocation\"X\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\x14\n\x10TYPE_SLICE_BEGIN\x10\x01\x12\x12\n\x0eTYPE_SLICE_END\x10\x02\x12\x10\n\x0cTYPE_INSTANT\x10\x03\"5\n\x0f\x44\x65\x62ugAnnotation\x12\x14\n\x0cstring_value\x18\x06 \x01(\t\x12\x0c\n\x04name\x18\n \x01(\t\"O\n\x0eSourceLocation\x12\x11\n\tfile_name\x18\x02 \x01(\t\x12\x15\n\rfunction_name\x18\x03 \x01(\t\x12\x13\n\x0bline_number\x18\x04 \x01(\r\"`\n\x0fTrackDescriptor\x12\x0c\n\x04uuid\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x31\n\x06thread\x18\x04 \x01(\x0b\x32!.perfetto.protos.ThreadDescriptor\"A\n\x10ThreadDescriptor\x12\x0b\n\x03pid\x18\x01 \x01(\x05\x12\x0b\n\x03tid\x18\x02 \x01(\x03\x12\x13\n\x0bthread_name\x18\x05 \x01(\t')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'calf.protobuf.calf_trace_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_TRACERECORD']._serialized_start=47
-  _globals['_TRACERECORD']._serialized_end=280
-  _globals['_TRACERECORD_KIND']._serialized_start=230
-  _globals['_TRACERECORD_KIND']._serialized_end=280
-  _globals['_TRACEFILE']._serialized_start=282
-  _globals['_TRACEFILE']._serialized_end=335
+  _globals['_TRACE']._serialized_start=51
+  _globals['_TRACE']._serialized_end=104
+  _globals['_TRACEPACKET']._serialized_start=107
+  _globals['_TRACEPACKET']._serialized_end=313
+  _globals['_TRACKEVENT']._serialized_start=316
+  _globals['_TRACKEVENT']._serialized_end=639
+  _globals['_TRACKEVENT_TYPE']._serialized_start=551
+  _globals['_TRACKEVENT_TYPE']._serialized_end=639
+  _globals['_DEBUGANNOTATION']._serialized_start=641
+  _globals['_DEBUGANNOTATION']._serialized_end=694
+  _globals['_SOURCELOCATION']._serialized_start=696
+  _globals['_SOURCELOCATION']._serialized_end=775
+  _globals['_TRACKDESCRIPTOR']._serialized_start=777
+  _globals['_TRACKDESCRIPTOR']._serialized_end=873
+  _globals['_THREADDESCRIPTOR']._serialized_start=875
+  _globals['_THREADDESCRIPTOR']._serialized_end=940
 # @@protoc_insertion_point(module_scope)

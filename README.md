@@ -10,7 +10,7 @@
 [![C++ tests](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml/badge.svg?branch=main)](https://github.com/High-Performance-IO/CALF/actions/workflows/cpp-tests.yml?query=branch%3Amain)
 [![Python tests](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml/badge.svg?branch=main)](https://github.com/High-Performance-IO/CALF/actions/workflows/python-tests.yml?query=branch%3Amain)
 
-Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It supports indented JSON output and an opt-in streaming protobuf format for lower-overhead trace creation.
+Calf is a structured, header-only C++17 logging library for the [CAPIO](https://github.com/High-Performance-IO/capio) ecosystem. It supports indented JSON output and opt-in streaming Perfetto traces for lower-overhead trace creation.
 
 Calf is designed to work in two distinct environments:
 
@@ -19,12 +19,11 @@ Calf is designed to work in two distinct environments:
 - **NON STL safe processes**: uses raw syscalls whenever STL is not safe (`SyscallLogger`)
 Both backends share the same JSON structure and produce identical output formats.
 
-The C++ protobuf format works with both `StlLogger` and `SyscallLogger`. It uses
-Google's generated Protobuf C++ classes and writes `.pb` files matching
-`calf/protobuf/calf_trace.proto`.
-Each file is a valid `calf.proto.TraceFile`; flat
-scope-enter, event, and scope-exit records can be streamed and reconstructed
-through `scope_id` and `parent_scope_id`.
+The C++ Perfetto format works with both `StlLogger` and `SyscallLogger`. It
+writes standard `.perfetto-trace` protobuf streams that open directly in the
+[Perfetto UI](https://ui.perfetto.dev/). Scopes are nested TrackEvent slices,
+while `LOG` messages are instant TrackEvents with source locations and an
+`args` debug annotation.
 
 ## CALF Inspector
 
@@ -86,9 +85,9 @@ Each log scope opened by `START_LOG` becomes one JSON object in a root array. In
 
 Each thread writes to its own log file under the log directory, named after the thread ID.
 
-### Protobuf output
+### Perfetto output
 
-Select protobuf by linking the application target with `calf::protobuf`. The
+Select Perfetto output by linking the application target with `calf::protobuf`. The
 existing logger include and macro interface remain unchanged:
 
 ```cmake
@@ -104,11 +103,11 @@ void handle_request(const char *path) {
 }
 ```
 
-CMake uses an installed Google Protobuf package when available and otherwise
-downloads it from source through `FetchContent`. Without the `calf::protobuf`
-link dependency, `StlLogger.h` and `SyscallLogger.h` produce JSON. The syscall
-backend writes serialized protobuf bytes through raw syscalls; constructing the
-generated messages still uses Google's C++ runtime and its allocations.
+CMake uses an installed Google Protobuf package for its minimal Perfetto schema
+and tests, and otherwise downloads it through `FetchContent`. Without the
+`calf::protobuf` link dependency, `StlLogger.h` and `SyscallLogger.h` produce
+JSON. The syscall backend writes Perfetto protobuf bytes directly through raw
+syscalls without constructing generated messages or allocating per event.
 
 
 ## Integration
@@ -150,7 +149,7 @@ target_link_libraries(my_interceptor PRIVATE calf::syscall)
 | `CALF_TESTS` | `OFF` | Build and register the GoogleTest suites with CTest. |
 | `CALF_PYTHON_TESTS` | Value of `CALF_TESTS` | Build the Python extension and register its binding tests. |
 | `CALF_BUILD_PYTHON_BINDINGS` | `OFF` | Build and install the private `calf._py_calf` Python extension. |
-| `CALF_PROTOBUF` | `ON` | Build the Google Protobuf C++ logger and `calf::protobuf` target. |
+| `CALF_PROTOBUF` | `ON` | Build the Perfetto trace logger and `calf::protobuf` target. |
 | `CALF_DEFAULT_COMPONENT_NAME` | `calf` | Component directory and CLI header name used by configured targets. |
 | `CALF_DEFAULT_LOG_DIR_NAME` | `./calf_logs` | Default log root when `CALF_LOG_DIR` is unset. |
 
