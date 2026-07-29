@@ -25,22 +25,12 @@ writes standard `.perfetto-trace` protobuf streams that open directly in the
 while `LOG` messages are instant TrackEvents with source locations and an
 `args` debug annotation.
 
-## CALF Inspector
-
-CALF includes an interactive Inspector for exploring and analysing structured
-trace logs. Its responsive web interface provides call-tree navigation, lazy
-trace loading, search, timing details, and aggregated statistics.
-
-See the [CALF Inspector documentation](profiler/README.md) for installation,
-usage and web-server options.
-
-
 ## Requirements
 
 - C++17 or later
 - CMake 3.16 or later
 - Linux for `SyscallLogger` backend
-- Python 3.10 or later for the Python bindings and Inspector
+- Python 3.10 or later for the Python bindings
 
 ## Testing
 
@@ -185,8 +175,7 @@ cmake -S . -B build \
 
 ### Python bindings
 
-The Python package includes bindings for the STL file logger and stdout logger,
-as well as the CALF Inspector.
+The Python package includes bindings for the STL file logger and stdout logger.
 
 #### Installation
 
@@ -262,17 +251,6 @@ calf.StdoutLogger.print("finished")
 
 Available colors are `CLI_LEVEL_RESET`, `CLI_LEVEL_STATUS`, `CLI_LEVEL_INFO`,
 `CLI_LEVEL_WARNING`, and `CLI_LEVEL_ERROR`.
-
-#### Inspector
-
-Installing the package also installs the bundled CALF Inspector:
-
-```bash
-calf calf_logs
-```
-
-It can also be launched with `python -m calf`. See the
-[CALF Inspector documentation](profiler/README.md) for all options.
 
 ### Server / non-interceptor code
 
