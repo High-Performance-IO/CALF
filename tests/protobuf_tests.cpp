@@ -41,7 +41,7 @@ TEST(ProtobufLoggerTest, WritesStreamableNestedTrace) {
     EXPECT_EQ(trace.packet(0).track_descriptor().thread().pid(), ::getpid());
 
     const auto &outerBegin = trace.packet(1).track_event();
-    EXPECT_EQ(trace.packet(1).timestamp_clock_id(), 3u);
+    EXPECT_FALSE(trace.packet(1).has_timestamp_clock_id());
     EXPECT_EQ(outerBegin.type(), perfetto::protos::TrackEvent::TYPE_SLICE_BEGIN);
     EXPECT_EQ(outerBegin.name(), "outer");
     EXPECT_EQ(outerBegin.source_location().file_name(), "trace.cpp");

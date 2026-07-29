@@ -129,7 +129,6 @@ template <typename Derived> struct ProtobufLogBase {
         appendUInt64(packet, 8, timestampNs);
         appendUInt64(packet, 10, sequenceId());
         appendMessage(packet, 11, eventBuffer, event);
-        appendUInt64(packet, 58, 3); // Perfetto BuiltinClocks::MONOTONIC.
         writePacket(packetBuffer, packet);
     }
 
