@@ -10,11 +10,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="calf",
         description=(
-            "Web inspector and profiler for CALF JSON and protobuf traces.\n\n"
+            "Web inspector and profiler for CALF JSON and Perfetto traces.\n\n"
             "Traces are read from a log directory laid out as:\n"
             "  <log_dir>/syscall/<hostname>/<tid>.log\n"
             "  <log_dir>/stl/<hostname>/<tid>.log\n"
-            "  <log_dir>/syscall/<hostname>/<tid>.pb\n\n"
+            "  <log_dir>/<hostname>/<component>_<pid>.perfetto-trace\n\n"
             "Each trace file becomes a tab in the web inspector."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

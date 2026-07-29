@@ -53,65 +53,82 @@ struct TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto {
 extern "C" {
 extern const ::google::protobuf::internal::DescriptorTable descriptor_table_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
 }  // extern "C"
-namespace calf {
-namespace proto {
-enum TraceRecord_Kind : int;
-extern const uint32_t TraceRecord_Kind_internal_data_[];
-class TraceFile;
-struct TraceFileDefaultTypeInternal;
-extern TraceFileDefaultTypeInternal _TraceFile_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull TraceFile_class_data_;
-class TraceRecord;
-struct TraceRecordDefaultTypeInternal;
-extern TraceRecordDefaultTypeInternal _TraceRecord_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull TraceRecord_class_data_;
-}  // namespace proto
-}  // namespace calf
+namespace perfetto {
+namespace protos {
+enum TrackEvent_Type : int;
+extern const uint32_t TrackEvent_Type_internal_data_[];
+class DebugAnnotation;
+struct DebugAnnotationDefaultTypeInternal;
+extern DebugAnnotationDefaultTypeInternal _DebugAnnotation_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull DebugAnnotation_class_data_;
+class SourceLocation;
+struct SourceLocationDefaultTypeInternal;
+extern SourceLocationDefaultTypeInternal _SourceLocation_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull SourceLocation_class_data_;
+class ThreadDescriptor;
+struct ThreadDescriptorDefaultTypeInternal;
+extern ThreadDescriptorDefaultTypeInternal _ThreadDescriptor_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ThreadDescriptor_class_data_;
+class Trace;
+struct TraceDefaultTypeInternal;
+extern TraceDefaultTypeInternal _Trace_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull Trace_class_data_;
+class TracePacket;
+struct TracePacketDefaultTypeInternal;
+extern TracePacketDefaultTypeInternal _TracePacket_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull TracePacket_class_data_;
+class TrackDescriptor;
+struct TrackDescriptorDefaultTypeInternal;
+extern TrackDescriptorDefaultTypeInternal _TrackDescriptor_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull TrackDescriptor_class_data_;
+class TrackEvent;
+struct TrackEventDefaultTypeInternal;
+extern TrackEventDefaultTypeInternal _TrackEvent_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull TrackEvent_class_data_;
+}  // namespace protos
+}  // namespace perfetto
 namespace google {
 namespace protobuf {
 template <>
-internal::EnumTraitsT<::calf::proto::TraceRecord_Kind_internal_data_>
-    internal::EnumTraitsImpl::value<::calf::proto::TraceRecord_Kind>;
+internal::EnumTraitsT<::perfetto::protos::TrackEvent_Type_internal_data_>
+    internal::EnumTraitsImpl::value<::perfetto::protos::TrackEvent_Type>;
 }  // namespace protobuf
 }  // namespace google
 
-namespace calf {
-namespace proto {
-enum TraceRecord_Kind : int {
-  TraceRecord_Kind_SCOPE_ENTER = 0,
-  TraceRecord_Kind_EVENT = 1,
-  TraceRecord_Kind_SCOPE_EXIT = 2,
-  TraceRecord_Kind_TraceRecord_Kind_INT_MIN_SENTINEL_DO_NOT_USE_ =
-      ::std::numeric_limits<::int32_t>::min(),
-  TraceRecord_Kind_TraceRecord_Kind_INT_MAX_SENTINEL_DO_NOT_USE_ =
-      ::std::numeric_limits<::int32_t>::max(),
+namespace perfetto {
+namespace protos {
+enum TrackEvent_Type : int {
+  TrackEvent_Type_TYPE_UNSPECIFIED = 0,
+  TrackEvent_Type_TYPE_SLICE_BEGIN = 1,
+  TrackEvent_Type_TYPE_SLICE_END = 2,
+  TrackEvent_Type_TYPE_INSTANT = 3,
 };
 
-extern const uint32_t TraceRecord_Kind_internal_data_[];
-inline constexpr TraceRecord_Kind TraceRecord_Kind_Kind_MIN =
-    static_cast<TraceRecord_Kind>(0);
-inline constexpr TraceRecord_Kind TraceRecord_Kind_Kind_MAX =
-    static_cast<TraceRecord_Kind>(2);
-inline bool TraceRecord_Kind_IsValid(int value) {
-  return 0 <= value && value <= 2;
+extern const uint32_t TrackEvent_Type_internal_data_[];
+inline constexpr TrackEvent_Type TrackEvent_Type_Type_MIN =
+    static_cast<TrackEvent_Type>(0);
+inline constexpr TrackEvent_Type TrackEvent_Type_Type_MAX =
+    static_cast<TrackEvent_Type>(3);
+inline bool TrackEvent_Type_IsValid(int value) {
+  return 0 <= value && value <= 3;
 }
-inline constexpr int TraceRecord_Kind_Kind_ARRAYSIZE = 2 + 1;
-const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TraceRecord_Kind_descriptor();
+inline constexpr int TrackEvent_Type_Type_ARRAYSIZE = 3 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TrackEvent_Type_descriptor();
 template <typename T>
-const ::std::string& TraceRecord_Kind_Name(T value) {
-  static_assert(::std::is_same<T, TraceRecord_Kind>::value ||
+const ::std::string& TrackEvent_Type_Name(T value) {
+  static_assert(::std::is_same<T, TrackEvent_Type>::value ||
                     ::std::is_integral<T>::value,
-                "Incorrect type passed to Kind_Name().");
-  return TraceRecord_Kind_Name(static_cast<TraceRecord_Kind>(value));
+                "Incorrect type passed to Type_Name().");
+  return TrackEvent_Type_Name(static_cast<TrackEvent_Type>(value));
 }
 template <>
-inline const ::std::string& TraceRecord_Kind_Name(TraceRecord_Kind value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<TraceRecord_Kind_descriptor, 0, 2>(
+inline const ::std::string& TrackEvent_Type_Name(TrackEvent_Type value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<TrackEvent_Type_descriptor, 0, 3>(
       static_cast<int>(value));
 }
-inline bool TraceRecord_Kind_Parse(
-    ::absl::string_view name, TraceRecord_Kind* PROTOBUF_NONNULL value) {
-  return ::google::protobuf::internal::ParseNamedEnum<TraceRecord_Kind>(TraceRecord_Kind_descriptor(), name,
+inline bool TrackEvent_Type_Parse(
+    ::absl::string_view name, TrackEvent_Type* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<TrackEvent_Type>(TrackEvent_Type_descriptor(), name,
                                            value);
 }
 
@@ -120,30 +137,30 @@ inline bool TraceRecord_Kind_Parse(
 
 // -------------------------------------------------------------------
 
-class TraceRecord final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:calf.proto.TraceRecord) */ {
+class ThreadDescriptor final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.ThreadDescriptor) */ {
  public:
-  inline TraceRecord() : TraceRecord(nullptr) {}
-  ~TraceRecord() PROTOBUF_FINAL;
+  inline ThreadDescriptor() : ThreadDescriptor(nullptr) {}
+  ~ThreadDescriptor() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(TraceRecord* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+  void operator delete(ThreadDescriptor* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(TraceRecord));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ThreadDescriptor));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR TraceRecord(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR ThreadDescriptor(::google::protobuf::internal::ConstantInitialized);
 
-  inline TraceRecord(const TraceRecord& from) : TraceRecord(nullptr, from) {}
-  inline TraceRecord(TraceRecord&& from) noexcept
-      : TraceRecord(nullptr, ::std::move(from)) {}
-  inline TraceRecord& operator=(const TraceRecord& from) {
+  inline ThreadDescriptor(const ThreadDescriptor& from) : ThreadDescriptor(nullptr, from) {}
+  inline ThreadDescriptor(ThreadDescriptor&& from) noexcept
+      : ThreadDescriptor(nullptr, ::std::move(from)) {}
+  inline ThreadDescriptor& operator=(const ThreadDescriptor& from) {
     CopyFrom(from);
     return *this;
   }
-  inline TraceRecord& operator=(TraceRecord&& from) noexcept {
+  inline ThreadDescriptor& operator=(ThreadDescriptor&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -171,13 +188,13 @@ class TraceRecord final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const TraceRecord& default_instance() {
-    return *reinterpret_cast<const TraceRecord*>(
-        &_TraceRecord_default_instance_);
+  static const ThreadDescriptor& default_instance() {
+    return *reinterpret_cast<const ThreadDescriptor*>(
+        &_ThreadDescriptor_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 0;
-  friend void swap(TraceRecord& a, TraceRecord& b) { a.Swap(&b); }
-  inline void Swap(TraceRecord* PROTOBUF_NONNULL other) {
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(ThreadDescriptor& a, ThreadDescriptor& b) { a.Swap(&b); }
+  inline void Swap(ThreadDescriptor* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -185,7 +202,7 @@ class TraceRecord final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(TraceRecord* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(ThreadDescriptor* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -193,13 +210,13 @@ class TraceRecord final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  TraceRecord* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<TraceRecord>(arena);
+  ThreadDescriptor* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ThreadDescriptor>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const TraceRecord& from);
+  void CopyFrom(const ThreadDescriptor& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const TraceRecord& from) { TraceRecord::MergeImpl(*this, from); }
+  void MergeFrom(const ThreadDescriptor& from) { ThreadDescriptor::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -235,18 +252,18 @@ class TraceRecord final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(TraceRecord* PROTOBUF_NONNULL other);
+  void InternalSwap(ThreadDescriptor* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "calf.proto.TraceRecord"; }
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.ThreadDescriptor"; }
 
  protected:
-  explicit TraceRecord(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  TraceRecord(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TraceRecord& from);
-  TraceRecord(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TraceRecord&& from) noexcept
-      : TraceRecord(arena) {
+  explicit ThreadDescriptor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ThreadDescriptor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ThreadDescriptor& from);
+  ThreadDescriptor(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ThreadDescriptor&& from) noexcept
+      : ThreadDescriptor(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -260,140 +277,57 @@ class TraceRecord final : public ::google::protobuf::Message
 
   ::google::protobuf::Metadata GetMetadata() const;
   // nested types ----------------------------------------------------
-  using Kind = TraceRecord_Kind;
-  static constexpr Kind SCOPE_ENTER = TraceRecord_Kind_SCOPE_ENTER;
-  static constexpr Kind EVENT = TraceRecord_Kind_EVENT;
-  static constexpr Kind SCOPE_EXIT = TraceRecord_Kind_SCOPE_EXIT;
-  static inline bool Kind_IsValid(int value) {
-    return TraceRecord_Kind_IsValid(value);
-  }
-  static constexpr Kind Kind_MIN = TraceRecord_Kind_Kind_MIN;
-  static constexpr Kind Kind_MAX = TraceRecord_Kind_Kind_MAX;
-  static constexpr int Kind_ARRAYSIZE = TraceRecord_Kind_Kind_ARRAYSIZE;
-  static inline const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Kind_descriptor() {
-    return TraceRecord_Kind_descriptor();
-  }
-  template <typename T>
-  static inline const ::std::string& Kind_Name(T value) {
-    return TraceRecord_Kind_Name(value);
-  }
-  static inline bool Kind_Parse(
-      ::absl::string_view name, Kind* PROTOBUF_NONNULL value) {
-    return TraceRecord_Kind_Parse(name, value);
-  }
 
   // accessors -------------------------------------------------------
   enum : int {
-    kInvokerFieldNumber = 5,
-    kFileFieldNumber = 6,
-    kArgsFieldNumber = 8,
-    kTimestampMsFieldNumber = 1,
-    kScopeIdFieldNumber = 2,
-    kParentScopeIdFieldNumber = 3,
-    kKindFieldNumber = 4,
-    kLineFieldNumber = 7,
+    kThreadNameFieldNumber = 5,
+    kTidFieldNumber = 2,
+    kPidFieldNumber = 1,
   };
-  // string invoker = 5;
-  void clear_invoker() ;
-  const ::std::string& invoker() const;
+  // optional string thread_name = 5;
+  bool has_thread_name() const;
+  void clear_thread_name() ;
+  const ::std::string& thread_name() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_invoker(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_invoker();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_invoker();
-  void set_allocated_invoker(::std::string* PROTOBUF_NULLABLE value);
+  void set_thread_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_thread_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_thread_name();
+  void set_allocated_thread_name(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_invoker() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_invoker(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_invoker();
+  const ::std::string& _internal_thread_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_thread_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_thread_name();
 
   public:
-  // string file = 6;
-  void clear_file() ;
-  const ::std::string& file() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_file(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_file();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_file();
-  void set_allocated_file(::std::string* PROTOBUF_NULLABLE value);
+  // optional int64 tid = 2;
+  bool has_tid() const;
+  void clear_tid() ;
+  ::int64_t tid() const;
+  void set_tid(::int64_t value);
 
   private:
-  const ::std::string& _internal_file() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_file(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_file();
+  ::int64_t _internal_tid() const;
+  void _internal_set_tid(::int64_t value);
 
   public:
-  // string args = 8;
-  void clear_args() ;
-  const ::std::string& args() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_args(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_args();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_args();
-  void set_allocated_args(::std::string* PROTOBUF_NULLABLE value);
+  // optional int32 pid = 1;
+  bool has_pid() const;
+  void clear_pid() ;
+  ::int32_t pid() const;
+  void set_pid(::int32_t value);
 
   private:
-  const ::std::string& _internal_args() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_args(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_args();
+  ::int32_t _internal_pid() const;
+  void _internal_set_pid(::int32_t value);
 
   public:
-  // uint64 timestamp_ms = 1;
-  void clear_timestamp_ms() ;
-  ::uint64_t timestamp_ms() const;
-  void set_timestamp_ms(::uint64_t value);
-
-  private:
-  ::uint64_t _internal_timestamp_ms() const;
-  void _internal_set_timestamp_ms(::uint64_t value);
-
-  public:
-  // uint64 scope_id = 2;
-  void clear_scope_id() ;
-  ::uint64_t scope_id() const;
-  void set_scope_id(::uint64_t value);
-
-  private:
-  ::uint64_t _internal_scope_id() const;
-  void _internal_set_scope_id(::uint64_t value);
-
-  public:
-  // uint64 parent_scope_id = 3;
-  void clear_parent_scope_id() ;
-  ::uint64_t parent_scope_id() const;
-  void set_parent_scope_id(::uint64_t value);
-
-  private:
-  ::uint64_t _internal_parent_scope_id() const;
-  void _internal_set_parent_scope_id(::uint64_t value);
-
-  public:
-  // .calf.proto.TraceRecord.Kind kind = 4;
-  void clear_kind() ;
-  ::calf::proto::TraceRecord_Kind kind() const;
-  void set_kind(::calf::proto::TraceRecord_Kind value);
-
-  private:
-  ::calf::proto::TraceRecord_Kind _internal_kind() const;
-  void _internal_set_kind(::calf::proto::TraceRecord_Kind value);
-
-  public:
-  // uint32 line = 7;
-  void clear_line() ;
-  ::uint32_t line() const;
-  void set_line(::uint32_t value);
-
-  private:
-  ::uint32_t _internal_line() const;
-  void _internal_set_line(::uint32_t value);
-
-  public:
-  // @@protoc_insertion_point(class_scope:calf.proto.TraceRecord)
+  // @@protoc_insertion_point(class_scope:perfetto.protos.ThreadDescriptor)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 8,
-                                   0, 54,
+  static const ::google::protobuf::internal::TcParseTable<1, 3,
+                                   0, 52,
                                    2>
       _table_;
 
@@ -411,50 +345,45 @@ class TraceRecord final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const TraceRecord& from_msg);
+        const ThreadDescriptor& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr invoker_;
-    ::google::protobuf::internal::ArenaStringPtr file_;
-    ::google::protobuf::internal::ArenaStringPtr args_;
-    ::uint64_t timestamp_ms_;
-    ::uint64_t scope_id_;
-    ::uint64_t parent_scope_id_;
-    int kind_;
-    ::uint32_t line_;
+    ::google::protobuf::internal::ArenaStringPtr thread_name_;
+    ::int64_t tid_;
+    ::int32_t pid_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull TraceRecord_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull ThreadDescriptor_class_data_;
 // -------------------------------------------------------------------
 
-class TraceFile final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:calf.proto.TraceFile) */ {
+class SourceLocation final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.SourceLocation) */ {
  public:
-  inline TraceFile() : TraceFile(nullptr) {}
-  ~TraceFile() PROTOBUF_FINAL;
+  inline SourceLocation() : SourceLocation(nullptr) {}
+  ~SourceLocation() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(TraceFile* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+  void operator delete(SourceLocation* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(TraceFile));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SourceLocation));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR TraceFile(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR SourceLocation(::google::protobuf::internal::ConstantInitialized);
 
-  inline TraceFile(const TraceFile& from) : TraceFile(nullptr, from) {}
-  inline TraceFile(TraceFile&& from) noexcept
-      : TraceFile(nullptr, ::std::move(from)) {}
-  inline TraceFile& operator=(const TraceFile& from) {
+  inline SourceLocation(const SourceLocation& from) : SourceLocation(nullptr, from) {}
+  inline SourceLocation(SourceLocation&& from) noexcept
+      : SourceLocation(nullptr, ::std::move(from)) {}
+  inline SourceLocation& operator=(const SourceLocation& from) {
     CopyFrom(from);
     return *this;
   }
-  inline TraceFile& operator=(TraceFile&& from) noexcept {
+  inline SourceLocation& operator=(SourceLocation&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -482,13 +411,13 @@ class TraceFile final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const TraceFile& default_instance() {
-    return *reinterpret_cast<const TraceFile*>(
-        &_TraceFile_default_instance_);
+  static const SourceLocation& default_instance() {
+    return *reinterpret_cast<const SourceLocation*>(
+        &_SourceLocation_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
-  friend void swap(TraceFile& a, TraceFile& b) { a.Swap(&b); }
-  inline void Swap(TraceFile* PROTOBUF_NONNULL other) {
+  static constexpr int kIndexInFileMessages = 4;
+  friend void swap(SourceLocation& a, SourceLocation& b) { a.Swap(&b); }
+  inline void Swap(SourceLocation* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -496,7 +425,7 @@ class TraceFile final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(TraceFile* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(SourceLocation* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -504,13 +433,13 @@ class TraceFile final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  TraceFile* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<TraceFile>(arena);
+  SourceLocation* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SourceLocation>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const TraceFile& from);
+  void CopyFrom(const SourceLocation& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const TraceFile& from) { TraceFile::MergeImpl(*this, from); }
+  void MergeFrom(const SourceLocation& from) { SourceLocation::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -546,18 +475,18 @@ class TraceFile final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(TraceFile* PROTOBUF_NONNULL other);
+  void InternalSwap(SourceLocation* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "calf.proto.TraceFile"; }
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.SourceLocation"; }
 
  protected:
-  explicit TraceFile(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  TraceFile(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TraceFile& from);
-  TraceFile(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TraceFile&& from) noexcept
-      : TraceFile(arena) {
+  explicit SourceLocation(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SourceLocation(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SourceLocation& from);
+  SourceLocation(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SourceLocation&& from) noexcept
+      : SourceLocation(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -574,26 +503,1253 @@ class TraceFile final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kRecordsFieldNumber = 1,
+    kFileNameFieldNumber = 2,
+    kFunctionNameFieldNumber = 3,
+    kLineNumberFieldNumber = 4,
   };
-  // repeated .calf.proto.TraceRecord records = 1;
-  int records_size() const;
+  // optional string file_name = 2;
+  bool has_file_name() const;
+  void clear_file_name() ;
+  const ::std::string& file_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_file_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_file_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_file_name();
+  void set_allocated_file_name(::std::string* PROTOBUF_NULLABLE value);
+
   private:
-  int _internal_records_size() const;
+  const ::std::string& _internal_file_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_file_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_file_name();
 
   public:
-  void clear_records() ;
-  ::calf::proto::TraceRecord* PROTOBUF_NONNULL mutable_records(int index);
-  ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>* PROTOBUF_NONNULL mutable_records();
+  // optional string function_name = 3;
+  bool has_function_name() const;
+  void clear_function_name() ;
+  const ::std::string& function_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_function_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_function_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_function_name();
+  void set_allocated_function_name(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>& _internal_records() const;
-  ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>* PROTOBUF_NONNULL _internal_mutable_records();
+  const ::std::string& _internal_function_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_function_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_function_name();
+
   public:
-  const ::calf::proto::TraceRecord& records(int index) const;
-  ::calf::proto::TraceRecord* PROTOBUF_NONNULL add_records();
-  const ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>& records() const;
-  // @@protoc_insertion_point(class_scope:calf.proto.TraceFile)
+  // optional uint32 line_number = 4;
+  bool has_line_number() const;
+  void clear_line_number() ;
+  ::uint32_t line_number() const;
+  void set_line_number(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_line_number() const;
+  void _internal_set_line_number(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:perfetto.protos.SourceLocation)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 61,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SourceLocation& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr file_name_;
+    ::google::protobuf::internal::ArenaStringPtr function_name_;
+    ::uint32_t line_number_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull SourceLocation_class_data_;
+// -------------------------------------------------------------------
+
+class DebugAnnotation final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.DebugAnnotation) */ {
+ public:
+  inline DebugAnnotation() : DebugAnnotation(nullptr) {}
+  ~DebugAnnotation() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(DebugAnnotation* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(DebugAnnotation));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR DebugAnnotation(::google::protobuf::internal::ConstantInitialized);
+
+  inline DebugAnnotation(const DebugAnnotation& from) : DebugAnnotation(nullptr, from) {}
+  inline DebugAnnotation(DebugAnnotation&& from) noexcept
+      : DebugAnnotation(nullptr, ::std::move(from)) {}
+  inline DebugAnnotation& operator=(const DebugAnnotation& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline DebugAnnotation& operator=(DebugAnnotation&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const DebugAnnotation& default_instance() {
+    return *reinterpret_cast<const DebugAnnotation*>(
+        &_DebugAnnotation_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 3;
+  friend void swap(DebugAnnotation& a, DebugAnnotation& b) { a.Swap(&b); }
+  inline void Swap(DebugAnnotation* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(DebugAnnotation* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  DebugAnnotation* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<DebugAnnotation>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const DebugAnnotation& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const DebugAnnotation& from) { DebugAnnotation::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(DebugAnnotation* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.DebugAnnotation"; }
+
+ protected:
+  explicit DebugAnnotation(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  DebugAnnotation(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const DebugAnnotation& from);
+  DebugAnnotation(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, DebugAnnotation&& from) noexcept
+      : DebugAnnotation(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kStringValueFieldNumber = 6,
+    kNameFieldNumber = 10,
+  };
+  // optional string string_value = 6;
+  bool has_string_value() const;
+  void clear_string_value() ;
+  const ::std::string& string_value() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_string_value(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_string_value();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_string_value();
+  void set_allocated_string_value(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_string_value() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_string_value(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_string_value();
+
+  public:
+  // optional string name = 10;
+  bool has_name() const;
+  void clear_name() ;
+  const ::std::string& name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
+  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // @@protoc_insertion_point(class_scope:perfetto.protos.DebugAnnotation)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 2,
+                                   0, 56,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const DebugAnnotation& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr string_value_;
+    ::google::protobuf::internal::ArenaStringPtr name_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull DebugAnnotation_class_data_;
+// -------------------------------------------------------------------
+
+class TrackEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.TrackEvent) */ {
+ public:
+  inline TrackEvent() : TrackEvent(nullptr) {}
+  ~TrackEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(TrackEvent* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(TrackEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR TrackEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline TrackEvent(const TrackEvent& from) : TrackEvent(nullptr, from) {}
+  inline TrackEvent(TrackEvent&& from) noexcept
+      : TrackEvent(nullptr, ::std::move(from)) {}
+  inline TrackEvent& operator=(const TrackEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TrackEvent& operator=(TrackEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const TrackEvent& default_instance() {
+    return *reinterpret_cast<const TrackEvent*>(
+        &_TrackEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 2;
+  friend void swap(TrackEvent& a, TrackEvent& b) { a.Swap(&b); }
+  inline void Swap(TrackEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TrackEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  TrackEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<TrackEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const TrackEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const TrackEvent& from) { TrackEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(TrackEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.TrackEvent"; }
+
+ protected:
+  explicit TrackEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  TrackEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TrackEvent& from);
+  TrackEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TrackEvent&& from) noexcept
+      : TrackEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+  using Type = TrackEvent_Type;
+  static constexpr Type TYPE_UNSPECIFIED = TrackEvent_Type_TYPE_UNSPECIFIED;
+  static constexpr Type TYPE_SLICE_BEGIN = TrackEvent_Type_TYPE_SLICE_BEGIN;
+  static constexpr Type TYPE_SLICE_END = TrackEvent_Type_TYPE_SLICE_END;
+  static constexpr Type TYPE_INSTANT = TrackEvent_Type_TYPE_INSTANT;
+  static inline bool Type_IsValid(int value) {
+    return TrackEvent_Type_IsValid(value);
+  }
+  static constexpr Type Type_MIN = TrackEvent_Type_Type_MIN;
+  static constexpr Type Type_MAX = TrackEvent_Type_Type_MAX;
+  static constexpr int Type_ARRAYSIZE = TrackEvent_Type_Type_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Type_descriptor() {
+    return TrackEvent_Type_descriptor();
+  }
+  template <typename T>
+  static inline const ::std::string& Type_Name(T value) {
+    return TrackEvent_Type_Name(value);
+  }
+  static inline bool Type_Parse(
+      ::absl::string_view name, Type* PROTOBUF_NONNULL value) {
+    return TrackEvent_Type_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kDebugAnnotationsFieldNumber = 4,
+    kCategoriesFieldNumber = 22,
+    kNameFieldNumber = 23,
+    kSourceLocationFieldNumber = 33,
+    kTrackUuidFieldNumber = 11,
+    kTypeFieldNumber = 9,
+  };
+  // repeated .perfetto.protos.DebugAnnotation debug_annotations = 4;
+  int debug_annotations_size() const;
+  private:
+  int _internal_debug_annotations_size() const;
+
+  public:
+  void clear_debug_annotations() ;
+  ::perfetto::protos::DebugAnnotation* PROTOBUF_NONNULL mutable_debug_annotations(int index);
+  ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>* PROTOBUF_NONNULL mutable_debug_annotations();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>& _internal_debug_annotations() const;
+  ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>* PROTOBUF_NONNULL _internal_mutable_debug_annotations();
+  public:
+  const ::perfetto::protos::DebugAnnotation& debug_annotations(int index) const;
+  ::perfetto::protos::DebugAnnotation* PROTOBUF_NONNULL add_debug_annotations();
+  const ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>& debug_annotations() const;
+  // repeated string categories = 22;
+  int categories_size() const;
+  private:
+  int _internal_categories_size() const;
+
+  public:
+  void clear_categories() ;
+  const ::std::string& categories(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_categories(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_categories(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_categories();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_categories(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& categories() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_categories();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_categories() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_categories();
+
+  public:
+  // optional string name = 23;
+  bool has_name() const;
+  void clear_name() ;
+  const ::std::string& name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
+  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // optional .perfetto.protos.SourceLocation source_location = 33;
+  bool has_source_location() const;
+  void clear_source_location() ;
+  const ::perfetto::protos::SourceLocation& source_location() const;
+  [[nodiscard]] ::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE release_source_location();
+  ::perfetto::protos::SourceLocation* PROTOBUF_NONNULL mutable_source_location();
+  void set_allocated_source_location(::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_source_location(::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE value);
+  ::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE unsafe_arena_release_source_location();
+
+  private:
+  const ::perfetto::protos::SourceLocation& _internal_source_location() const;
+  ::perfetto::protos::SourceLocation* PROTOBUF_NONNULL _internal_mutable_source_location();
+
+  public:
+  // optional uint64 track_uuid = 11;
+  bool has_track_uuid() const;
+  void clear_track_uuid() ;
+  ::uint64_t track_uuid() const;
+  void set_track_uuid(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_track_uuid() const;
+  void _internal_set_track_uuid(::uint64_t value);
+
+  public:
+  // optional .perfetto.protos.TrackEvent.Type type = 9;
+  bool has_type() const;
+  void clear_type() ;
+  ::perfetto::protos::TrackEvent_Type type() const;
+  void set_type(::perfetto::protos::TrackEvent_Type value);
+
+  private:
+  ::perfetto::protos::TrackEvent_Type _internal_type() const;
+  void _internal_set_type(::perfetto::protos::TrackEvent_Type value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:perfetto.protos.TrackEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
+                                   3, 49,
+                                   7>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const TrackEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::perfetto::protos::DebugAnnotation > debug_annotations_;
+    ::google::protobuf::RepeatedPtrField<::std::string> categories_;
+    ::google::protobuf::internal::ArenaStringPtr name_;
+    ::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE source_location_;
+    ::uint64_t track_uuid_;
+    int type_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull TrackEvent_class_data_;
+// -------------------------------------------------------------------
+
+class TrackDescriptor final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.TrackDescriptor) */ {
+ public:
+  inline TrackDescriptor() : TrackDescriptor(nullptr) {}
+  ~TrackDescriptor() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(TrackDescriptor* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(TrackDescriptor));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR TrackDescriptor(::google::protobuf::internal::ConstantInitialized);
+
+  inline TrackDescriptor(const TrackDescriptor& from) : TrackDescriptor(nullptr, from) {}
+  inline TrackDescriptor(TrackDescriptor&& from) noexcept
+      : TrackDescriptor(nullptr, ::std::move(from)) {}
+  inline TrackDescriptor& operator=(const TrackDescriptor& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TrackDescriptor& operator=(TrackDescriptor&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const TrackDescriptor& default_instance() {
+    return *reinterpret_cast<const TrackDescriptor*>(
+        &_TrackDescriptor_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 5;
+  friend void swap(TrackDescriptor& a, TrackDescriptor& b) { a.Swap(&b); }
+  inline void Swap(TrackDescriptor* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TrackDescriptor* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  TrackDescriptor* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<TrackDescriptor>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const TrackDescriptor& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const TrackDescriptor& from) { TrackDescriptor::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(TrackDescriptor* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.TrackDescriptor"; }
+
+ protected:
+  explicit TrackDescriptor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  TrackDescriptor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TrackDescriptor& from);
+  TrackDescriptor(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TrackDescriptor&& from) noexcept
+      : TrackDescriptor(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNameFieldNumber = 2,
+    kThreadFieldNumber = 4,
+    kUuidFieldNumber = 1,
+  };
+  // optional string name = 2;
+  bool has_name() const;
+  void clear_name() ;
+  const ::std::string& name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
+  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // optional .perfetto.protos.ThreadDescriptor thread = 4;
+  bool has_thread() const;
+  void clear_thread() ;
+  const ::perfetto::protos::ThreadDescriptor& thread() const;
+  [[nodiscard]] ::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE release_thread();
+  ::perfetto::protos::ThreadDescriptor* PROTOBUF_NONNULL mutable_thread();
+  void set_allocated_thread(::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_thread(::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE value);
+  ::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE unsafe_arena_release_thread();
+
+  private:
+  const ::perfetto::protos::ThreadDescriptor& _internal_thread() const;
+  ::perfetto::protos::ThreadDescriptor* PROTOBUF_NONNULL _internal_mutable_thread();
+
+  public:
+  // optional uint64 uuid = 1;
+  bool has_uuid() const;
+  void clear_uuid() ;
+  ::uint64_t uuid() const;
+  void set_uuid(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_uuid() const;
+  void _internal_set_uuid(::uint64_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:perfetto.protos.TrackDescriptor)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   1, 44,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const TrackDescriptor& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr name_;
+    ::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE thread_;
+    ::uint64_t uuid_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull TrackDescriptor_class_data_;
+// -------------------------------------------------------------------
+
+class TracePacket final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.TracePacket) */ {
+ public:
+  inline TracePacket() : TracePacket(nullptr) {}
+  ~TracePacket() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(TracePacket* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(TracePacket));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR TracePacket(::google::protobuf::internal::ConstantInitialized);
+
+  inline TracePacket(const TracePacket& from) : TracePacket(nullptr, from) {}
+  inline TracePacket(TracePacket&& from) noexcept
+      : TracePacket(nullptr, ::std::move(from)) {}
+  inline TracePacket& operator=(const TracePacket& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TracePacket& operator=(TracePacket&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const TracePacket& default_instance() {
+    return *reinterpret_cast<const TracePacket*>(
+        &_TracePacket_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(TracePacket& a, TracePacket& b) { a.Swap(&b); }
+  inline void Swap(TracePacket* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TracePacket* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  TracePacket* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<TracePacket>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const TracePacket& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const TracePacket& from) { TracePacket::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(TracePacket* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.TracePacket"; }
+
+ protected:
+  explicit TracePacket(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  TracePacket(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TracePacket& from);
+  TracePacket(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TracePacket&& from) noexcept
+      : TracePacket(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kTrackEventFieldNumber = 11,
+    kTrackDescriptorFieldNumber = 60,
+    kTimestampFieldNumber = 8,
+    kTrustedPacketSequenceIdFieldNumber = 10,
+    kTimestampClockIdFieldNumber = 58,
+  };
+  // optional .perfetto.protos.TrackEvent track_event = 11;
+  bool has_track_event() const;
+  void clear_track_event() ;
+  const ::perfetto::protos::TrackEvent& track_event() const;
+  [[nodiscard]] ::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE release_track_event();
+  ::perfetto::protos::TrackEvent* PROTOBUF_NONNULL mutable_track_event();
+  void set_allocated_track_event(::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_track_event(::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE value);
+  ::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE unsafe_arena_release_track_event();
+
+  private:
+  const ::perfetto::protos::TrackEvent& _internal_track_event() const;
+  ::perfetto::protos::TrackEvent* PROTOBUF_NONNULL _internal_mutable_track_event();
+
+  public:
+  // optional .perfetto.protos.TrackDescriptor track_descriptor = 60;
+  bool has_track_descriptor() const;
+  void clear_track_descriptor() ;
+  const ::perfetto::protos::TrackDescriptor& track_descriptor() const;
+  [[nodiscard]] ::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE release_track_descriptor();
+  ::perfetto::protos::TrackDescriptor* PROTOBUF_NONNULL mutable_track_descriptor();
+  void set_allocated_track_descriptor(::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_track_descriptor(::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE value);
+  ::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE unsafe_arena_release_track_descriptor();
+
+  private:
+  const ::perfetto::protos::TrackDescriptor& _internal_track_descriptor() const;
+  ::perfetto::protos::TrackDescriptor* PROTOBUF_NONNULL _internal_mutable_track_descriptor();
+
+  public:
+  // optional uint64 timestamp = 8;
+  bool has_timestamp() const;
+  void clear_timestamp() ;
+  ::uint64_t timestamp() const;
+  void set_timestamp(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_timestamp() const;
+  void _internal_set_timestamp(::uint64_t value);
+
+  public:
+  // optional uint32 trusted_packet_sequence_id = 10;
+  bool has_trusted_packet_sequence_id() const;
+  void clear_trusted_packet_sequence_id() ;
+  ::uint32_t trusted_packet_sequence_id() const;
+  void set_trusted_packet_sequence_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_trusted_packet_sequence_id() const;
+  void _internal_set_trusted_packet_sequence_id(::uint32_t value);
+
+  public:
+  // optional uint32 timestamp_clock_id = 58;
+  bool has_timestamp_clock_id() const;
+  void clear_timestamp_clock_id() ;
+  ::uint32_t timestamp_clock_id() const;
+  void set_timestamp_clock_id(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_timestamp_clock_id() const;
+  void _internal_set_timestamp_clock_id(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:perfetto.protos.TracePacket)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
+                                   2, 0,
+                                   7>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const TracePacket& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE track_event_;
+    ::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE track_descriptor_;
+    ::uint64_t timestamp_;
+    ::uint32_t trusted_packet_sequence_id_;
+    ::uint32_t timestamp_clock_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull TracePacket_class_data_;
+// -------------------------------------------------------------------
+
+class Trace final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:perfetto.protos.Trace) */ {
+ public:
+  inline Trace() : Trace(nullptr) {}
+  ~Trace() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(Trace* PROTOBUF_NONNULL msg, std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Trace));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Trace(::google::protobuf::internal::ConstantInitialized);
+
+  inline Trace(const Trace& from) : Trace(nullptr, from) {}
+  inline Trace(Trace&& from) noexcept
+      : Trace(nullptr, ::std::move(from)) {}
+  inline Trace& operator=(const Trace& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Trace& operator=(Trace&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Trace& default_instance() {
+    return *reinterpret_cast<const Trace*>(
+        &_Trace_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 0;
+  friend void swap(Trace& a, Trace& b) { a.Swap(&b); }
+  inline void Swap(Trace* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Trace* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Trace* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Trace>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Trace& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const Trace& from) { Trace::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(Trace* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "perfetto.protos.Trace"; }
+
+ protected:
+  explicit Trace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Trace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Trace& from);
+  Trace(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Trace&& from) noexcept
+      : Trace(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPacketFieldNumber = 1,
+  };
+  // repeated .perfetto.protos.TracePacket packet = 1;
+  int packet_size() const;
+  private:
+  int _internal_packet_size() const;
+
+  public:
+  void clear_packet() ;
+  ::perfetto::protos::TracePacket* PROTOBUF_NONNULL mutable_packet(int index);
+  ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>* PROTOBUF_NONNULL mutable_packet();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>& _internal_packet() const;
+  ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>* PROTOBUF_NONNULL _internal_mutable_packet();
+  public:
+  const ::perfetto::protos::TracePacket& packet(int index) const;
+  ::perfetto::protos::TracePacket* PROTOBUF_NONNULL add_packet();
+  const ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>& packet() const;
+  // @@protoc_insertion_point(class_scope:perfetto.protos.Trace)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
@@ -616,8 +1772,8 @@ class TraceFile final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const TraceFile& from_msg);
-    ::google::protobuf::RepeatedPtrField< ::calf::proto::TraceRecord > records_;
+        const Trace& from_msg);
+    ::google::protobuf::RepeatedPtrField< ::perfetto::protos::TracePacket > packet_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -625,7 +1781,7 @@ class TraceFile final : public ::google::protobuf::Message
   friend struct ::TableStruct_calf_2fprotobuf_2fcalf_5ftrace_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull TraceFile_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull Trace_class_data_;
 
 // ===================================================================
 
@@ -641,375 +1797,1324 @@ extern const ::google::protobuf::internal::ClassDataFull TraceFile_class_data_;
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
-// TraceRecord
+// Trace
 
-// uint64 timestamp_ms = 1;
-inline void TraceRecord::clear_timestamp_ms() {
+// repeated .perfetto.protos.TracePacket packet = 1;
+inline int Trace::_internal_packet_size() const {
+  return _internal_packet().size();
+}
+inline int Trace::packet_size() const {
+  return _internal_packet_size();
+}
+inline void Trace::clear_packet() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.timestamp_ms_ = ::uint64_t{0u};
+  _impl_.packet_.Clear();
+}
+inline ::perfetto::protos::TracePacket* PROTOBUF_NONNULL Trace::mutable_packet(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.Trace.packet)
+  return _internal_mutable_packet()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>* PROTOBUF_NONNULL Trace::mutable_packet()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:perfetto.protos.Trace.packet)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_packet();
+}
+inline const ::perfetto::protos::TracePacket& Trace::packet(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.Trace.packet)
+  return _internal_packet().Get(index);
+}
+inline ::perfetto::protos::TracePacket* PROTOBUF_NONNULL Trace::add_packet()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::perfetto::protos::TracePacket* _add = _internal_mutable_packet()->Add();
+  // @@protoc_insertion_point(field_add:perfetto.protos.Trace.packet)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>& Trace::packet() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:perfetto.protos.Trace.packet)
+  return _internal_packet();
+}
+inline const ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>&
+Trace::_internal_packet() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.packet_;
+}
+inline ::google::protobuf::RepeatedPtrField<::perfetto::protos::TracePacket>* PROTOBUF_NONNULL
+Trace::_internal_mutable_packet() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.packet_;
+}
+
+// -------------------------------------------------------------------
+
+// TracePacket
+
+// optional uint64 timestamp = 8;
+inline bool TracePacket::has_timestamp() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline void TracePacket::clear_timestamp() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.timestamp_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint64_t TracePacket::timestamp() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TracePacket.timestamp)
+  return _internal_timestamp();
+}
+inline void TracePacket::set_timestamp(::uint64_t value) {
+  _internal_set_timestamp(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.TracePacket.timestamp)
+}
+inline ::uint64_t TracePacket::_internal_timestamp() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.timestamp_;
+}
+inline void TracePacket::_internal_set_timestamp(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.timestamp_ = value;
+}
+
+// optional uint32 trusted_packet_sequence_id = 10;
+inline bool TracePacket::has_trusted_packet_sequence_id() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
+  return value;
+}
+inline void TracePacket::clear_trusted_packet_sequence_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.trusted_packet_sequence_id_ = 0u;
   _impl_._has_bits_[0] &= ~0x00000008u;
 }
-inline ::uint64_t TraceRecord::timestamp_ms() const {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.timestamp_ms)
-  return _internal_timestamp_ms();
+inline ::uint32_t TracePacket::trusted_packet_sequence_id() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TracePacket.trusted_packet_sequence_id)
+  return _internal_trusted_packet_sequence_id();
 }
-inline void TraceRecord::set_timestamp_ms(::uint64_t value) {
-  _internal_set_timestamp_ms(value);
+inline void TracePacket::set_trusted_packet_sequence_id(::uint32_t value) {
+  _internal_set_trusted_packet_sequence_id(value);
   _impl_._has_bits_[0] |= 0x00000008u;
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.timestamp_ms)
+  // @@protoc_insertion_point(field_set:perfetto.protos.TracePacket.trusted_packet_sequence_id)
 }
-inline ::uint64_t TraceRecord::_internal_timestamp_ms() const {
+inline ::uint32_t TracePacket::_internal_trusted_packet_sequence_id() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.timestamp_ms_;
+  return _impl_.trusted_packet_sequence_id_;
 }
-inline void TraceRecord::_internal_set_timestamp_ms(::uint64_t value) {
+inline void TracePacket::_internal_set_trusted_packet_sequence_id(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.timestamp_ms_ = value;
+  _impl_.trusted_packet_sequence_id_ = value;
 }
 
-// uint64 scope_id = 2;
-inline void TraceRecord::clear_scope_id() {
+// optional .perfetto.protos.TrackEvent track_event = 11;
+inline bool TracePacket::has_track_event() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.track_event_ != nullptr);
+  return value;
+}
+inline void TracePacket::clear_track_event() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.scope_id_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000010u;
-}
-inline ::uint64_t TraceRecord::scope_id() const {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.scope_id)
-  return _internal_scope_id();
-}
-inline void TraceRecord::set_scope_id(::uint64_t value) {
-  _internal_set_scope_id(value);
-  _impl_._has_bits_[0] |= 0x00000010u;
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.scope_id)
-}
-inline ::uint64_t TraceRecord::_internal_scope_id() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.scope_id_;
-}
-inline void TraceRecord::_internal_set_scope_id(::uint64_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.scope_id_ = value;
-}
-
-// uint64 parent_scope_id = 3;
-inline void TraceRecord::clear_parent_scope_id() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.parent_scope_id_ = ::uint64_t{0u};
-  _impl_._has_bits_[0] &= ~0x00000020u;
-}
-inline ::uint64_t TraceRecord::parent_scope_id() const {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.parent_scope_id)
-  return _internal_parent_scope_id();
-}
-inline void TraceRecord::set_parent_scope_id(::uint64_t value) {
-  _internal_set_parent_scope_id(value);
-  _impl_._has_bits_[0] |= 0x00000020u;
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.parent_scope_id)
-}
-inline ::uint64_t TraceRecord::_internal_parent_scope_id() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.parent_scope_id_;
-}
-inline void TraceRecord::_internal_set_parent_scope_id(::uint64_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.parent_scope_id_ = value;
-}
-
-// .calf.proto.TraceRecord.Kind kind = 4;
-inline void TraceRecord::clear_kind() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.kind_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000040u;
-}
-inline ::calf::proto::TraceRecord_Kind TraceRecord::kind() const {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.kind)
-  return _internal_kind();
-}
-inline void TraceRecord::set_kind(::calf::proto::TraceRecord_Kind value) {
-  _internal_set_kind(value);
-  _impl_._has_bits_[0] |= 0x00000040u;
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.kind)
-}
-inline ::calf::proto::TraceRecord_Kind TraceRecord::_internal_kind() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return static_cast<::calf::proto::TraceRecord_Kind>(_impl_.kind_);
-}
-inline void TraceRecord::_internal_set_kind(::calf::proto::TraceRecord_Kind value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.kind_ = value;
-}
-
-// string invoker = 5;
-inline void TraceRecord::clear_invoker() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.invoker_.ClearToEmpty();
+  if (_impl_.track_event_ != nullptr) _impl_.track_event_->Clear();
   _impl_._has_bits_[0] &= ~0x00000001u;
 }
-inline const ::std::string& TraceRecord::invoker() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.invoker)
-  return _internal_invoker();
+inline const ::perfetto::protos::TrackEvent& TracePacket::_internal_track_event() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::perfetto::protos::TrackEvent* p = _impl_.track_event_;
+  return p != nullptr ? *p : reinterpret_cast<const ::perfetto::protos::TrackEvent&>(::perfetto::protos::_TrackEvent_default_instance_);
 }
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void TraceRecord::set_invoker(Arg_&& arg, Args_... args) {
+inline const ::perfetto::protos::TrackEvent& TracePacket::track_event() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TracePacket.track_event)
+  return _internal_track_event();
+}
+inline void TracePacket::unsafe_arena_set_allocated_track_event(
+    ::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.invoker_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.invoker)
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.track_event_);
+  }
+  _impl_.track_event_ = reinterpret_cast<::perfetto::protos::TrackEvent*>(value);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:perfetto.protos.TracePacket.track_event)
 }
-inline ::std::string* PROTOBUF_NONNULL TraceRecord::mutable_invoker()
+inline ::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE TracePacket::release_track_event() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  ::perfetto::protos::TrackEvent* released = _impl_.track_event_;
+  _impl_.track_event_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE TracePacket::unsafe_arena_release_track_event() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.TracePacket.track_event)
+
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  ::perfetto::protos::TrackEvent* temp = _impl_.track_event_;
+  _impl_.track_event_ = nullptr;
+  return temp;
+}
+inline ::perfetto::protos::TrackEvent* PROTOBUF_NONNULL TracePacket::_internal_mutable_track_event() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.track_event_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::perfetto::protos::TrackEvent>(GetArena());
+    _impl_.track_event_ = reinterpret_cast<::perfetto::protos::TrackEvent*>(p);
+  }
+  return _impl_.track_event_;
+}
+inline ::perfetto::protos::TrackEvent* PROTOBUF_NONNULL TracePacket::mutable_track_event()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_invoker();
-  // @@protoc_insertion_point(field_mutable:calf.proto.TraceRecord.invoker)
+  _impl_._has_bits_[0] |= 0x00000001u;
+  ::perfetto::protos::TrackEvent* _msg = _internal_mutable_track_event();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TracePacket.track_event)
+  return _msg;
+}
+inline void TracePacket::set_allocated_track_event(::perfetto::protos::TrackEvent* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.track_event_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+
+  _impl_.track_event_ = reinterpret_cast<::perfetto::protos::TrackEvent*>(value);
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.TracePacket.track_event)
+}
+
+// optional uint32 timestamp_clock_id = 58;
+inline bool TracePacket::has_timestamp_clock_id() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
+  return value;
+}
+inline void TracePacket::clear_timestamp_clock_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.timestamp_clock_id_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::uint32_t TracePacket::timestamp_clock_id() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TracePacket.timestamp_clock_id)
+  return _internal_timestamp_clock_id();
+}
+inline void TracePacket::set_timestamp_clock_id(::uint32_t value) {
+  _internal_set_timestamp_clock_id(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.TracePacket.timestamp_clock_id)
+}
+inline ::uint32_t TracePacket::_internal_timestamp_clock_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.timestamp_clock_id_;
+}
+inline void TracePacket::_internal_set_timestamp_clock_id(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.timestamp_clock_id_ = value;
+}
+
+// optional .perfetto.protos.TrackDescriptor track_descriptor = 60;
+inline bool TracePacket::has_track_descriptor() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.track_descriptor_ != nullptr);
+  return value;
+}
+inline void TracePacket::clear_track_descriptor() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.track_descriptor_ != nullptr) _impl_.track_descriptor_->Clear();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::perfetto::protos::TrackDescriptor& TracePacket::_internal_track_descriptor() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::perfetto::protos::TrackDescriptor* p = _impl_.track_descriptor_;
+  return p != nullptr ? *p : reinterpret_cast<const ::perfetto::protos::TrackDescriptor&>(::perfetto::protos::_TrackDescriptor_default_instance_);
+}
+inline const ::perfetto::protos::TrackDescriptor& TracePacket::track_descriptor() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TracePacket.track_descriptor)
+  return _internal_track_descriptor();
+}
+inline void TracePacket::unsafe_arena_set_allocated_track_descriptor(
+    ::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.track_descriptor_);
+  }
+  _impl_.track_descriptor_ = reinterpret_cast<::perfetto::protos::TrackDescriptor*>(value);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:perfetto.protos.TracePacket.track_descriptor)
+}
+inline ::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE TracePacket::release_track_descriptor() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::perfetto::protos::TrackDescriptor* released = _impl_.track_descriptor_;
+  _impl_.track_descriptor_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE TracePacket::unsafe_arena_release_track_descriptor() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.TracePacket.track_descriptor)
+
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::perfetto::protos::TrackDescriptor* temp = _impl_.track_descriptor_;
+  _impl_.track_descriptor_ = nullptr;
+  return temp;
+}
+inline ::perfetto::protos::TrackDescriptor* PROTOBUF_NONNULL TracePacket::_internal_mutable_track_descriptor() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.track_descriptor_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::perfetto::protos::TrackDescriptor>(GetArena());
+    _impl_.track_descriptor_ = reinterpret_cast<::perfetto::protos::TrackDescriptor*>(p);
+  }
+  return _impl_.track_descriptor_;
+}
+inline ::perfetto::protos::TrackDescriptor* PROTOBUF_NONNULL TracePacket::mutable_track_descriptor()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  ::perfetto::protos::TrackDescriptor* _msg = _internal_mutable_track_descriptor();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TracePacket.track_descriptor)
+  return _msg;
+}
+inline void TracePacket::set_allocated_track_descriptor(::perfetto::protos::TrackDescriptor* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.track_descriptor_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+
+  _impl_.track_descriptor_ = reinterpret_cast<::perfetto::protos::TrackDescriptor*>(value);
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.TracePacket.track_descriptor)
+}
+
+// -------------------------------------------------------------------
+
+// TrackEvent
+
+// repeated .perfetto.protos.DebugAnnotation debug_annotations = 4;
+inline int TrackEvent::_internal_debug_annotations_size() const {
+  return _internal_debug_annotations().size();
+}
+inline int TrackEvent::debug_annotations_size() const {
+  return _internal_debug_annotations_size();
+}
+inline void TrackEvent::clear_debug_annotations() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.debug_annotations_.Clear();
+}
+inline ::perfetto::protos::DebugAnnotation* PROTOBUF_NONNULL TrackEvent::mutable_debug_annotations(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TrackEvent.debug_annotations)
+  return _internal_mutable_debug_annotations()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>* PROTOBUF_NONNULL TrackEvent::mutable_debug_annotations()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:perfetto.protos.TrackEvent.debug_annotations)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_debug_annotations();
+}
+inline const ::perfetto::protos::DebugAnnotation& TrackEvent::debug_annotations(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackEvent.debug_annotations)
+  return _internal_debug_annotations().Get(index);
+}
+inline ::perfetto::protos::DebugAnnotation* PROTOBUF_NONNULL TrackEvent::add_debug_annotations()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::perfetto::protos::DebugAnnotation* _add = _internal_mutable_debug_annotations()->Add();
+  // @@protoc_insertion_point(field_add:perfetto.protos.TrackEvent.debug_annotations)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>& TrackEvent::debug_annotations() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:perfetto.protos.TrackEvent.debug_annotations)
+  return _internal_debug_annotations();
+}
+inline const ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>&
+TrackEvent::_internal_debug_annotations() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.debug_annotations_;
+}
+inline ::google::protobuf::RepeatedPtrField<::perfetto::protos::DebugAnnotation>* PROTOBUF_NONNULL
+TrackEvent::_internal_mutable_debug_annotations() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.debug_annotations_;
+}
+
+// optional .perfetto.protos.TrackEvent.Type type = 9;
+inline bool TrackEvent::has_type() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
+  return value;
+}
+inline void TrackEvent::clear_type() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.type_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::perfetto::protos::TrackEvent_Type TrackEvent::type() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackEvent.type)
+  return _internal_type();
+}
+inline void TrackEvent::set_type(::perfetto::protos::TrackEvent_Type value) {
+  _internal_set_type(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.TrackEvent.type)
+}
+inline ::perfetto::protos::TrackEvent_Type TrackEvent::_internal_type() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::perfetto::protos::TrackEvent_Type>(_impl_.type_);
+}
+inline void TrackEvent::_internal_set_type(::perfetto::protos::TrackEvent_Type value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+                                          assert(::google::protobuf::internal::ValidateEnum(
+                                              value, ::perfetto::protos::TrackEvent_Type_internal_data_));
+                                          _impl_.type_ = value;
+}
+
+// optional uint64 track_uuid = 11;
+inline bool TrackEvent::has_track_uuid() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline void TrackEvent::clear_track_uuid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.track_uuid_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint64_t TrackEvent::track_uuid() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackEvent.track_uuid)
+  return _internal_track_uuid();
+}
+inline void TrackEvent::set_track_uuid(::uint64_t value) {
+  _internal_set_track_uuid(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.TrackEvent.track_uuid)
+}
+inline ::uint64_t TrackEvent::_internal_track_uuid() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.track_uuid_;
+}
+inline void TrackEvent::_internal_set_track_uuid(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.track_uuid_ = value;
+}
+
+// repeated string categories = 22;
+inline int TrackEvent::_internal_categories_size() const {
+  return _internal_categories().size();
+}
+inline int TrackEvent::categories_size() const {
+  return _internal_categories_size();
+}
+inline void TrackEvent::clear_categories() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.categories_.Clear();
+}
+inline ::std::string* PROTOBUF_NONNULL TrackEvent::add_categories()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s = _internal_mutable_categories()->Add();
+  // @@protoc_insertion_point(field_add_mutable:perfetto.protos.TrackEvent.categories)
   return _s;
 }
-inline const ::std::string& TraceRecord::_internal_invoker() const {
+inline const ::std::string& TrackEvent::categories(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackEvent.categories)
+  return _internal_categories().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL TrackEvent::mutable_categories(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TrackEvent.categories)
+  return _internal_mutable_categories()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void TrackEvent::set_categories(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_categories()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:perfetto.protos.TrackEvent.categories)
+}
+template <typename Arg_, typename... Args_>
+inline void TrackEvent::add_categories(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(*_internal_mutable_categories(),
+                               ::std::forward<Arg_>(value),
+                               args... );
+  // @@protoc_insertion_point(field_add:perfetto.protos.TrackEvent.categories)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& TrackEvent::categories()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:perfetto.protos.TrackEvent.categories)
+  return _internal_categories();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+TrackEvent::mutable_categories() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:perfetto.protos.TrackEvent.categories)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_categories();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+TrackEvent::_internal_categories() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.invoker_.Get();
+  return _impl_.categories_;
 }
-inline void TraceRecord::_internal_set_invoker(const ::std::string& value) {
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+TrackEvent::_internal_mutable_categories() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.categories_;
+}
+
+// optional string name = 23;
+inline bool TrackEvent::has_name() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline void TrackEvent::clear_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& TrackEvent::name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackEvent.name)
+  return _internal_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void TrackEvent::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  _impl_.invoker_.Set(value, GetArena());
+  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.TrackEvent.name)
 }
-inline ::std::string* PROTOBUF_NONNULL TraceRecord::_internal_mutable_invoker() {
+inline ::std::string* PROTOBUF_NONNULL TrackEvent::mutable_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TrackEvent.name)
+  return _s;
+}
+inline const ::std::string& TrackEvent::_internal_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.name_.Get();
+}
+inline void TrackEvent::_internal_set_name(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
-  return _impl_.invoker_.Mutable( GetArena());
+  _impl_.name_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE TraceRecord::release_invoker() {
+inline ::std::string* PROTOBUF_NONNULL TrackEvent::_internal_mutable_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:calf.proto.TraceRecord.invoker)
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE TrackEvent::release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.TrackEvent.name)
   if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
     return nullptr;
   }
   _impl_._has_bits_[0] &= ~0x00000001u;
-  auto* released = _impl_.invoker_.Release();
+  auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.invoker_.Set("", GetArena());
+    _impl_.name_.Set("", GetArena());
   }
   return released;
 }
-inline void TraceRecord::set_allocated_invoker(::std::string* PROTOBUF_NULLABLE value) {
+inline void TrackEvent::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
   } else {
     _impl_._has_bits_[0] &= ~0x00000001u;
   }
-  _impl_.invoker_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.invoker_.IsDefault()) {
-    _impl_.invoker_.Set("", GetArena());
+  _impl_.name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:calf.proto.TraceRecord.invoker)
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.TrackEvent.name)
 }
 
-// string file = 6;
-inline void TraceRecord::clear_file() {
+// optional .perfetto.protos.SourceLocation source_location = 33;
+inline bool TrackEvent::has_source_location() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.source_location_ != nullptr);
+  return value;
+}
+inline void TrackEvent::clear_source_location() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.file_.ClearToEmpty();
+  if (_impl_.source_location_ != nullptr) _impl_.source_location_->Clear();
   _impl_._has_bits_[0] &= ~0x00000002u;
 }
-inline const ::std::string& TraceRecord::file() const
+inline const ::perfetto::protos::SourceLocation& TrackEvent::_internal_source_location() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::perfetto::protos::SourceLocation* p = _impl_.source_location_;
+  return p != nullptr ? *p : reinterpret_cast<const ::perfetto::protos::SourceLocation&>(::perfetto::protos::_SourceLocation_default_instance_);
+}
+inline const ::perfetto::protos::SourceLocation& TrackEvent::source_location() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackEvent.source_location)
+  return _internal_source_location();
+}
+inline void TrackEvent::unsafe_arena_set_allocated_source_location(
+    ::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.source_location_);
+  }
+  _impl_.source_location_ = reinterpret_cast<::perfetto::protos::SourceLocation*>(value);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:perfetto.protos.TrackEvent.source_location)
+}
+inline ::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE TrackEvent::release_source_location() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::perfetto::protos::SourceLocation* released = _impl_.source_location_;
+  _impl_.source_location_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE TrackEvent::unsafe_arena_release_source_location() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.TrackEvent.source_location)
+
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::perfetto::protos::SourceLocation* temp = _impl_.source_location_;
+  _impl_.source_location_ = nullptr;
+  return temp;
+}
+inline ::perfetto::protos::SourceLocation* PROTOBUF_NONNULL TrackEvent::_internal_mutable_source_location() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.source_location_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::perfetto::protos::SourceLocation>(GetArena());
+    _impl_.source_location_ = reinterpret_cast<::perfetto::protos::SourceLocation*>(p);
+  }
+  return _impl_.source_location_;
+}
+inline ::perfetto::protos::SourceLocation* PROTOBUF_NONNULL TrackEvent::mutable_source_location()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.file)
-  return _internal_file();
+  _impl_._has_bits_[0] |= 0x00000002u;
+  ::perfetto::protos::SourceLocation* _msg = _internal_mutable_source_location();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TrackEvent.source_location)
+  return _msg;
+}
+inline void TrackEvent::set_allocated_source_location(::perfetto::protos::SourceLocation* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.source_location_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+
+  _impl_.source_location_ = reinterpret_cast<::perfetto::protos::SourceLocation*>(value);
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.TrackEvent.source_location)
+}
+
+// -------------------------------------------------------------------
+
+// DebugAnnotation
+
+// optional string string_value = 6;
+inline bool DebugAnnotation::has_string_value() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline void DebugAnnotation::clear_string_value() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.string_value_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& DebugAnnotation::string_value() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.DebugAnnotation.string_value)
+  return _internal_string_value();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void TraceRecord::set_file(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void DebugAnnotation::set_string_value(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000002u;
-  _impl_.file_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.file)
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.string_value_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.DebugAnnotation.string_value)
 }
-inline ::std::string* PROTOBUF_NONNULL TraceRecord::mutable_file()
+inline ::std::string* PROTOBUF_NONNULL DebugAnnotation::mutable_string_value()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_file();
-  // @@protoc_insertion_point(field_mutable:calf.proto.TraceRecord.file)
+  ::std::string* _s = _internal_mutable_string_value();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.DebugAnnotation.string_value)
   return _s;
 }
-inline const ::std::string& TraceRecord::_internal_file() const {
+inline const ::std::string& DebugAnnotation::_internal_string_value() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.file_.Get();
+  return _impl_.string_value_.Get();
 }
-inline void TraceRecord::_internal_set_file(const ::std::string& value) {
+inline void DebugAnnotation::_internal_set_string_value(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.string_value_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL DebugAnnotation::_internal_mutable_string_value() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.string_value_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE DebugAnnotation::release_string_value() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.DebugAnnotation.string_value)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.string_value_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.string_value_.Set("", GetArena());
+  }
+  return released;
+}
+inline void DebugAnnotation::set_allocated_string_value(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.string_value_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.string_value_.IsDefault()) {
+    _impl_.string_value_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.DebugAnnotation.string_value)
+}
+
+// optional string name = 10;
+inline bool DebugAnnotation::has_name() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline void DebugAnnotation::clear_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::std::string& DebugAnnotation::name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.DebugAnnotation.name)
+  return _internal_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void DebugAnnotation::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000002u;
-  _impl_.file_.Set(value, GetArena());
+  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.DebugAnnotation.name)
 }
-inline ::std::string* PROTOBUF_NONNULL TraceRecord::_internal_mutable_file() {
+inline ::std::string* PROTOBUF_NONNULL DebugAnnotation::mutable_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.DebugAnnotation.name)
+  return _s;
+}
+inline const ::std::string& DebugAnnotation::_internal_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.name_.Get();
+}
+inline void DebugAnnotation::_internal_set_name(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000002u;
-  return _impl_.file_.Mutable( GetArena());
+  _impl_.name_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE TraceRecord::release_file() {
+inline ::std::string* PROTOBUF_NONNULL DebugAnnotation::_internal_mutable_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:calf.proto.TraceRecord.file)
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE DebugAnnotation::release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.DebugAnnotation.name)
   if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
     return nullptr;
   }
   _impl_._has_bits_[0] &= ~0x00000002u;
-  auto* released = _impl_.file_.Release();
+  auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.file_.Set("", GetArena());
+    _impl_.name_.Set("", GetArena());
   }
   return released;
 }
-inline void TraceRecord::set_allocated_file(::std::string* PROTOBUF_NULLABLE value) {
+inline void DebugAnnotation::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000002u;
   } else {
     _impl_._has_bits_[0] &= ~0x00000002u;
   }
-  _impl_.file_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.file_.IsDefault()) {
-    _impl_.file_.Set("", GetArena());
+  _impl_.name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:calf.proto.TraceRecord.file)
-}
-
-// uint32 line = 7;
-inline void TraceRecord::clear_line() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.line_ = 0u;
-  _impl_._has_bits_[0] &= ~0x00000080u;
-}
-inline ::uint32_t TraceRecord::line() const {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.line)
-  return _internal_line();
-}
-inline void TraceRecord::set_line(::uint32_t value) {
-  _internal_set_line(value);
-  _impl_._has_bits_[0] |= 0x00000080u;
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.line)
-}
-inline ::uint32_t TraceRecord::_internal_line() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.line_;
-}
-inline void TraceRecord::_internal_set_line(::uint32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.line_ = value;
-}
-
-// string args = 8;
-inline void TraceRecord::clear_args() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.args_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000004u;
-}
-inline const ::std::string& TraceRecord::args() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceRecord.args)
-  return _internal_args();
-}
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void TraceRecord::set_args(Arg_&& arg, Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000004u;
-  _impl_.args_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:calf.proto.TraceRecord.args)
-}
-inline ::std::string* PROTOBUF_NONNULL TraceRecord::mutable_args()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_args();
-  // @@protoc_insertion_point(field_mutable:calf.proto.TraceRecord.args)
-  return _s;
-}
-inline const ::std::string& TraceRecord::_internal_args() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.args_.Get();
-}
-inline void TraceRecord::_internal_set_args(const ::std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000004u;
-  _impl_.args_.Set(value, GetArena());
-}
-inline ::std::string* PROTOBUF_NONNULL TraceRecord::_internal_mutable_args() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000004u;
-  return _impl_.args_.Mutable( GetArena());
-}
-inline ::std::string* PROTOBUF_NULLABLE TraceRecord::release_args() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:calf.proto.TraceRecord.args)
-  if ((_impl_._has_bits_[0] & 0x00000004u) == 0) {
-    return nullptr;
-  }
-  _impl_._has_bits_[0] &= ~0x00000004u;
-  auto* released = _impl_.args_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.args_.Set("", GetArena());
-  }
-  return released;
-}
-inline void TraceRecord::set_allocated_args(::std::string* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000004u;
-  } else {
-    _impl_._has_bits_[0] &= ~0x00000004u;
-  }
-  _impl_.args_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.args_.IsDefault()) {
-    _impl_.args_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:calf.proto.TraceRecord.args)
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.DebugAnnotation.name)
 }
 
 // -------------------------------------------------------------------
 
-// TraceFile
+// SourceLocation
 
-// repeated .calf.proto.TraceRecord records = 1;
-inline int TraceFile::_internal_records_size() const {
-  return _internal_records().size();
+// optional string file_name = 2;
+inline bool SourceLocation::has_file_name() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
 }
-inline int TraceFile::records_size() const {
-  return _internal_records_size();
-}
-inline void TraceFile::clear_records() {
+inline void SourceLocation::clear_file_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.records_.Clear();
+  _impl_.file_name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
 }
-inline ::calf::proto::TraceRecord* PROTOBUF_NONNULL TraceFile::mutable_records(int index)
+inline const ::std::string& SourceLocation::file_name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:calf.proto.TraceFile.records)
-  return _internal_mutable_records()->Mutable(index);
+  // @@protoc_insertion_point(field_get:perfetto.protos.SourceLocation.file_name)
+  return _internal_file_name();
 }
-inline ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>* PROTOBUF_NONNULL TraceFile::mutable_records()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable_list:calf.proto.TraceFile.records)
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void SourceLocation::set_file_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_records();
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.file_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.SourceLocation.file_name)
 }
-inline const ::calf::proto::TraceRecord& TraceFile::records(int index) const
+inline ::std::string* PROTOBUF_NONNULL SourceLocation::mutable_file_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:calf.proto.TraceFile.records)
-  return _internal_records().Get(index);
+  ::std::string* _s = _internal_mutable_file_name();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.SourceLocation.file_name)
+  return _s;
 }
-inline ::calf::proto::TraceRecord* PROTOBUF_NONNULL TraceFile::add_records()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::calf::proto::TraceRecord* _add = _internal_mutable_records()->Add();
-  // @@protoc_insertion_point(field_add:calf.proto.TraceFile.records)
-  return _add;
-}
-inline const ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>& TraceFile::records() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:calf.proto.TraceFile.records)
-  return _internal_records();
-}
-inline const ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>&
-TraceFile::_internal_records() const {
+inline const ::std::string& SourceLocation::_internal_file_name() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.records_;
+  return _impl_.file_name_.Get();
 }
-inline ::google::protobuf::RepeatedPtrField<::calf::proto::TraceRecord>* PROTOBUF_NONNULL
-TraceFile::_internal_mutable_records() {
+inline void SourceLocation::_internal_set_file_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.file_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL SourceLocation::_internal_mutable_file_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.file_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE SourceLocation::release_file_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.SourceLocation.file_name)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.file_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.file_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void SourceLocation::set_allocated_file_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.file_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.file_name_.IsDefault()) {
+    _impl_.file_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.SourceLocation.file_name)
+}
+
+// optional string function_name = 3;
+inline bool SourceLocation::has_function_name() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline void SourceLocation::clear_function_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.function_name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::std::string& SourceLocation::function_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.SourceLocation.function_name)
+  return _internal_function_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void SourceLocation::set_function_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.function_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.SourceLocation.function_name)
+}
+inline ::std::string* PROTOBUF_NONNULL SourceLocation::mutable_function_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_function_name();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.SourceLocation.function_name)
+  return _s;
+}
+inline const ::std::string& SourceLocation::_internal_function_name() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.records_;
+  return _impl_.function_name_.Get();
+}
+inline void SourceLocation::_internal_set_function_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.function_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL SourceLocation::_internal_mutable_function_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  return _impl_.function_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE SourceLocation::release_function_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.SourceLocation.function_name)
+  if ((_impl_._has_bits_[0] & 0x00000002u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  auto* released = _impl_.function_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.function_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void SourceLocation::set_allocated_function_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  _impl_.function_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.function_name_.IsDefault()) {
+    _impl_.function_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.SourceLocation.function_name)
+}
+
+// optional uint32 line_number = 4;
+inline bool SourceLocation::has_line_number() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline void SourceLocation::clear_line_number() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.line_number_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint32_t SourceLocation::line_number() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.SourceLocation.line_number)
+  return _internal_line_number();
+}
+inline void SourceLocation::set_line_number(::uint32_t value) {
+  _internal_set_line_number(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.SourceLocation.line_number)
+}
+inline ::uint32_t SourceLocation::_internal_line_number() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.line_number_;
+}
+inline void SourceLocation::_internal_set_line_number(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.line_number_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// TrackDescriptor
+
+// optional uint64 uuid = 1;
+inline bool TrackDescriptor::has_uuid() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline void TrackDescriptor::clear_uuid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.uuid_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::uint64_t TrackDescriptor::uuid() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackDescriptor.uuid)
+  return _internal_uuid();
+}
+inline void TrackDescriptor::set_uuid(::uint64_t value) {
+  _internal_set_uuid(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.TrackDescriptor.uuid)
+}
+inline ::uint64_t TrackDescriptor::_internal_uuid() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.uuid_;
+}
+inline void TrackDescriptor::_internal_set_uuid(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.uuid_ = value;
+}
+
+// optional string name = 2;
+inline bool TrackDescriptor::has_name() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline void TrackDescriptor::clear_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& TrackDescriptor::name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackDescriptor.name)
+  return _internal_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void TrackDescriptor::set_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.TrackDescriptor.name)
+}
+inline ::std::string* PROTOBUF_NONNULL TrackDescriptor::mutable_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TrackDescriptor.name)
+  return _s;
+}
+inline const ::std::string& TrackDescriptor::_internal_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.name_.Get();
+}
+inline void TrackDescriptor::_internal_set_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL TrackDescriptor::_internal_mutable_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE TrackDescriptor::release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.TrackDescriptor.name)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void TrackDescriptor::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
+    _impl_.name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.TrackDescriptor.name)
+}
+
+// optional .perfetto.protos.ThreadDescriptor thread = 4;
+inline bool TrackDescriptor::has_thread() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  PROTOBUF_ASSUME(!value || _impl_.thread_ != nullptr);
+  return value;
+}
+inline void TrackDescriptor::clear_thread() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.thread_ != nullptr) _impl_.thread_->Clear();
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline const ::perfetto::protos::ThreadDescriptor& TrackDescriptor::_internal_thread() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::perfetto::protos::ThreadDescriptor* p = _impl_.thread_;
+  return p != nullptr ? *p : reinterpret_cast<const ::perfetto::protos::ThreadDescriptor&>(::perfetto::protos::_ThreadDescriptor_default_instance_);
+}
+inline const ::perfetto::protos::ThreadDescriptor& TrackDescriptor::thread() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.TrackDescriptor.thread)
+  return _internal_thread();
+}
+inline void TrackDescriptor::unsafe_arena_set_allocated_thread(
+    ::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.thread_);
+  }
+  _impl_.thread_ = reinterpret_cast<::perfetto::protos::ThreadDescriptor*>(value);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:perfetto.protos.TrackDescriptor.thread)
+}
+inline ::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE TrackDescriptor::release_thread() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::perfetto::protos::ThreadDescriptor* released = _impl_.thread_;
+  _impl_.thread_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE TrackDescriptor::unsafe_arena_release_thread() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.TrackDescriptor.thread)
+
+  _impl_._has_bits_[0] &= ~0x00000002u;
+  ::perfetto::protos::ThreadDescriptor* temp = _impl_.thread_;
+  _impl_.thread_ = nullptr;
+  return temp;
+}
+inline ::perfetto::protos::ThreadDescriptor* PROTOBUF_NONNULL TrackDescriptor::_internal_mutable_thread() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.thread_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::perfetto::protos::ThreadDescriptor>(GetArena());
+    _impl_.thread_ = reinterpret_cast<::perfetto::protos::ThreadDescriptor*>(p);
+  }
+  return _impl_.thread_;
+}
+inline ::perfetto::protos::ThreadDescriptor* PROTOBUF_NONNULL TrackDescriptor::mutable_thread()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  _impl_._has_bits_[0] |= 0x00000002u;
+  ::perfetto::protos::ThreadDescriptor* _msg = _internal_mutable_thread();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.TrackDescriptor.thread)
+  return _msg;
+}
+inline void TrackDescriptor::set_allocated_thread(::perfetto::protos::ThreadDescriptor* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.thread_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    _impl_._has_bits_[0] |= 0x00000002u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002u;
+  }
+
+  _impl_.thread_ = reinterpret_cast<::perfetto::protos::ThreadDescriptor*>(value);
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.TrackDescriptor.thread)
+}
+
+// -------------------------------------------------------------------
+
+// ThreadDescriptor
+
+// optional int32 pid = 1;
+inline bool ThreadDescriptor::has_pid() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
+  return value;
+}
+inline void ThreadDescriptor::clear_pid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pid_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000004u;
+}
+inline ::int32_t ThreadDescriptor::pid() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.ThreadDescriptor.pid)
+  return _internal_pid();
+}
+inline void ThreadDescriptor::set_pid(::int32_t value) {
+  _internal_set_pid(value);
+  _impl_._has_bits_[0] |= 0x00000004u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.ThreadDescriptor.pid)
+}
+inline ::int32_t ThreadDescriptor::_internal_pid() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.pid_;
+}
+inline void ThreadDescriptor::_internal_set_pid(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.pid_ = value;
+}
+
+// optional int64 tid = 2;
+inline bool ThreadDescriptor::has_tid() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline void ThreadDescriptor::clear_tid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.tid_ = ::int64_t{0};
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::int64_t ThreadDescriptor::tid() const {
+  // @@protoc_insertion_point(field_get:perfetto.protos.ThreadDescriptor.tid)
+  return _internal_tid();
+}
+inline void ThreadDescriptor::set_tid(::int64_t value) {
+  _internal_set_tid(value);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  // @@protoc_insertion_point(field_set:perfetto.protos.ThreadDescriptor.tid)
+}
+inline ::int64_t ThreadDescriptor::_internal_tid() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.tid_;
+}
+inline void ThreadDescriptor::_internal_set_tid(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.tid_ = value;
+}
+
+// optional string thread_name = 5;
+inline bool ThreadDescriptor::has_thread_name() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline void ThreadDescriptor::clear_thread_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.thread_name_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const ::std::string& ThreadDescriptor::thread_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:perfetto.protos.ThreadDescriptor.thread_name)
+  return _internal_thread_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ThreadDescriptor::set_thread_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.thread_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:perfetto.protos.ThreadDescriptor.thread_name)
+}
+inline ::std::string* PROTOBUF_NONNULL ThreadDescriptor::mutable_thread_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_thread_name();
+  // @@protoc_insertion_point(field_mutable:perfetto.protos.ThreadDescriptor.thread_name)
+  return _s;
+}
+inline const ::std::string& ThreadDescriptor::_internal_thread_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.thread_name_.Get();
+}
+inline void ThreadDescriptor::_internal_set_thread_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.thread_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ThreadDescriptor::_internal_mutable_thread_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.thread_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ThreadDescriptor::release_thread_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:perfetto.protos.ThreadDescriptor.thread_name)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.thread_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.thread_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ThreadDescriptor::set_allocated_thread_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.thread_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.thread_name_.IsDefault()) {
+    _impl_.thread_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:perfetto.protos.ThreadDescriptor.thread_name)
 }
 
 #ifdef __GNUC__
@@ -1017,18 +3122,18 @@ TraceFile::_internal_mutable_records() {
 #endif  // __GNUC__
 
 // @@protoc_insertion_point(namespace_scope)
-}  // namespace proto
-}  // namespace calf
+}  // namespace protos
+}  // namespace perfetto
 
 
 namespace google {
 namespace protobuf {
 
 template <>
-struct is_proto_enum<::calf::proto::TraceRecord_Kind> : std::true_type {};
+struct is_proto_enum<::perfetto::protos::TrackEvent_Type> : std::true_type {};
 template <>
-inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::calf::proto::TraceRecord_Kind>() {
-  return ::calf::proto::TraceRecord_Kind_descriptor();
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::perfetto::protos::TrackEvent_Type>() {
+  return ::perfetto::protos::TrackEvent_Type_descriptor();
 }
 
 }  // namespace protobuf
