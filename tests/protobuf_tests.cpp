@@ -4,10 +4,12 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <thread>
 #include <unistd.h>
 
 TEST(ProtobufLoggerTest, WritesStreamableNestedTrace) {
@@ -30,13 +32,27 @@ TEST(ProtobufLoggerTest, WritesStreamableNestedTrace) {
         }
     }
 
+    std::array<std::string, 2> threadPaths;
+    std::array<std::thread, 2> threads;
+    for (std::size_t index = 0; index < threads.size(); ++index) {
+        threads[index] = std::thread([index, &threadPaths]() {
+            Logger logger("worker", "trace.cpp", 20, calf_current_tid(), "worker=%zu", index);
+            threadPaths[index] = logger.getLogFileName();
+        });
+    }
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    EXPECT_EQ(threadPaths[0], path);
+    EXPECT_EQ(threadPaths[1], path);
+
     std::ifstream input(path, std::ios::binary);
     const std::string data((std::istreambuf_iterator<char>(input)),
                            std::istreambuf_iterator<char>());
     perfetto::protos::Trace trace;
     ASSERT_TRUE(trace.ParseFromString(data));
 
-    ASSERT_EQ(trace.packet_size(), 7);
+    ASSERT_EQ(trace.packet_size(), 13);
     ASSERT_TRUE(trace.packet(0).has_track_descriptor());
     EXPECT_EQ(trace.packet(0).track_descriptor().thread().pid(), ::getpid());
 
@@ -63,6 +79,9 @@ TEST(ProtobufLoggerTest, WritesStreamableNestedTrace) {
     EXPECT_EQ(outerBegin.track_uuid(), trace.packet(0).track_descriptor().uuid());
     EXPECT_FALSE(data.empty());
     EXPECT_EQ(std::filesystem::path(path).extension(), ".perfetto-trace");
+    EXPECT_EQ(std::filesystem::path(path).filename(),
+              "calf_" + std::to_string(::getpid()) + ".perfetto-trace");
+    EXPECT_EQ(std::filesystem::path(path).parent_path().parent_path(), root);
 
     std::filesystem::remove_all(root);
 }

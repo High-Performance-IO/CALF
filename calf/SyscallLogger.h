@@ -3,6 +3,7 @@
 
 #if defined(__linux__)
 
+#include <atomic>
 #include <cerrno>
 #include <climits>
 #include <cstdio>
@@ -10,6 +11,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <string>
+#include <sys/file.h>
 #include <sys/syscall.h>
 #include <type_traits>
 #include <unistd.h>
@@ -17,10 +19,20 @@
 #include "format/BaseLogger.h"
 #include "format/LogFormat.h"
 
-struct SyscallLogger : CalfLogBase<SyscallLogger> {
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+#define CALF_SYSCALL_LOGGER_TYPE PerfettoSyscallLogger
+#else
+#define CALF_SYSCALL_LOGGER_TYPE JsonSyscallLogger
+#endif
+
+struct CALF_SYSCALL_LOGGER_TYPE : CalfLogBase<CALF_SYSCALL_LOGGER_TYPE> {
 
     static thread_local int fileFD;
     static thread_local char filePath[PATH_MAX];
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+    static thread_local pid_t filePid;
+    inline static std::atomic<int> traceFileState{0};
+#endif
 
     // Syscall function pointer — defaults to ::syscall.
     using SyscallFn                                = long (*)(long, ...);
@@ -28,7 +40,38 @@ struct SyscallLogger : CalfLogBase<SyscallLogger> {
 
     static void setSyscallFn(SyscallFn fn) { syscallFn = fn; }
 
-    explicit SyscallLogger() { ensureFileOpen(); }
+    static unsigned long currentTimestamp() {
+        timespec now{};
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        constexpr clockid_t clock = CLOCK_MONOTONIC;
+#else
+        constexpr clockid_t clock = CLOCK_REALTIME;
+#endif
+        if (calf_syscall(SYS_clock_gettime, clock, &now) != 0) {
+            return 0;
+        }
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        return static_cast<unsigned long>(now.tv_sec) * 1000000000UL +
+               static_cast<unsigned long>(now.tv_nsec);
+#else
+        static const unsigned long start = static_cast<unsigned long>(now.tv_sec) * 1000UL +
+                                           static_cast<unsigned long>(now.tv_nsec) / 1000000UL;
+        return static_cast<unsigned long>(now.tv_sec) * 1000UL +
+               static_cast<unsigned long>(now.tv_nsec) / 1000000UL - start;
+#endif
+    }
+
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+    static pid_t processId() { return static_cast<pid_t>(calf_syscall(SYS_getpid)); }
+
+    static long threadId() { return calf_syscall(SYS_gettid); }
+#endif
+
+    explicit CALF_SYSCALL_LOGGER_TYPE() {
+        if (enable_logger) {
+            ensureFileOpen();
+        }
+    }
 
     static std::string getLogFileName() {
         return filePath[0] != '\0' ? std::string(filePath) : std::string{};
@@ -36,15 +79,24 @@ struct SyscallLogger : CalfLogBase<SyscallLogger> {
 
     static void rawWriteBytes(const char *buf, int len) {
         ensureFileOpen();
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        calf_syscall(SYS_flock, fileFD, LOCK_EX);
+#endif
         int written = 0;
         while (written < len) {
             const long result = calf_syscall(SYS_write, fileFD, buf + written,
                                              static_cast<size_t>(len - written));
             if (result <= 0) {
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+                calf_syscall(SYS_flock, fileFD, LOCK_UN);
+#endif
                 return;
             }
             written += static_cast<int>(result);
         }
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        calf_syscall(SYS_flock, fileFD, LOCK_UN);
+#endif
     }
 
     static void rawWriteStr(const char *buf) {
@@ -74,25 +126,59 @@ struct SyscallLogger : CalfLogBase<SyscallLogger> {
     }
 
     static void ensureFileOpen() {
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        const auto currentPid = processId();
+        if (fileFD != -1 && filePid != currentPid) {
+            calf_syscall(SYS_close, fileFD);
+            fileFD = -1;
+            traceFileState.store(0, std::memory_order_release);
+        }
+#endif
         if (fileFD != -1) {
             return;
         }
 
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        int expected = 0;
+        const bool initializesTrace = traceFileState.compare_exchange_strong(
+            expected, 1, std::memory_order_acq_rel, std::memory_order_acquire);
+        if (!initializesTrace) {
+            while (traceFileState.load(std::memory_order_acquire) != 2) {
+                calf_syscall(SYS_sched_yield);
+            }
+        }
+        ::snprintf(filePath, PATH_MAX, "%s/%s_%ld%s", getHostLogDir(), CALF_COMPONENT_NAME,
+                   static_cast<long>(currentPid), CALF_LOG_FILE_EXTENSION);
+#else
         ::snprintf(filePath, PATH_MAX, "%s/%s%ld%s", getHostLogDir(), getLogPrefix(),
                    calf_syscall(SYS_gettid), CALF_LOG_FILE_EXTENSION);
+#endif
 
         calf_syscall(SYS_mkdirat, AT_FDCWD, getLogDir(), 0755);
+#ifndef CALF_LOG_FORMAT_PROTOBUF
         calf_syscall(SYS_mkdirat, AT_FDCWD, getSyscallLogDir(), 0755);
+#endif
         calf_syscall(SYS_mkdirat, AT_FDCWD, getHostLogDir(), 0755);
 
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        const int openFlags = O_CREAT | O_RDWR | O_APPEND | (initializesTrace ? O_TRUNC : 0);
+#else
+        constexpr int openFlags = O_CREAT | O_RDWR | O_TRUNC;
+#endif
         fileFD = static_cast<int>(
-            calf_syscall(SYS_openat, AT_FDCWD, filePath, O_CREAT | O_RDWR | O_TRUNC, 0644));
+            calf_syscall(SYS_openat, AT_FDCWD, filePath, openFlags, 0644));
 
         if (fileFD == -1) {
             const char *msg = "CALF: failed to open log file\n";
             calf_syscall(SYS_write, STDOUT_FILENO, msg, ::strlen(msg));
             ::exit(EXIT_FAILURE);
         }
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        if (initializesTrace) {
+            traceFileState.store(2, std::memory_order_release);
+        }
+        filePid = currentPid;
+#endif
     }
 
     static const char *getHostname() {
@@ -139,7 +225,11 @@ struct SyscallLogger : CalfLogBase<SyscallLogger> {
     static const char *getHostLogDir() {
         static char *d = nullptr;
         if (d == nullptr) {
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+            const char *parent = getLogDir();
+#else
             const char *parent = getSyscallLogDir();
+#endif
             d                  = new char[::strlen(parent) + CALF_HOSTNAME_BUFFER_SIZE]{0};
             ::sprintf(d, "%s/%s", parent, getHostname());
         }
@@ -147,8 +237,14 @@ struct SyscallLogger : CalfLogBase<SyscallLogger> {
     }
 };
 
-inline thread_local int SyscallLogger::fileFD               = -1;
-inline thread_local char SyscallLogger::filePath[PATH_MAX] = {'\0'};
+inline thread_local int CALF_SYSCALL_LOGGER_TYPE::fileFD               = -1;
+inline thread_local char CALF_SYSCALL_LOGGER_TYPE::filePath[PATH_MAX] = {'\0'};
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+inline thread_local pid_t CALF_SYSCALL_LOGGER_TYPE::filePid = 0;
+#endif
+
+using SyscallLogger = CALF_SYSCALL_LOGGER_TYPE;
+#undef CALF_SYSCALL_LOGGER_TYPE
 
 using Logger = TemplateLogger<SyscallLogger>;
 

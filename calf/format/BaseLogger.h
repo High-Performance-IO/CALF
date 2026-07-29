@@ -44,6 +44,15 @@ inline long long current_time_in_millis() {
     return static_cast<long long>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000 - start_time;
 }
 
+template <typename Adapter, typename = void> struct AdapterTimestamp {
+    static unsigned long now() { return static_cast<unsigned long>(current_time_in_millis()); }
+};
+
+template <typename Adapter>
+struct AdapterTimestamp<Adapter, std::void_t<decltype(Adapter::currentTimestamp())>> {
+    static unsigned long now() { return Adapter::currentTimestamp(); }
+};
+
 #ifdef __CALF_POSIX
 inline thread_local bool enable_logger = false;
 #else
@@ -86,7 +95,7 @@ template <typename Adapter> class TemplateLogger {
         va_list argp;
         va_start(argp, message);
 
-        adapter.writeOpening(current_time_in_millis(), this->invoker, this->file, this->line,
+        adapter.writeOpening(AdapterTimestamp<Adapter>::now(), this->invoker, this->file, this->line,
                              message, argp);
 
         va_end(argp);
@@ -100,7 +109,7 @@ template <typename Adapter> class TemplateLogger {
             return;
         }
 
-        adapter.writeEpilogue(static_cast<unsigned long>(current_time_in_millis()));
+        adapter.writeEpilogue(AdapterTimestamp<Adapter>::now());
 
         current_log_level--;
     }
@@ -112,7 +121,7 @@ template <typename Adapter> class TemplateLogger {
 
         va_list argp;
         va_start(argp, message);
-        adapter.printFormatted(current_time_in_millis(), this->invoker, this->file, this->line,
+        adapter.printFormatted(AdapterTimestamp<Adapter>::now(), this->invoker, this->file, this->line,
                                CALF_LOG_PRE_MSG, message, argp);
         va_end(argp);
     }

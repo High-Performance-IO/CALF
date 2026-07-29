@@ -4,13 +4,13 @@
 #if defined(CALF_LOG_FORMAT_PROTOBUF)
 #include "calf/format/ProtobufBaseLogger.h"
 template <typename Derived> using CalfLogBase = ProtobufLogBase<Derived>;
-inline constexpr char CALF_LOG_FILE_EXTENSION[] = ".perfetto-trace";
-inline constexpr bool CALF_LOG_FILE_BINARY = true;
+static constexpr char CALF_LOG_FILE_EXTENSION[] = ".perfetto-trace";
+static constexpr bool CALF_LOG_FILE_BINARY = true;
 #else
 #include "JsonBaseLogger.h"
 template <typename Derived> using CalfLogBase = JsonLogBase<Derived>;
-inline constexpr char CALF_LOG_FILE_EXTENSION[] = ".log";
-inline constexpr bool CALF_LOG_FILE_BINARY = false;
+static constexpr char CALF_LOG_FILE_EXTENSION[] = ".log";
+static constexpr bool CALF_LOG_FILE_BINARY = false;
 #endif
 
 #endif // CALF_LOGFORMAT_H

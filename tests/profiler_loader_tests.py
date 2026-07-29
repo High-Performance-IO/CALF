@@ -41,12 +41,17 @@ def test_discovers_json_and_perfetto_traces(tmp_path):
     trace_dir = tmp_path / "syscall" / "host"
     trace_dir.mkdir(parents=True)
     (trace_dir / "syscall_1.log").write_text(json.dumps({"invoker": "json", "ts": 1}))
-    (trace_dir / "syscall_2.perfetto-trace").write_bytes(
+    perfetto_dir = tmp_path / "host"
+    perfetto_dir.mkdir()
+    (perfetto_dir / "calf_42.perfetto-trace").write_bytes(
         calf_trace_pb2.Trace().SerializeToString()
     )
 
     tabs = discover_tabs(str(tmp_path))
-    assert [tab.tid for tab in tabs] == ["1", "2"]
+    assert [(tab.kind, tab.tid) for tab in tabs] == [
+        ("syscall", "1"),
+        ("calf", "process 42 (all threads)"),
+    ]
 
 
 def test_perfetto_loader_uses_bounded_reads(tmp_path, monkeypatch):
@@ -95,9 +100,9 @@ def test_web_server_creation_does_not_load_tabs(tmp_path):
 def test_cli_does_not_load_tabs(tmp_path, monkeypatch):
     from calf.profiler import __main__ as profiler_main
 
-    trace_dir = tmp_path / "syscall" / "host"
+    trace_dir = tmp_path / "host"
     trace_dir.mkdir(parents=True)
-    (trace_dir / "trace.perfetto-trace").write_bytes(
+    (trace_dir / "calf_42.perfetto-trace").write_bytes(
         calf_trace_pb2.Trace().SerializeToString()
     )
     captured_tabs = []

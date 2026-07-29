@@ -14,7 +14,7 @@ def main() -> None:
             "Traces are read from a log directory laid out as:\n"
             "  <log_dir>/syscall/<hostname>/<tid>.log\n"
             "  <log_dir>/stl/<hostname>/<tid>.log\n"
-            "  <log_dir>/syscall/<hostname>/<tid>.perfetto-trace\n\n"
+            "  <log_dir>/<hostname>/<component>_<pid>.perfetto-trace\n\n"
             "Each trace file becomes a tab in the web inspector."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

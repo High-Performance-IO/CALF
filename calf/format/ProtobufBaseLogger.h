@@ -9,13 +9,13 @@
 #include <unistd.h>
 
 #include "calf/utils/constants.h"
-#include "calf/utils/ThreadId.h"
 
 template <typename Derived> struct ProtobufLogBase {
     enum class EventType : std::uint64_t { SliceBegin = 1, SliceEnd = 2, Instant = 3 };
 
     bool scopeOpen{false};
     inline static thread_local bool descriptorWritten = false;
+    inline static thread_local pid_t descriptorPid = 0;
 
     void writeOpening(unsigned long timestamp, const char *invoker, const char *file, int line,
                       const char *messageFormat, va_list args) {
@@ -47,6 +47,7 @@ template <typename Derived> struct ProtobufLogBase {
 
     static void resetProtobufState() {
         descriptorWritten = false;
+        descriptorPid = 0;
     }
 
   private:
@@ -59,19 +60,21 @@ template <typename Derived> struct ProtobufLogBase {
     }
 
     static std::uint64_t trackUuid() {
-        return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(::getpid())) << 32U) |
-               static_cast<std::uint32_t>(calf_current_tid());
+        return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(Derived::processId()))
+                << 32U) |
+               static_cast<std::uint32_t>(Derived::threadId());
     }
 
     static void ensureTrackDescriptor() {
-        if (descriptorWritten) {
+        const auto pid = Derived::processId();
+        if (descriptorWritten && descriptorPid == pid) {
             return;
         }
 
         char threadBuffer[128];
         char *thread = threadBuffer;
-        appendUInt64(thread, 1, static_cast<std::uint32_t>(::getpid()));
-        appendUInt64(thread, 2, static_cast<std::uint64_t>(calf_current_tid()));
+        appendUInt64(thread, 1, static_cast<std::uint32_t>(pid));
+        appendUInt64(thread, 2, static_cast<std::uint64_t>(Derived::threadId()));
         appendString(thread, 5, "CALF thread", 11);
 
         char descriptorBuffer[256];
@@ -86,9 +89,10 @@ template <typename Derived> struct ProtobufLogBase {
         appendMessage(packet, 60, descriptorBuffer, descriptor);
         writePacket(packetBuffer, packet);
         descriptorWritten = true;
+        descriptorPid = pid;
     }
 
-    static void writeEvent(unsigned long /*timestamp*/, EventType type, const char *invoker,
+    static void writeEvent(unsigned long timestamp, EventType type, const char *invoker,
                            const char *file, int line, const char *message) {
         char eventBuffer[CALF_LOG_MAX_MSG_LEN + 1024];
         char *event = eventBuffer;
@@ -122,18 +126,16 @@ template <typename Derived> struct ProtobufLogBase {
 
         char packetBuffer[sizeof(eventBuffer) + 64];
         char *packet = packetBuffer;
-        timespec now{};
-        ::clock_gettime(CLOCK_MONOTONIC, &now);
-        const auto timestampNs = static_cast<std::uint64_t>(now.tv_sec) * 1000000000U +
-                                 static_cast<std::uint64_t>(now.tv_nsec);
-        appendUInt64(packet, 8, timestampNs);
+        appendUInt64(packet, 8, timestamp);
         appendUInt64(packet, 10, sequenceId());
         appendMessage(packet, 11, eventBuffer, event);
         writePacket(packetBuffer, packet);
     }
 
     static std::uint32_t sequenceId() {
-        const auto id = static_cast<std::uint32_t>(calf_current_tid());
+        const auto pid = static_cast<std::uint32_t>(Derived::processId());
+        const auto tid = static_cast<std::uint32_t>(Derived::threadId());
+        const auto id = (pid * 2246822519U) ^ tid;
         return id == 0 ? 1 : id;
     }
 

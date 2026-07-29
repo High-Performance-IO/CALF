@@ -282,8 +282,8 @@ class TraceTab:
     """
     One tab = one log file.
 
-    Tabs are labeled "<kind> / <hostname> / <tid>" so each thread's trace
-    is presented independently.
+    JSON tabs represent one thread. Perfetto tabs contain every thread for a
+    component on a host.
     """
     hostname: str
     kind:     str        # "syscall", "stl", or ...
@@ -294,6 +294,10 @@ class TraceTab:
     @property
     def tid(self) -> str:
         """Thread-id portion of the filename, e.g. '44623' from 'stl_44623.log'."""
+        if self.path.lower().endswith(".perfetto-trace"):
+            stem = os.path.basename(self.path)[: -len(".perfetto-trace")]
+            _, separator, pid = stem.rpartition("_")
+            return f"process {pid} (all threads)" if separator and pid.isdigit() else "all threads"
         stem = os.path.splitext(os.path.basename(self.path))[0]
         # Strip the kind prefix if present (stl_44623 -> 44623)
         if "_" in stem:
@@ -328,6 +332,7 @@ def discover_tabs(log_dir: str) -> list[TraceTab]:
     Expected CALF layout:
         <log_dir>/syscall/<hostname>/<tid>.log
         <log_dir>/stl/<hostname>/<tid>.log
+        <log_dir>/<hostname>/<component>_<pid>.perfetto-trace
     """
     if not os.path.isdir(log_dir):
         raise FileNotFoundError(f"Log directory not found: {log_dir!r}")
@@ -343,7 +348,12 @@ def discover_tabs(log_dir: str) -> list[TraceTab]:
             rel   = os.path.relpath(full, log_dir).replace("\\", "/")
             parts = rel.split("/")
 
-            if len(parts) == 3:
+            if fname.lower().endswith(".perfetto-trace"):
+                hostname = os.path.basename(root) or "unknown"
+                stem = fname[: -len(".perfetto-trace")]
+                component, separator, pid = stem.rpartition("_")
+                kind = component if separator and pid.isdigit() else stem or "unknown"
+            elif len(parts) == 3:
                 kind, hostname = parts[0], parts[1]
             else:
                 hostname = os.path.basename(root) or "unknown"

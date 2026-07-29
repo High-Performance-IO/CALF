@@ -83,7 +83,9 @@ Each log scope opened by `START_LOG` becomes one JSON object in a root array. In
 ]
 ```
 
-Each thread writes to its own log file under the log directory, named after the thread ID.
+JSON output writes one file per thread. Perfetto output combines all threads in
+one process into
+`$CALF_LOG_DIR/<hostname>/<component>_<pid>.perfetto-trace`.
 
 ### Perfetto output
 
@@ -93,6 +95,10 @@ existing logger include and macro interface remain unchanged:
 ```cmake
 target_link_libraries(my_server PRIVATE calf::protobuf)
 ```
+
+Projects using `calf_enable_log(target ON)` select Perfetto automatically when
+`CALF_PROTOBUF=ON`. Use `calf_enable_log(target ON JSON)` only for targets that
+intentionally require JSON output.
 
 ```cpp
 #include <calf/StlLogger.h>
@@ -108,6 +114,9 @@ and tests, and otherwise downloads it through `FetchContent`. Without the
 `calf::protobuf` link dependency, `StlLogger.h` and `SyscallLogger.h` produce
 JSON. The syscall backend writes Perfetto protobuf bytes directly through raw
 syscalls without constructing generated messages or allocating per event.
+STL writes are synchronized across threads, while syscall writes use file locks
+so packets cannot interleave. A process truncates its trace on the first write;
+different processes always write separate files.
 
 
 ## Integration
@@ -332,6 +341,8 @@ void internal_op() {
 | Variable             | Description                                                   | Default          |
 |----------------------|---------------------------------------------------------------|------------------|
 | `CALF_LOG_DIR`    | Root directory for all log output.                            | `./calf_logs` |
-| `CALF_LOG_PREFIX` | Filename prefix for per-thread log files.                     | Backend-specific |
+| `CALF_LOG_PREFIX` | Filename prefix for per-thread JSON files; ignored by Perfetto output. | Backend-specific |
 
-Log files are written to `$CALF_LOG_DIR/<backend>/<hostname>/<prefix><tid>.log`.
+JSON files are written to
+`$CALF_LOG_DIR/<component>/<hostname>/<prefix><tid>.log`. Perfetto files are
+written to `$CALF_LOG_DIR/<hostname>/<component>_<pid>.perfetto-trace`.
