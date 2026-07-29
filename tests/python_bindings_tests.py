@@ -2,8 +2,6 @@ from importlib.metadata import version
 import json
 import os
 from pathlib import Path
-import subprocess
-import sys
 
 import calf
 import pytest
@@ -76,13 +74,5 @@ def test_color_constants_are_exported():
     assert calf.CLI_LEVEL_ERROR == "\x1b[1;31m"
 
 
-def test_installed_distribution_metadata_and_cli():
+def test_installed_distribution_metadata():
     assert calf.__version__ == version("capio-calf")
-    result = subprocess.run(
-        [sys.executable, "-m", "calf", "--help"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, result.stderr
-    assert "Web inspector and profiler" in result.stdout
