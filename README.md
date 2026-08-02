@@ -126,6 +126,10 @@ The trace is streamed as logging occurs; CALF does not build the complete trace
 in memory. `StlLogger` uses generated protobuf support for the schema, while
 `SyscallLogger` writes compatible protobuf bytes through raw syscalls.
 
+CMake uses any installed Google Protobuf package that provides `protoc` and
+generates the schema with it. Otherwise, it downloads Protobuf through
+`FetchContent`.
+
 ### JSON fallback
 
 JSON is selected automatically by `calf_enable_log(target ON)` when
@@ -273,7 +277,9 @@ void internal_operation() {
 |---|---:|---|
 | `CALF_LOG` | `ON` | Enables logging macros globally; when disabled, they are no-ops. |
 | `CALF_PROTOBUF` | `ON` | Builds Perfetto support and the `calf::protobuf` target. |
-| `CALF_PROTOBUF_FETCH` | `ON` | Fetches the required protobuf version when it is not installed. |
+| `CALF_PROTOBUF_FETCH` | `ON` | Downloads Protobuf when an installation with `protoc` is unavailable. |
+| `CALF_PROTOBUF_FORCE_FETCH` | `OFF` | Downloads and uses Protobuf even when it is installed. |
+| `CALF_PROTOBUF_REGENERATE` | `OFF` | Adds the `calf_regenerate_protobuf` source regeneration target. |
 | `CALF_TESTS` | `OFF` | Builds and registers the C++ test suites. |
 | `CALF_PYTHON_TESTS` | Value of `CALF_TESTS` | Builds the Python extension and registers binding tests. |
 | `CALF_BUILD_PYTHON_BINDINGS` | `OFF` | Builds and installs the private `calf._py_calf` extension. |

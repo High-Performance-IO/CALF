@@ -9,8 +9,9 @@ option(CALF_TESTS "Enable CALF unit tests" OFF)
 option(CALF_PYTHON_TESTS "Enable CALF Python binding tests" ${CALF_TESTS})
 option(CALF_BUILD_PYTHON_BINDINGS "Build Python bindings for CALF" OFF)
 option(CALF_PROTOBUF "Build the Google Protobuf C++ logging component. Fallback to JSON logging when turned OFF" ON)
-option(CALF_PROTOBUF_FETCH "Fetch Protobuf when a compatible installation is unavailable" ON)
-option(CALF_PROTOBUF_REGENERATE "Build protoc and add the calf_regenerate_protobuf target" OFF)
+option(CALF_PROTOBUF_FETCH "Fetch Protobuf when an installation is unavailable" ON)
+option(CALF_PROTOBUF_FORCE_FETCH "Fetch Protobuf even when it is installed" OFF)
+option(CALF_PROTOBUF_REGENERATE "Add the calf_regenerate_protobuf target" OFF)
 
 set(CALF_DEFAULT_COMPONENT_NAME "calf" CACHE STRING "Fallback component name")
 set(CALF_DEFAULT_LOG_DIR_NAME "./calf_logs" CACHE STRING "Fallback default log dir name")
@@ -27,12 +28,18 @@ endif()
 #  Protobuf component
 # ---------------------------------------------------------------------------
 if(CALF_PROTOBUF)
-    # Protobuf 6.31.1 is built from upstream release 31.1, whose CMake package
-    # reports the project version as 31.1.0.
-    find_package(Protobuf 31.1.0 EXACT CONFIG QUIET)
-    if(NOT Protobuf_FOUND)
-        if(NOT CALF_PROTOBUF_FETCH)
-            message(FATAL_ERROR "Protobuf 6.31.1 is required when CALF_PROTOBUF_FETCH=OFF")
+    if(NOT CALF_PROTOBUF_FORCE_FETCH)
+        find_package(Protobuf CONFIG QUIET)
+        if(NOT Protobuf_FOUND)
+            find_package(Protobuf QUIET)
+        endif()
+        if(Protobuf_FOUND AND NOT TARGET protobuf::protoc)
+            set(Protobuf_FOUND FALSE)
+        endif()
+    endif()
+    if(CALF_PROTOBUF_FORCE_FETCH OR NOT Protobuf_FOUND)
+        if(NOT CALF_PROTOBUF_FETCH AND NOT CALF_PROTOBUF_FORCE_FETCH)
+            message(FATAL_ERROR "Protobuf with protoc is not installed and CALF_PROTOBUF_FETCH=OFF")
         endif()
         include(FetchContent)
         set(CMAKE_CXX_STANDARD 17)
@@ -47,9 +54,9 @@ if(CALF_PROTOBUF)
         set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
         set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
         set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
-        set(protobuf_BUILD_PROTOC_BINARIES ${CALF_PROTOBUF_REGENERATE} CACHE BOOL "" FORCE)
-        set(protobuf_BUILD_LIBPROTOC ${CALF_PROTOBUF_REGENERATE} CACHE BOOL "" FORCE)
-        set(protobuf_BUILD_LIBUPB ${CALF_PROTOBUF_REGENERATE} CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_LIBPROTOC ON CACHE BOOL "" FORCE)
+        set(protobuf_BUILD_LIBUPB ON CACHE BOOL "" FORCE)
         set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
         set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
         set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
@@ -63,6 +70,7 @@ if(CALF_PROTOBUF)
         FetchContent_Declare(
                 protobuf
                 GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+                # ponytail: keep one known-good download fallback; installed versions are unrestricted.
                 GIT_TAG v31.1
                 GIT_SHALLOW TRUE
                 ${_CALF_PROTOBUF_SYSTEM}
@@ -88,9 +96,24 @@ if(CALF_PROTOBUF)
         message(STATUS "CALF using installed Protobuf ${Protobuf_VERSION}: ${Protobuf_LIBRARIES}")
     endif()
 
+    if(NOT TARGET protobuf::protoc)
+        message(FATAL_ERROR "The selected Protobuf installation does not provide protoc")
+    endif()
+    set(_CALF_PROTOBUF_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/calf/protobuf")
+    add_custom_command(
+            OUTPUT "${_CALF_PROTOBUF_GENERATED_DIR}/calf_trace.pb.cc"
+                   "${_CALF_PROTOBUF_GENERATED_DIR}/calf_trace.pb.h"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${_CALF_PROTOBUF_GENERATED_DIR}"
+            COMMAND protobuf::protoc
+                    --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+                    --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/calf/protobuf/calf_trace.proto protobuf::protoc
+            VERBATIM
+    )
     add_library(calf_protobuf_schema STATIC
-            calf/protobuf/calf_trace.pb.cc
-            calf/protobuf/calf_trace.pb.h
+            "${_CALF_PROTOBUF_GENERATED_DIR}/calf_trace.pb.cc"
+            "${_CALF_PROTOBUF_GENERATED_DIR}/calf_trace.pb.h"
     )
     add_library(calf_protobuf INTERFACE)
     add_library(calf::protobuf ALIAS calf_protobuf)
@@ -100,7 +123,7 @@ if(CALF_PROTOBUF)
         target_compile_options(calf_protobuf_schema PRIVATE -Wno-error)
     endif()
     target_include_directories(calf_protobuf_schema
-            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+            PUBLIC "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     target_link_libraries(calf_protobuf_schema PUBLIC protobuf::libprotobuf)
     target_compile_definitions(calf_protobuf INTERFACE CALF_LOG_FORMAT_PROTOBUF)
     target_link_libraries(calf_protobuf INTERFACE calf_headers calf_protobuf_schema)
@@ -111,9 +134,6 @@ if(CALF_PROTOBUF)
     endforeach()
 
     if(CALF_PROTOBUF_REGENERATE)
-        if(NOT TARGET protobuf::protoc)
-            message(FATAL_ERROR "CALF_PROTOBUF_REGENERATE requires the protobuf::protoc target")
-        endif()
         add_custom_target(calf_regenerate_protobuf
                 COMMAND protobuf::protoc
                         --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}
