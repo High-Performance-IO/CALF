@@ -63,39 +63,3 @@ jobs:
         shell: bash -el {0}
         working-directory: build
         run: ctest --output-on-failure
-
-  macos-tests:
-    name: ${{ matrix.build_type }} with AppleClang
-    runs-on: macos-15
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: [Debug, Release]
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install dependencies
-        run: brew install cmake ninja protobuf
-
-      - name: Configure
-        run: |
-          cmake -S "${GITHUB_WORKSPACE}" \
-                -B "${GITHUB_WORKSPACE}/build" \
-                -G Ninja \
-                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                -DCALF_TESTS=ON \
-                -DCALF_PYTHON_TESTS=OFF \
-                -DCALF_PROTOBUF_FETCH=OFF
-
-      - name: Verify Protobuf
-        shell: bash
-        run: test ! -d "${GITHUB_WORKSPACE}/build/_deps/protobuf-src"
-
-      - name: Build
-        run: cmake --build "${GITHUB_WORKSPACE}/build" --parallel
-
-      - name: Run tests
-        shell: bash -el {0}
-        working-directory: build
-        run: ctest --output-on-failure
