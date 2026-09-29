@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "scikit-build-core[pyproject]==1.0.3",
+    "scikit-build-core[pyproject]==1.1.0",
     "pybind11==3.0.4",
     "setuptools==80.9.0",
     "wheel==0.45.1",
