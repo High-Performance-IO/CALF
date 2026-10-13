@@ -24,7 +24,7 @@
 // disk in bulk when the buffer fills or the process exits. Tune up for even fewer syscalls on
 // heavy syscall traces; keep modest if many threads each allocate one.
 #ifndef CALF_LOG_BUFFER_CAPACITY
-#define CALF_LOG_BUFFER_CAPACITY 65536
+#define CALF_LOG_BUFFER_CAPACITY 262144
 #endif
 
 #ifdef CALF_LOG_FORMAT_PROTOBUF
