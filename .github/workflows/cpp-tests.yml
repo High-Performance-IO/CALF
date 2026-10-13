@@ -19,17 +19,19 @@ jobs:
       matrix:
         build_type: [Debug, Release]
         compiler:
-          - gcc:9
-          - gcc:10
-          - gcc:11
           - gcc:12
           - gcc:13
-          - silkeh/clang:13
-          - silkeh/clang:14
+          - gcc:14
+          - gcc:15
+          - gcc:16
           - silkeh/clang:15
           - silkeh/clang:16
           - silkeh/clang:17
           - silkeh/clang:18
+          - silkeh/clang:19
+          - silkeh/clang:20
+          - silkeh/clang:21
+          - silkeh/clang:22
 
     container:
       image: ${{ matrix.compiler }}
