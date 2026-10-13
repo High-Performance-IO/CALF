@@ -112,26 +112,65 @@ TEST(SyscallProtobufLoggerTest, PreservesInterfaceAndWritesProtobuf) {
         });
     }
     for (auto &thread : threads) {
-        thread.join();
+        thread.join();  // worker threads flush their per-thread buffers on exit
     }
     EXPECT_EQ(threadPaths[0], path);
     EXPECT_EQ(threadPaths[1], path);
+
+    // Events are buffered and only written in bulk; flush the main thread's tail so the
+    // full trace is on disk before we read it back.
+    SyscallLogger::forceFlush();
 
     std::ifstream input(path, std::ios::binary);
     const std::string data((std::istreambuf_iterator<char>(input)),
                            std::istreambuf_iterator<char>());
     perfetto::protos::Trace trace;
     ASSERT_TRUE(trace.ParseFromString(data));
-    ASSERT_EQ(trace.packet_size(), 10);
-    EXPECT_TRUE(trace.packet(0).has_track_descriptor());
-    EXPECT_EQ(trace.packet(1).track_event().type(),
-              perfetto::protos::TrackEvent::TYPE_SLICE_BEGIN);
-    EXPECT_EQ(trace.packet(1).track_event().debug_annotations(0).string_value(), "scope=2");
-    EXPECT_EQ(trace.packet(2).track_event().type(),
-              perfetto::protos::TrackEvent::TYPE_INSTANT);
-    EXPECT_EQ(trace.packet(2).track_event().debug_annotations(0).string_value(), "event=written");
-    EXPECT_EQ(trace.packet(3).track_event().type(),
-              perfetto::protos::TrackEvent::TYPE_SLICE_END);
+
+    // With buffering, each thread's events are written in one chunk on thread exit/force
+    // flush, so the inter-thread ordering is a function of flush order, not write order.
+    // Assert the full content set instead of fixed packet indices.
+    int trackDescriptors = 0;
+    int sliceBegins = 0;
+    int instants = 0;
+    int sliceEnds = 0;
+    bool sawScopeAnnotation  = false;
+    bool sawEventAnnotation  = false;
+    for (const auto &packet : trace.packet()) {
+        if (packet.has_track_descriptor()) {
+            ++trackDescriptors;
+            continue;
+        }
+        const auto &ev = packet.track_event();
+        switch (ev.type()) {
+        case perfetto::protos::TrackEvent::TYPE_SLICE_BEGIN:
+            ++sliceBegins;
+            break;
+        case perfetto::protos::TrackEvent::TYPE_INSTANT:
+            ++instants;
+            break;
+        case perfetto::protos::TrackEvent::TYPE_SLICE_END:
+            ++sliceEnds;
+            break;
+        default:
+            break;
+        }
+        for (const auto &ann : ev.debug_annotations()) {
+            if (ann.string_value() == "scope=2") {
+                sawScopeAnnotation = true;
+            }
+            if (ann.string_value() == "event=written") {
+                sawEventAnnotation = true;
+            }
+        }
+    }
+    EXPECT_EQ(trace.packet_size(), 10);
+    EXPECT_EQ(trackDescriptors, 3);  // one per thread (main + 2 workers)
+    EXPECT_EQ(sliceBegins, 3);
+    EXPECT_EQ(instants, 1);
+    EXPECT_EQ(sliceEnds, 3);
+    EXPECT_TRUE(sawScopeAnnotation);
+    EXPECT_TRUE(sawEventAnnotation);
     EXPECT_EQ(std::filesystem::path(path).extension(), ".perfetto-trace");
     EXPECT_EQ(std::filesystem::path(path).filename(),
               "calf_" + std::to_string(::getpid()) + ".perfetto-trace");
@@ -147,6 +186,9 @@ TEST(SyscallProtobufLoggerTest, RoutesPerfettoSystemCallsThroughConfiguredHandle
     SET_CALF_SYSCALL_HANDLER(recordingSyscall);
     ENABLE_LOGGER();
     SyscallLogger::resetProtobufState();
+    // Prior tests ran on the main thread and cached pid/tid; drop that so the routing below
+    // actually exercises the configured syscall handler.
+    SyscallLogger::resetPidTidCache();
 
     {
         SyscallLoggingSuspender suspended;

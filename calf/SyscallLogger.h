@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <pthread.h>
 #include <string>
 #include <sys/file.h>
 #include <sys/syscall.h>
@@ -18,6 +19,13 @@
 
 #include "format/BaseLogger.h"
 #include "format/LogFormat.h"
+
+// Trace-event buffer capacity (bytes per thread). Events accumulate here and are flushed to
+// disk in bulk when the buffer fills or the process exits. Tune up for even fewer syscalls on
+// heavy syscall traces; keep modest if many threads each allocate one.
+#ifndef CALF_LOG_BUFFER_CAPACITY
+#define CALF_LOG_BUFFER_CAPACITY 65536
+#endif
 
 #ifdef CALF_LOG_FORMAT_PROTOBUF
 #define CALF_SYSCALL_LOGGER_TYPE PerfettoSyscallLogger
@@ -33,6 +41,67 @@ struct CALF_SYSCALL_LOGGER_TYPE : CalfLogBase<CALF_SYSCALL_LOGGER_TYPE> {
     static thread_local pid_t filePid;
     inline static std::atomic<int> traceFileState{0};
 #endif
+
+    // Caches for getpid()/gettid() so the per-event hot path issues no syscall for them.
+    // pid/tid are constant for a thread's lifetime; the only invalidation is fork(), handled
+    // by the atfork child hook below (clears them so the child re-reads its real pid/tid).
+    static thread_local pid_t cachedPid;
+    static thread_local long cachedTid;
+
+    // Trace-event buffer: events append here and are written to disk in bulk only when the
+    // buffer is full or the owning thread/process terminates. This avoids one write+flock
+    // syscall per event. Each thread owns its buffer, matching the per-thread fileFD below.
+    static constexpr std::size_t traceBufferCapacity = CALF_LOG_BUFFER_CAPACITY;
+    static thread_local char traceBuffer[CALF_LOG_BUFFER_CAPACITY];
+    static thread_local std::size_t traceBufferUsed;
+
+    // Flush the owning thread's buffer when the thread exits (so short-lived worker threads
+    // do not silently drop buffered events); the atexit handler covers the root thread.
+    struct TraceFlushOnExit {
+        ~TraceFlushOnExit() { flushTraceBuffer(); }
+    };
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+    inline static thread_local TraceFlushOnExit traceFlushGuard;
+#endif
+
+    // Write the accumulated trace bytes to disk (single flock+write+unflock), then reset.
+    // The buffer must be empty on entry to the child path of fork(), so the atfork child hook
+    // drops inherited in-flight bytes instead of writing a parent's events into the child file.
+    static void flushTraceBuffer() {
+        if (traceBufferUsed == 0) {
+            return;
+        }
+        ensureFileOpen();
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        calf_syscall(SYS_flock, fileFD, LOCK_EX);
+#endif
+        std::size_t written = 0;
+        while (written < traceBufferUsed) {
+            const long result = calf_syscall(SYS_write, fileFD, traceBuffer + written,
+                                             traceBufferUsed - written);
+            if (result <= 0) {
+                break;
+            }
+            written += static_cast<std::size_t>(result);
+        }
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        calf_syscall(SYS_flock, fileFD, LOCK_UN);
+#endif
+        traceBufferUsed = 0;
+    }
+
+    static void registerLifecycleHandlers() {
+        static const bool registered = [] {
+            ::pthread_atfork(nullptr, nullptr, +[] {
+                cachedPid = 0;
+                cachedTid = 0;
+                traceBufferUsed = 0;  // child file differs; inherit nothing
+            });
+            ::atexit(+[] { flushTraceBuffer(); });  // force-dump any partial tail on exit
+            return true;
+        }();
+        (void)registered;
+    }
 
     // Syscall function pointer — defaults to ::syscall.
     using SyscallFn                                = long (*)(long, ...);
@@ -62,9 +131,23 @@ struct CALF_SYSCALL_LOGGER_TYPE : CalfLogBase<CALF_SYSCALL_LOGGER_TYPE> {
     }
 
 #ifdef CALF_LOG_FORMAT_PROTOBUF
-    static pid_t processId() { return static_cast<pid_t>(calf_syscall(SYS_getpid)); }
+    static pid_t processId() {
+        registerLifecycleHandlers();
+        if (cachedPid != 0) {
+            return cachedPid;
+        }
+        cachedPid = static_cast<pid_t>(calf_syscall(SYS_getpid));
+        return cachedPid;
+    }
 
-    static long threadId() { return calf_syscall(SYS_gettid); }
+    static long threadId() {
+        registerLifecycleHandlers();
+        if (cachedTid != 0) {
+            return cachedTid;
+        }
+        cachedTid = calf_syscall(SYS_gettid);
+        return cachedTid;
+    }
 #endif
 
     explicit CALF_SYSCALL_LOGGER_TYPE() {
@@ -78,24 +161,40 @@ struct CALF_SYSCALL_LOGGER_TYPE : CalfLogBase<CALF_SYSCALL_LOGGER_TYPE> {
     }
 
     static void rawWriteBytes(const char *buf, int len) {
-        ensureFileOpen();
 #ifdef CALF_LOG_FORMAT_PROTOBUF
-        calf_syscall(SYS_flock, fileFD, LOCK_EX);
-#endif
+        const auto size = static_cast<std::size_t>(len);
+        // Oversized single write goes straight out so we never copy it twice.
+        if (size >= traceBufferCapacity) {
+            flushTraceBuffer();
+            ensureFileOpen();
+            calf_syscall(SYS_flock, fileFD, LOCK_EX);
+            std::size_t written = 0;
+            while (written < size) {
+                const long result = calf_syscall(SYS_write, fileFD, buf + written, size - written);
+                if (result <= 0) {
+                    break;
+                }
+                written += static_cast<std::size_t>(result);
+            }
+            calf_syscall(SYS_flock, fileFD, LOCK_UN);
+            return;
+        }
+        if (traceBufferUsed + size > traceBufferCapacity) {
+            flushTraceBuffer();  // make room
+        }
+        std::memcpy(traceBuffer + traceBufferUsed, buf, size);
+        traceBufferUsed += size;
+#else
+        ensureFileOpen();
         int written = 0;
         while (written < len) {
-            const long result = calf_syscall(SYS_write, fileFD, buf + written,
-                                             static_cast<size_t>(len - written));
+            const long result =
+                calf_syscall(SYS_write, fileFD, buf + written, static_cast<size_t>(len - written));
             if (result <= 0) {
-#ifdef CALF_LOG_FORMAT_PROTOBUF
-                calf_syscall(SYS_flock, fileFD, LOCK_UN);
-#endif
                 return;
             }
             written += static_cast<int>(result);
         }
-#ifdef CALF_LOG_FORMAT_PROTOBUF
-        calf_syscall(SYS_flock, fileFD, LOCK_UN);
 #endif
     }
 
@@ -103,7 +202,32 @@ struct CALF_SYSCALL_LOGGER_TYPE : CalfLogBase<CALF_SYSCALL_LOGGER_TYPE> {
         rawWriteBytes(buf, static_cast<int>(::strlen(buf)));
     }
 
-    static void flush() {}
+    // Force-write any buffered bytes to disk now. Called by the atexit handler and by any
+    // caller that needs durability before process/thread exit (buffered bytes are otherwise
+    // lost when a thread terminates).
+    static void forceFlush() {
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        flushTraceBuffer();
+#endif
+    }
+
+    // Discard the per-thread caching. After a fork()/exec() or between isolated test scopes,
+    // this forces the next processId()/threadId() to hit the real syscall once more.
+    static void resetPidTidCache() {
+        cachedPid = 0;
+        cachedTid = 0;
+    }
+
+    // Called by ProtobufLogBase after every SliceEnd, i.e. once per recorded syscall.
+    // Only a genuinely full buffer triggers a write; otherwise events stay buffered and are
+    // flushed when the buffer fills or the process terminates (atexit).
+    static void flush() {
+#ifdef CALF_LOG_FORMAT_PROTOBUF
+        if (traceBufferUsed >= traceBufferCapacity) {
+            flushTraceBuffer();
+        }
+#endif
+    }
 
     static void reopenRootArray() {
         ensureFileOpen();
@@ -127,6 +251,9 @@ struct CALF_SYSCALL_LOGGER_TYPE : CalfLogBase<CALF_SYSCALL_LOGGER_TYPE> {
 
     static void ensureFileOpen() {
 #ifdef CALF_LOG_FORMAT_PROTOBUF
+        // odr-use the per-thread flush guard so it constructs (and its destructor flushes the
+        // thread's buffer) for every thread that actually records events.
+        (void)&traceFlushGuard;
         const auto currentPid = processId();
         if (fileFD != -1 && filePid != currentPid) {
             calf_syscall(SYS_close, fileFD);
@@ -242,6 +369,10 @@ inline thread_local char CALF_SYSCALL_LOGGER_TYPE::filePath[PATH_MAX] = {'\0'};
 #ifdef CALF_LOG_FORMAT_PROTOBUF
 inline thread_local pid_t CALF_SYSCALL_LOGGER_TYPE::filePid = 0;
 #endif
+inline thread_local pid_t CALF_SYSCALL_LOGGER_TYPE::cachedPid = 0;
+inline thread_local long CALF_SYSCALL_LOGGER_TYPE::cachedTid  = 0;
+inline thread_local char CALF_SYSCALL_LOGGER_TYPE::traceBuffer[CALF_SYSCALL_LOGGER_TYPE::traceBufferCapacity];
+inline thread_local std::size_t CALF_SYSCALL_LOGGER_TYPE::traceBufferUsed = 0;
 
 using SyscallLogger = CALF_SYSCALL_LOGGER_TYPE;
 #undef CALF_SYSCALL_LOGGER_TYPE
